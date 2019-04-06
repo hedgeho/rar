@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">sch</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_home">Period</string>
+    <string name="title_dashboard">Diary</string>
+    <string name="title_notifications">Messages</string>
 </resources>
