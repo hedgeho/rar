@@ -172,12 +172,12 @@ public class PeriodFragment extends Fragment {
                             tv = new TextView(context);
                             tv.setTextSize(16);
                             tv.setLayoutParams(new TableRow.LayoutParams(j));
-                            if(j == tmp.size()-1)
-                                tv.setPadding(0, 0, 8, 0);
+                                tv.setPadding(0, 0, 8, 8);
                             tv.setText(tmp.get(j));
                             tv.setHeight(86);
                             row.addView(tv);
                         }
+                        row.setPadding(0, 0, 0, 8);
                         table.addView(row);
                     }
                     ready = true;
@@ -190,7 +190,6 @@ public class PeriodFragment extends Fragment {
         }.start();
     }
 
-    @SuppressLint("HandlerLeak")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -252,6 +251,7 @@ public class PeriodFragment extends Fragment {
                 tv_tmp.setPadding(0, 0, 8, 0);
                 tmp.addView(tv_tmp);
             }
+            tmp.setPadding(0, 0, 0, 8);
             l_subjects.addView(tmp);
         }
 

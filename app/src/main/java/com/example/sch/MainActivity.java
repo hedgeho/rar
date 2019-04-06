@@ -18,15 +18,17 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
-                case R.id.navigation_home:
+                case R.id.navigation_period:
                     loadFragment(fragment);
+                    setTitle("Period");
                     return true;
-                case R.id.navigation_dashboard:
+                case R.id.navigation_diary:
+                    setTitle("Diary");
 //                    FrameLayout frame = findViewById(R.id.frame);
 //                    frame.removeAllViews();
                     return true;
-                case R.id.navigation_notifications:
-
+                case R.id.navigation_messages:
+                    setTitle("Messages");
                     return true;
             }
             return false;
