@@ -19,10 +19,11 @@ public class MainActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_home:
-
+                    loadFragment(fragment);
                     return true;
                 case R.id.navigation_dashboard:
-                    loadFragment(fragment);
+//                    FrameLayout frame = findViewById(R.id.frame);
+//                    frame.removeAllViews();
                     return true;
                 case R.id.navigation_notifications:
 
@@ -38,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         fragment = new PeriodFragment();
+        fragment.start(getApplicationContext());
+        loadFragment(fragment);
         BottomNavigationView bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
     }
