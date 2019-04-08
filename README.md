@@ -38,3 +38,20 @@ DateTimeFormatter dateFormatter
   }<...>]
 }
 ```
+## Доступ к Firebase
+1. POST на `https://fcm.googleapis.com/fcm/send`
+``` javascript
+Authorization: key=%KEY%
+Content-Type: application/json // обязательно, а то ругнется
+{
+  "to": "id1" // id юзера в firebase
+  "data": { // дублируешь notification
+    "title": "TITLE"
+    "body": "test text"
+  }
+  "notification": {
+    "title": "TITLE"
+    "body": "test text"
+  }
+}
+```
