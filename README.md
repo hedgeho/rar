@@ -1,5 +1,15 @@
 # doka
 ## Доступ к дневнику
+### Шаг 1. useType
+GET на `https://app.eschool.center/ec-server/esia/useType`<br>
+headers:`Cookie: site_ver=app; _pk_ses.1.81ed=*; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.`
+В Response Cookie (или header Set-Cookie) прилетает route и JSESSIONID.
+### Шаг 2. login
+POST на `https://app.eschool.center/ec-server/login`<br>
+В headers прилагаешь только что полученные JSESSIONID и route, а также те же куки из useType.<br>
+В запрос пишешь `username=LOGIN&password=HASH`<br>
+В ответ приходит, собственно кука JSESSIONID, которую вместе с route и теми ты прикладываешь везде.<br>
+### Доступ к расписанию
 GET на `https://app.eschool.center/ec-server/student/diary?userId=`%USER_ID%`&d1=1554066000000&d2=1554645636682`<br>
 d1 = дата начала периода (в миллисекундах), d2 = дата конца периода <br>
 Единственный рабочий способ перевести дату в миллисекунды:
