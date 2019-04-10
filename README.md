@@ -41,6 +41,7 @@ DateTimeFormatter dateFormatter
 ## Доступ к Firebase
 1. POST на `https://fcm.googleapis.com/fcm/send`
 ``` javascript
+Headers:
 Authorization: key=%KEY%
 Content-Type: application/json // обязательно, а то ругнется
 {
