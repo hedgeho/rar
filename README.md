@@ -66,3 +66,36 @@ Content-Type: application/json // обязательно, а то ругнетс
   }
 }
 ```
+## Формат взаимодействия с сервером
+### Запрос о новом юзере
+POST на `https://still-cove-90434.herokuapp.com/login`
+``` javascript
+{
+  "login": // login
+  "password": // hash
+  "id": // firebase_id
+} 
+// все string
+```
+### Уведомление о новой оценке
+``` javascript
+data: {
+  "type": "mark"
+  "val": 2 // int
+  "coef": 0.5 // double
+  "unitId": 1416 // int
+}
+```
+### Уведомление о новом сообщении
+``` javascript
+data: {
+  "type": "msg"
+  "text": "jqbnkjqekvfnnasffgknm"
+  "senderId": 69908
+  "senderFio": "Гуров Матвей Вадимович"
+  "threadId": 677770
+  "date": 1555008702000
+  // если есть тема диалога, то еще присылай
+  "subject": "ёу"
+}
+```
