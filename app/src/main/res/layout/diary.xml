@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
 
     <HorizontalScrollView
-        android:id="@+id/scroll"
+        android:id="@+id/tv_users"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"

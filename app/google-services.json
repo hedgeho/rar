@@ -1,0 +1,35 @@
+{
+  "project_info": {
+    "project_number": "803429823728",
+    "firebase_url": "https://telepuz-2019.firebaseio.com",
+    "project_id": "telepuz-2019",
+    "storage_bucket": "telepuz-2019.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803429823728:android:3de856298f84227e",
+        "android_client_info": {
+          "package_name": "com.example.sch"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFu4emZ25e2Pp2vxGM7IMbMgDmO4n105w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "803429823728-qt4j7sufkeohuehf76ruqibk7it98lgh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

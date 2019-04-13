@@ -1,38 +1,45 @@
 package com.example.sch;
 
-public class TheSingleton {
+class TheSingleton {
     private static final TheSingleton ourInstance = new TheSingleton();
     private String COOKIE, ROUTE;
-    private int USER_ID;
+    private int USER_ID, PERSON_ID;
 
     static TheSingleton getInstance() {
         return ourInstance;
     }
 
-    private TheSingleton() {
-    }
+    private TheSingleton() {}
 
-    public String getCOOKIE() {
+    String getCOOKIE() {
         return COOKIE;
     }
 
-    public void setCOOKIE(String COOKIE) {
+    void setCOOKIE(String COOKIE) {
         this.COOKIE = COOKIE;
     }
 
-    public int getUSER_ID() {
+    int getUSER_ID() {
         return USER_ID;
     }
 
-    public void setUSER_ID(int USER_ID) {
+    void setUSER_ID(int USER_ID) {
         this.USER_ID = USER_ID;
     }
 
-    public String getROUTE() {
+    String getROUTE() {
         return ROUTE;
     }
 
-    public void setROUTE(String ROUTE) {
+    void setROUTE(String ROUTE) {
         this.ROUTE = ROUTE;
+    }
+
+    int getPERSON_ID() {
+        return PERSON_ID;
+    }
+
+    void setPERSON_ID(int PERSON_ID) {
+        this.PERSON_ID = PERSON_ID;
     }
 }

@@ -1,25 +1,17 @@
 package com.example.sch;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.constraint.ConstraintLayout;
-import android.support.constraint.ConstraintSet;
 import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
@@ -37,16 +29,15 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import static com.example.sch.LoginActivity.log;
+import static com.example.sch.LoginActivity.loge;
 
 public class PeriodFragment extends Fragment {
 
-    private static String COOKIE, ROUTE;
-    private static int USER_ID;
+    private String COOKIE, ROUTE;
+    private int USER_ID;
     TableLayout table;
     Subject[] subjects;
-    ArrayList<ArrayList<String>> list;
     boolean ready = false;
-    static Handler h;
     public PeriodFragment () {}
 
 
@@ -81,11 +72,8 @@ public class PeriodFragment extends Fragment {
 
                     Log.v("mylog","diary: " + result.toString());
 
-
                     JSONObject obj = new JSONObject(result.toString());
-                    log("ddd");
                     JSONArray array = obj.getJSONArray("result");
-                    log("ddd");
                     int[] unitId_array = new int[array.length()];
                     subjects = new Subject[array.length()];
                     for (int i = 0; i < array.length(); i++) {
@@ -146,21 +134,12 @@ public class PeriodFragment extends Fragment {
                             tmp.add(obj.getString("markVal"));
                         }
                     }
-                    log("ktfrnk");
-                    final ArrayList<ArrayList<String>> list = arr;
-                    //ArrayAdapter adapter1 = new ArrayAdapter(getApplicationContext(), R.layout.item, arr.toArray());
-                    //MyAdapter adapter = new MyAdapter(arr);
-
-                    log("ff");
-
 
                     TableRow row;
                     TextView tv;
-                    log("list.size = " + list.size());
-                    for (int i = 0; i < list.size(); i++) {
+                    for (int i = 0; i < arr.size(); i++) {
                         row = new TableRow(context);
-                        tmp = list.get(i);
-                        log("tmp.size = " + tmp.size());
+                        tmp = arr.get(i);
                         if(tmp.size() == 0) {
                             tv = new TextView(context);
                             tv.setLayoutParams(new TableRow.LayoutParams(0));
@@ -174,6 +153,7 @@ public class PeriodFragment extends Fragment {
                             tv.setLayoutParams(new TableRow.LayoutParams(j));
                                 tv.setPadding(0, 0, 8, 8);
                             tv.setText(tmp.get(j));
+                            tv.setTextColor(getResources().getColor(R.color.three));
                             tv.setHeight(86);
                             row.addView(tv);
                         }
@@ -181,10 +161,8 @@ public class PeriodFragment extends Fragment {
                         table.addView(row);
                     }
                     ready = true;
-
-                    //h.sendMessage(h.obtainMessage(2));
                 } catch (Exception e) {
-                    Log.e("mylog", e.toString());
+                    loge(e.toString());
                 }
             }
         }.start();
@@ -198,7 +176,6 @@ public class PeriodFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        log("onCreateView()");
         return inflater.inflate(R.layout.diary, container, false);
     }
 
@@ -213,9 +190,6 @@ public class PeriodFragment extends Fragment {
                 //
             }
         }
-        log("onViewCreated()");
-
-        log(subjects.length + "");
         LinearLayout l_subjects = view.findViewById(R.id.linear);
         LinearLayout tmp;
         TextView tv_tmp;
@@ -230,7 +204,7 @@ public class PeriodFragment extends Fragment {
             tv_tmp = new TextView(getContext());
             tv_tmp.setText(s.name);
             tv_tmp.setTextSize(16);
-            tv_tmp.setTextColor(Color.BLACK);
+            tv_tmp.setTextColor(getResources().getColor(R.color.three));
             tv_tmp.setPadding(0, 0, 8, 0);
             tmp.addView(tv_tmp);
 
@@ -238,7 +212,7 @@ public class PeriodFragment extends Fragment {
                 tv_tmp = new TextView(getContext());
                 tv_tmp.setText(String.format(Locale.UK, "%.2f", s.avg));
                 tv_tmp.setTextSize(16);
-                tv_tmp.setTextColor(Color.BLUE);
+                tv_tmp.setTextColor(getResources().getColor(R.color.two));
                 tv_tmp.setPadding(0, 0, 8, 0);
                 tmp.addView(tv_tmp);
             }
@@ -247,7 +221,7 @@ public class PeriodFragment extends Fragment {
                 tv_tmp = new TextView(getContext());
                 tv_tmp.setText(s.rating);
                 tv_tmp.setTextSize(16);
-                tv_tmp.setTextColor(Color.RED);
+                tv_tmp.setTextColor(getResources().getColor(R.color.one));
                 tv_tmp.setPadding(0, 0, 8, 0);
                 tmp.addView(tv_tmp);
             }
@@ -255,8 +229,11 @@ public class PeriodFragment extends Fragment {
             l_subjects.addView(tmp);
         }
 
-        HorizontalScrollView scroll = view.findViewById(R.id.scroll);
+        HorizontalScrollView scroll = view.findViewById(R.id.tv_users);
         LinearLayout layout = new LinearLayout(getContext());
+        if(table.getParent() != null) {
+            ((ViewGroup)table.getParent()).removeView(table);
+        }
         layout.addView(table, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         scroll.addView(layout, HorizontalScrollView.LayoutParams.MATCH_PARENT, HorizontalScrollView.LayoutParams.WRAP_CONTENT);
     }
