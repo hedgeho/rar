@@ -44,6 +44,8 @@ public class ChatFragment extends Fragment {
     private String[] time;
     private Handler h;
 
+    //  ALERT
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
