@@ -6,12 +6,9 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.FrameLayout;
-import android.widget.Toolbar;
 
 import static com.example.sch.LoginActivity.log;
 
@@ -19,6 +16,7 @@ public class MainActivity extends AppCompatActivity {
 
     PeriodFragment periodFragment;
     MessagesFragment messagesFragment;
+    ScheduleFragment scheduleFragment;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -31,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.navigation_diary:
                     setTitle("Diary");
+                    loadFragment(scheduleFragment);
                     return true;
                 case R.id.navigation_messages:
                     setTitle("Messages");
@@ -50,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
         periodFragment.start(getApplicationContext());
         messagesFragment = new MessagesFragment();
         messagesFragment.start();
+        scheduleFragment = new ScheduleFragment();
+        scheduleFragment.start();
 
         loadFragment(periodFragment);
         //loadFragment(messagesFragment);
