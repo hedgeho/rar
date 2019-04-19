@@ -21,6 +21,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
+
 public class DayFragment extends Fragment {
 
     String homework = "";

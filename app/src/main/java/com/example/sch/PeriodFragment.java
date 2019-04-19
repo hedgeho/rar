@@ -214,6 +214,7 @@ public class PeriodFragment extends Fragment {
                 tv_tmp.setTextColor(getResources().getColor(R.color.two));
                 tv_tmp.setPadding(0, 0, 8, 0);
                 tmp.addView(tv_tmp);
+
             }
 
             if(!s.rating.equals("")) {
