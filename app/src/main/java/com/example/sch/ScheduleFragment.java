@@ -1,5 +1,6 @@
 package com.example.sch;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
@@ -7,17 +8,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -30,8 +35,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import static com.example.sch.LoginActivity.log;
 
@@ -48,28 +58,15 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
     int USER_ID;
     TableLayout tableLayout, tableLayout1;
     Long d = Long.valueOf(86400000);
-    Long d1 = 1554670800000L, d2 = d1 + d * 6;
+    Long d1, d2;
+    String date;
 
     public ScheduleFragment () {
         lessons.add(new Lesson[6][6]);
     }
 
-    public void start() {
-        SimpleDateFormat sdf = new SimpleDateFormat("");
-        Date d = new Date();
-        String dayOfTheWeek = sdf.format(d);
-
-        new Thread() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void run() {
-                try {
-                    Download(0);
-                } catch(Exception e) {
-
-                }
-            }
-        }.start();
+    static void sasha(String s) {
+        Log.v("sasha", s);
     }
 
     @Override
@@ -77,11 +74,64 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         super.onCreate(savedInstanceState);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void start() {
+        SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd MM yyyy", Locale.ENGLISH);
+        Date currentTime1 = Calendar.getInstance().getTime();
+        date = dateFormat1.format(currentTime1);
+
+        SimpleDateFormat dateFormat2 = new SimpleDateFormat("EEE", Locale.ENGLISH);
+        Date currentTime2 = Calendar.getInstance().getTime();
+        String dayOfTheWeek = dateFormat2.format(currentTime2);
+        switch (dayOfTheWeek) {
+            case "Mon":
+                day = 1;
+                break;
+            case "Tue":
+                day = 2;
+                break;
+            case "Wed":
+                day = 3;
+                break;
+            case "Thu":
+                day = 4;
+                break;
+            case "Fri":
+                day = 5;
+                break;
+            case "Sat":
+                day = 6;
+                break;
+            case "Sun":
+                day = 7;
+                break;
+        }
+
+        DateTimeFormatter dateFormatter
+                = DateTimeFormatter.ofPattern("dd MM yyyy", Locale.ENGLISH);
+        d1 = LocalDate.parse(date, dateFormatter)
+                .atStartOfDay(ZoneId.systemDefault())
+                .toInstant()
+                .toEpochMilli() - (day - 1) * d;
+        d2 = d1 + d * 6;
+
+        new Thread() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void run() {
+                try {
+                    Download(0);
+                } catch (Exception e) {
+                }
+            }
+        }.start();
+    }
+
+    @SuppressLint("ResourceType")
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_schedue,container,false);
-        v.setBackgroundColor(Color.WHITE);
         tableLayout = v.findViewById(R.id.table);
         tableLayout.setStretchAllColumns(true);
         tableLayout1 = v.findViewById(R.id.table1);
@@ -94,114 +144,56 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         btn1.setOnClickListener(this);
         btn2.setOnClickListener(this);
 
+        btn1.setBackgroundColor(Color.TRANSPARENT);
+        btn2.setBackgroundColor(Color.TRANSPARENT);
+
+        LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
+        linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+        linearLayout.setWeightSum(1);
+
         TableRow tbrow1 = new TableRow(getActivity().getApplicationContext());
         tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                 TableLayout.LayoutParams.WRAP_CONTENT));
         for (int i = 0; i < 7; i++) {
             tv[i] = new TextView(getActivity().getApplicationContext());
-            tv[i].setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             tv[i].setId(i);
             tv[i].setGravity(Gravity.CENTER);
             tv[i].setText(days[i]);
-            tv[i].setTextSize(15);
-            tbrow1.addView(tv[i]);
+            tv[i].setTextColor(Color.WHITE);
+            tv[i].setTextSize(20);
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            p.weight = (float) 1 / 7;
+            tv[i].setLayoutParams(p);
+            final int finalI = i;
+            tv[i].setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    day = finalI + 1;
+                    okras(tv);
+                    tv[finalI].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
+                    tv[finalI].setTextColor(Color.BLACK);
+                    tableLayout1.removeAllViews();
+                    CreateTable();
+                }
+            });
+            linearLayout.addView(tv[i]);
         }
 
         tv[day-1].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
-        tv[day-1].setBackgroundColor(getResources().getColor(R.color.five));
-        tableLayout.addView(tbrow1);
+        tv[day - 1].setTextColor(Color.BLACK);
+        tableLayout.addView(linearLayout);
         CreateTable();
         return v;
     }
+
     public void okras(TextView [] tv){
         for (int i = 0; i < 7; i++) {
-            tv[i].setBackgroundColor(Color.WHITE);
+            tv[i].setBackground(null);
+            tv[i].setTextColor(Color.WHITE);
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
-    public void CreateTable(){
-        for (int i = 0; i < 6; i++) {
-            TableRow tbrow = new TableRow(getActivity().getApplicationContext());
-            tbrow.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
-                    TableLayout.LayoutParams.WRAP_CONTENT));
-
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
-            tv1.setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
-
-            TextView tv2 = new TextView(getActivity().getApplicationContext());
-            tv2.setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT));
-
-            TextView tv3 = new TextView(getActivity().getApplicationContext());
-            tv2.setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT));
-
-            tv2.setGravity(Gravity.CENTER_VERTICAL);
-            tv1.setGravity(Gravity.CENTER);
-            tv3.setGravity(Gravity.CENTER_HORIZONTAL);
-
-            tv1.setId(i);
-            tv1.setTextColor(getResources().getColor(R.color.five));
-            tv2.setId(i);
-            tv3.setId(i);
-
-            tbrow.setOnClickListener(this);
-
-            tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-            tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-            tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-
-            try {
-                tv1.setText(String.valueOf(lessons.get(index)[day - 1][i].numInDay));
-                String s = lessons.get(index)[day - 1][i].name + "\n" + lessons.get(index)[day - 1][i].homeWork.stringwork;
-                Spannable spans = new SpannableString(s);
-                spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                tv2.setText(spans);
-            }catch (Exception e){}
-            tv1.setHeight(180);
-            tv1.setWidth(50);
-            tv3.setHeight(180);
-            tv3.setWidth(170);
-            tv2.setHeight(180);
-            tv2.setPadding(30,30,30,30);
-            tv3.setPadding(0,70,0,0);
-            try {
-                StringBuilder s1 = new StringBuilder();
-                for (int j = 0; j < lessons.get(index)[day - 1][i].marks.size(); j++) {
-                    s1.append(String.valueOf(lessons.get(index)[day - 1][i].marks.get(j).value));
-                    if (lessons.get(index)[day - 1][i].marks.size() > 1 && j != lessons.get(index)[day - 1][i].marks.size() - 1) {
-                        s1.append("/");
-                    }
-                }
-                s1.append("\n");
-                for (int j = 0; j < lessons.get(index)[day - 1][i].marks.size(); j++) {
-                    s1.append(String.valueOf(lessons.get(index)[day - 1][i].marks.get(j).coefficient));
-                    if (lessons.get(index)[day - 1][i].marks.size() > 1 && j != lessons.get(index)[day - 1][i].marks.size() - 1) {
-                        s1.append("/");
-                    }
-                }
-                Spannable spans1 = new SpannableString(s1.toString());
-                spans1.setSpan(new RelativeSizeSpan(1.2f), 0,s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spans1.setSpan(new RelativeSizeSpan(0.9f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                tv3.setText(spans1);
-            }catch (Exception e){}
-
-            tbrow.addView(tv1);
-            tbrow.addView(tv2);
-            tbrow.addView(tv3);
-
-            tableLayout1.addView(tbrow, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
-        }
-    }
     @RequiresApi(api = Build.VERSION_CODES.O)
-    void Download(int index){
+    void Download(int index) {
         try {
             COOKIE = TheSingleton.getInstance().getCOOKIE();
             ROUTE = TheSingleton.getInstance().getROUTE();
@@ -290,20 +282,135 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                     Long id1 = lesson.id;
                     for (int k = 0; k < marks.size(); k++) {
                         Mark mark = marks.get(k);
-                        System.out.println(id1 - mark.idlesson);
                         if (id1 - mark.idlesson == 0) {
                             lessons.get(index)[i][j].marks.add(mark);
                         }
                     }
                 }
             }
-        } catch (Exception e){}
+        } catch (Exception e) {
+        }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    public void CreateTable(){
+        for (int i = 0; i < 6; i++) {
+            TableRow tbrow = new TableRow(getActivity().getApplicationContext());
+            tbrow.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
+                    TableLayout.LayoutParams.WRAP_CONTENT));
+
+            tbrow.setBaselineAligned(false);
+
+            TextView tv2 = new TextView(getActivity().getApplicationContext());
+            tv2.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
+
+            TextView tv3 = new TextView(getActivity().getApplicationContext());
+            tv3.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT,TableRow.LayoutParams.MATCH_PARENT));
+
+            tv2.setGravity(Gravity.CENTER_VERTICAL);
+            tv1.setGravity(Gravity.CENTER);
+            tv3.setGravity(Gravity.CENTER);
+
+            tv1.setId(i);
+            tv1.setTextColor(Color.WHITE);
+            tv2.setId(i);
+            tv3.setId(i);
+            sasha(String.valueOf(tv2.getHeight()));
+
+            final int finalI = i;
+            try {
+                tbrow.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View v, MotionEvent event) {
+
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        DayFragment fragment = new DayFragment();
+                        transaction.replace(R.id.frame, fragment);
+                        try {
+                            fragment.homework = lessons.get(index)[day - 1][finalI].homeWork.stringwork;
+                            fragment.teachername = lessons.get(index)[day - 1][finalI].teachername;
+                            fragment.topic = lessons.get(index)[day - 1][finalI].topic;
+                            fragment.marks = lessons.get(index)[day - 1][finalI].marks;
+                        } catch (Exception e) {
+                        }
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                        return false;
+                    }
+                });
+            } catch (Exception e) {
+            }
+            tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+            tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+            tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+
+            try {
+                tv1.setText(String.valueOf(lessons.get(index)[day - 1][i].numInDay));
+                String s = lessons.get(index)[day - 1][i].name + "\n" + lessons.get(index)[day - 1][i].homeWork.stringwork;
+                Spannable spans = new SpannableString(s);
+                spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                tv2.setText(spans);
+            }catch (Exception e){}
+            tv1.setPadding(15, 0, 15, 0);
+            tv2.setPadding(30,30,30,30);
+            tv3.setPadding(30, 0, 30, 0);
+            tv2.setMaxLines(2);
+            tv2.setEllipsize(TextUtils.TruncateAt.END);
+            try {
+                StringBuilder s1 = new StringBuilder();
+                for (int j = 0; j < lessons.get(index)[day - 1][i].marks.size(); j++) {
+                    s1.append(String.valueOf(lessons.get(index)[day - 1][i].marks.get(j).value));
+                    if (lessons.get(index)[day - 1][i].marks.size() > 1 && j != lessons.get(index)[day - 1][i].marks.size() - 1) {
+                        s1.append("/");
+                    }
+                }
+                s1.append("\n");
+                for (int j = 0; j < lessons.get(index)[day - 1][i].marks.size(); j++) {
+                    s1.append(String.valueOf(lessons.get(index)[day - 1][i].marks.get(j).coefficient));
+                    if (lessons.get(index)[day - 1][i].marks.size() > 1 && j != lessons.get(index)[day - 1][i].marks.size() - 1) {
+                        s1.append("/");
+                    }
+                }
+                Spannable spans1 = new SpannableString(s1.toString());
+                spans1.setSpan(new RelativeSizeSpan(1.4f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                tv3.setText(spans1);
+            }catch (Exception e){}
+            tbrow.addView(tv1);
+            tbrow.addView(tv2);
+            tbrow.addView(tv3);
+            tableLayout1.addView(tbrow);
+        }
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        log("onAttach");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        log("onDetach");
     }
 
     @TargetApi(Build.VERSION_CODES.O)
     @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onClick(View v) {
+        sasha(String.valueOf(v.getId()));
         switch(v.getId()){
             case R.id.button1:
                 day--;
@@ -330,7 +437,8 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                     day = 7;
                 }
                 okras(tv);
-                tv[day-1].setBackgroundColor(getResources().getColor(R.color.four));
+                tv[day - 1].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
+                tv[day - 1].setTextColor(Color.BLACK);
                 tableLayout1.removeAllViews();
                 CreateTable();
                 break;
@@ -358,23 +466,22 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                     day = 1;
                 }
                 okras(tv);
-                tv[day-1].setBackgroundColor(getResources().getColor(R.color.four));
+                tv[day - 1].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
+                tv[day - 1].setTextColor(Color.BLACK);
                 tableLayout1.removeAllViews();
                 CreateTable();
-                break;
-            default:
                 break;
         }
     }
 
     class Lesson {
-        int numInDay,numDay;
-        String name,teachername,topic;
+        int numInDay, numDay;
+        String name, teachername, topic;
         HomeWork homeWork;
         ArrayList<Mark> marks = new ArrayList<>();
         Long id;
 
-        Lesson(Long id, int numInDay, int numDay, String name, String teachername, String topic,HomeWork homeWork){
+        Lesson(Long id, int numInDay, int numDay, String name, String teachername, String topic, HomeWork homeWork) {
             this.numInDay = numInDay;
             this.numDay = numDay;
             this.name = name;
@@ -383,41 +490,34 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
             this.homeWork = homeWork;
             this.id = id;
         }
-        Lesson(){}
+
+        Lesson() {
+        }
 
     }
+
     class HomeWork {
-        int []idfils;
+        int[] idfils;
         String stringwork;
 
-        HomeWork(String a){
+        HomeWork(String a) {
             stringwork = a;
         }
-        HomeWork(){ }
+
+        HomeWork() {
+        }
     }
-    class Mark{
+
+    class Mark {
         int value;
         double coefficient;
         Long idlesson;
-        Mark(int value, double coefficient, Long idlesson){
+
+        Mark(int value, double coefficient, Long idlesson) {
             this.value = value;
             this.coefficient = coefficient;
             this.idlesson = idlesson;
         }
-    }
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        log("onAttach");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        log("onDetach");
-    }
-    static void sashs(String s){
-        Log.v("sasha", s);
     }
 
 }
