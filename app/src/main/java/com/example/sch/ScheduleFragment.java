@@ -55,7 +55,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
     String COOKIE, ROUTE;
     int USER_ID;
     TableLayout tableLayout, tableLayout1;
-    Long d = Long.valueOf(86400000);
+    Long d = 86400000L;
     Long d1, d2;
     String date;
 
@@ -125,10 +125,10 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
     }
 
     @SuppressLint("ResourceType")
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_schedue,container,false);
+        View v = inflater.inflate(R.layout.fragment_schedule,container,false);
         tableLayout = v.findViewById(R.id.table);
         tableLayout.setStretchAllColumns(true);
         tableLayout1 = v.findViewById(R.id.table1);
@@ -189,7 +189,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+    //@RequiresApi(api = Build.VERSION_CODES.O)
     void Download(int index) {
         try {
             COOKIE = TheSingleton.getInstance().getCOOKIE();
@@ -269,7 +269,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                     if (i == 17) {
                         numinday += 1;
                     }
-                    lessons.get(index)[Math.toIntExact(day)][numinday - 1] = new Lesson(id, numinday, (int) (day + 1), namesubject, nameteacher, topic, homeWork);
+                    lessons.get(index)[day.intValue()][numinday - 1] = new Lesson(id, numinday, (int) (day + 1), namesubject, nameteacher, topic, homeWork);
                     homeWork = new HomeWork(" ");
                 }
             }
@@ -290,7 +290,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void CreateTable(){
         for (int i = 0; i < 6; i++) {
             TableRow tbrow = new TableRow(getActivity().getApplicationContext());
@@ -365,14 +365,14 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
             try {
                 StringBuilder s1 = new StringBuilder();
                 for (int j = 0; j < lessons.get(index)[day - 1][i].marks.size(); j++) {
-                    s1.append(String.valueOf(lessons.get(index)[day - 1][i].marks.get(j).value));
+                    s1.append(lessons.get(index)[day - 1][i].marks.get(j).value);
                     if (lessons.get(index)[day - 1][i].marks.size() > 1 && j != lessons.get(index)[day - 1][i].marks.size() - 1) {
                         s1.append("/");
                     }
                 }
                 s1.append("\n");
                 for (int j = 0; j < lessons.get(index)[day - 1][i].marks.size(); j++) {
-                    s1.append(String.valueOf(lessons.get(index)[day - 1][i].marks.get(j).coefficient));
+                    s1.append(lessons.get(index)[day - 1][i].marks.get(j).coefficient);
                     if (lessons.get(index)[day - 1][i].marks.size() > 1 && j != lessons.get(index)[day - 1][i].marks.size() - 1) {
                         s1.append("/");
                     }
@@ -383,7 +383,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                 spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                 spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv3.setText(spans1);
-            }catch (Exception e){}
+            }catch (Exception ignored){}
             tbrow.addView(tv1);
             tbrow.addView(tv2);
             tbrow.addView(tv3);
@@ -403,8 +403,8 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         log("onDetach");
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
+    //@TargetApi(Build.VERSION_CODES.O)
+    //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onClick(View v) {
         sasha(String.valueOf(v.getId()));
