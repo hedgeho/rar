@@ -34,10 +34,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -74,7 +72,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         super.onCreate(savedInstanceState);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     public void start() {
         SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd MM yyyy", Locale.ENGLISH);
         Date currentTime1 = Calendar.getInstance().getTime();
@@ -106,13 +103,13 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                 day = 7;
                 break;
         }
-
-        DateTimeFormatter dateFormatter
-                = DateTimeFormatter.ofPattern("dd MM yyyy", Locale.ENGLISH);
-        d1 = LocalDate.parse(date, dateFormatter)
-                .atStartOfDay(ZoneId.systemDefault())
-                .toInstant()
-                .toEpochMilli() - (day - 1) * d;
+        Date dateNow = new Date();
+        SimpleDateFormat formatForDateNow = new SimpleDateFormat("dd MM yyyy", Locale.ENGLISH);
+        try {
+            d1 = new SimpleDateFormat("dd MM yyyy").parse(String.valueOf(formatForDateNow.format(dateNow))).getTime() - (day - 1) * d;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         d2 = d1 + d * 6;
 
         new Thread() {
