@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -13,7 +12,6 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -25,7 +23,6 @@ import java.util.ArrayList;
 public class DayFragment extends Fragment {
 
     String homework = "";
-    String threadName = "";
     ArrayList<ScheduleFragment.Mark> marks = new ArrayList<>();
     String topic = "";
     String teachername = "";
@@ -42,21 +39,9 @@ public class DayFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_day, container, false);
-        Toolbar toolbar = view.findViewById(R.id.toolbar);
-        toolbar.setTitle(threadName);
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem menuItem) {
-                if (menuItem.getItemId() == android.R.id.home || menuItem.getItemId() == R.id.homeAsUp) {
-                    getActivity().getFragmentManager().popBackStack();
-                }
-                return false;
-            }
-        });
-        ((MainActivity) getActivity()).setSupActionBar(toolbar);
-        ((MainActivity) getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
 
         LinearLayout linearLayout = view.findViewById(R.id.ll);
+        linearLayout.setBaselineAligned(false);
         if (homework != " " && homework != "") {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
             String s1 = new StringBuilder().append("Домашнее задание:").append("\n").append(homework).toString();
@@ -66,7 +51,8 @@ public class DayFragment extends Fragment {
             spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
-            tv1.setPadding(50, 50, 50, 50);
+            tv1.setPadding(50, 50, 50, 10);
+            tv1.setGravity(Gravity.NO_GRAVITY);
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {
