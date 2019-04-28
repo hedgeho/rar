@@ -3,9 +3,7 @@ package com.example.sch;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.text.Spannable;
@@ -41,6 +39,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import static com.example.sch.LoginActivity.log;
+import static com.example.sch.LoginActivity.loge;
 
 public class ScheduleFragment extends Fragment implements View.OnClickListener {
 
@@ -113,7 +112,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         sasha(dayOfTheWeek);
         sasha(String.valueOf(dateNow));
         new Thread() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void run() {
                 try {
@@ -124,8 +122,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         }.start();
     }
 
-    @SuppressLint("ResourceType")
-    //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_schedule,container,false);
@@ -189,7 +185,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    //@RequiresApi(api = Build.VERSION_CODES.O)
     void Download(int index) {
         try {
             COOKIE = TheSingleton.getInstance().getCOOKIE();
@@ -286,11 +281,11 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                 }
             }
         } catch (Exception e) {
+            loge(e.toString());
         }
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     public void CreateTable(){
         for (int i = 0; i < 6; i++) {
             TableRow tbrow = new TableRow(getActivity().getApplicationContext());
@@ -417,7 +412,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                         d2 = d1+6*d;
                         lessons.add(0, new Lesson[6][6]);
                         new Thread() {
-                            @RequiresApi(api = Build.VERSION_CODES.O)
                             @Override
                             public void run() {
                                 try {
@@ -447,7 +441,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                         d2 = d1+6*d;
                         lessons.add(new Lesson[6][6]);
                         new Thread() {
-                            @RequiresApi(api = Build.VERSION_CODES.O)
                             @Override
                             public void run() {
                                 try {
