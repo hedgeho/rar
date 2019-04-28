@@ -9,4 +9,13 @@
     <color name="four">#38423B</color>
     <color name="five">#020202</color>
     <color name="six">#1B1B1B</color>
+    <color name="seven">#707070</color>
+    <color name="coff1">#2C2E2E</color>
+    <color name="coff2">#404649</color>
+    <color name="coff3">#486063</color>
+    <color name="coff4">#4B7A86</color>
+    <color name="coff5">#4BA4B1</color>
+    <color name="coff6">#39BCCC</color>
+    <color name="coff7">#00E1FF</color>
+    <color name="coff8">#D5FAFF</color>
 </resources>

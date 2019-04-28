@@ -2,6 +2,7 @@ package com.example.sch;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -12,10 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -31,19 +30,16 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
-import static com.example.sch.LoginActivity.log;
-
 public class PeriodFragment extends Fragment {
 
     private String COOKIE, ROUTE;
     private int USER_ID;
     TableLayout table;
-    Subject[] subjects;
-    ArrayList<Subject> subjects1;
-    boolean ready = false;
+    ArrayList<Subject> subjects;
     Long d = 86400000L;
+    boolean ready = false;
     ArrayList<Call> calls;
-    ArrayList<Day> days1;
+    ArrayList<Day> days;
     public PeriodFragment () {}
 
     static void sasha(String s) {
@@ -58,11 +54,17 @@ public class PeriodFragment extends Fragment {
         Log.v("sasha", String.valueOf(s));
     }
 
+    LinearLayout layout1, layout2, layout3, layout;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
     void start(final Context context) {
         calls = new ArrayList<>();
-        days1 = new ArrayList<>();
-        subjects1 = new ArrayList<>();
+        days = new ArrayList<>();
+        subjects = new ArrayList<>();
         COOKIE = TheSingleton.getInstance().getCOOKIE();
         ROUTE = TheSingleton.getInstance().getROUTE();
         USER_ID = TheSingleton.getInstance().getUSER_ID();
@@ -74,177 +76,74 @@ public class PeriodFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    URL url1 = new URL("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=97932");
-                    HttpURLConnection con1 = (HttpURLConnection) url1.openConnection();
-                    con1.setRequestMethod("GET");
-                    con1.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    StringBuilder result1 = new StringBuilder();
-
-                    BufferedReader rd1 = new BufferedReader(new InputStreamReader(con1.getInputStream()));
-
-                    String line;
-                    while ((line = rd1.readLine()) != null) {
-                        result1.append(line);
-                    }
-                    rd1.close();
-
-                    JSONObject obj = new JSONObject(result1.toString());
-                    JSONArray array = obj.getJSONArray("result");
-                    int[] unitId_array = new int[array.length()];
-                    subjects = new Subject[array.length()];
-                    for (int i = 0; i < array.length(); i++) {
-//                        tmp = new ArrayList<>();
-                        obj = array.getJSONObject(i);
-                        unitId_array[i] = obj.getInt("unitId");
-                        /*if(!obj.has("overMark"))
-                            continue;*/
-                        if(obj.has("overMark")) {
-                            if (obj.getDouble("overMark") != 0.0) {
-                                if (obj.has("rating")) {
-                                    subjects[i] = new Subject(obj.getString("unitName"), obj.getDouble("overMark"), obj.getString("rating"));
-                                } else {
-                                    subjects[i] = new Subject(obj.getString("unitName"), obj.getDouble("overMark"), "");
-                                }
-                            } else {
-                                subjects[i] = new Subject(obj.getString("unitName"), -1,  "");
-                            }
-                        }
-                    }
-
-                    URL url2 = new URL("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=97932");
-                    HttpURLConnection con2 = (HttpURLConnection) url2.openConnection();
-                    con2.setRequestMethod("GET");
-                    con2.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-
-                    StringBuilder result2 = new StringBuilder();
-                    BufferedReader rd2 = new BufferedReader(new InputStreamReader(con2.getInputStream()));
-                    while ((line = rd2.readLine()) != null) {
-                        result2.append(line);
-                    }
-                    rd2.close();
-
-
-                    ArrayList<ArrayList<String>> arr = new ArrayList<>();
-                    for (int i = 0; i < array.length(); i++) {
-                        arr.add(new ArrayList<String>());
-                    }
-                    ArrayList<String> tmp;
-                    obj = new JSONObject(result2.toString());
-                    array = obj.getJSONArray("result");
-                    for (int i = 0; i < array.length(); i++) {
-                        obj = array.getJSONObject(i);
-                        if (obj.has("markVal")) {
-                            int unitId = obj.getInt("unitId");
-                            int k = -1;
-                            for (int j = 0; j < unitId_array.length; j++) {
-                                if (unitId == unitId_array[j]) {
-                                    k = j;
-                                    break;
-                                }
-                            }
-                            tmp = arr.get(k);
-                            tmp.add(obj.getString("markVal"));
-                        }
-                    }
-
-                    TableRow row;
-                    TextView tv;
-                    for (int i = 0; i < arr.size(); i++) {
-                        row = new TableRow(context);
-                        tmp = arr.get(i);
-                        if(tmp.size() == 0) {
-                            tv = new TextView(context);
-                            tv.setLayoutParams(new TableRow.LayoutParams(0));
-                            tv.setText("");
-                            row.addView(tv);
-                            tv.setHeight(86);
-                        }
-                        for (int j = 0; j < tmp.size(); j++) {
-                            tv = new TextView(context);
-                            tv.setTextSize(16);
-                            tv.setLayoutParams(new TableRow.LayoutParams(j));
-                            tv.setPadding(0, 0, 8, 8);
-                            tv.setText(tmp.get(j));
-                            tv.setTextColor(getResources().getColor(R.color.three));
-                            tv.setHeight(86);
-                            row.addView(tv);
-                        }
-                        row.setPadding(0, 0, 0, 0);
-                        table.addView(row);
-                    }
-                    ready = true;
-
                     //------------------------------------------------------------------------------------------------
-                    URL url5 = new URL("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=97932");
-                    HttpURLConnection con5 = (HttpURLConnection) url5.openConnection();
-                    con5.setRequestMethod("GET");
-                    con5.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    StringBuilder result5 = new StringBuilder();
+                    URL url = new URL("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=97932");
+                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                    con.setRequestMethod("GET");
+                    con.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                    StringBuilder result = new StringBuilder();
 
-                    BufferedReader rd5 = new BufferedReader(new InputStreamReader(con5.getInputStream()));
-
-                    while ((line = rd5.readLine()) != null) {
-                        result5.append(line);
+                    BufferedReader rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                    String line;
+                    while ((line = rd.readLine()) != null) {
+                        result.append(line);
                     }
-                    rd5.close();
+                    rd.close();
 
-                    JSONObject object1 = new JSONObject(result5.toString());
-                    JSONArray array1 = object1.getJSONArray("result");
-                    for (int i = 0; i < array1.length(); i++) {
-                        subjects1.add(new Subject());
-                        obj = array1.getJSONObject(i);
+                    JSONObject object = new JSONObject(result.toString());
+                    JSONArray array = object.getJSONArray("result");
+                    for (int i = 0; i < array.length(); i++) {
+                        subjects.add(new Subject());
+                        JSONObject obj = array.getJSONObject(i);
                         if (obj.has("overMark")) {
                             double d = obj.getDouble("overMark");
                             String s = String.valueOf(d);
                             if (s.length() > 4) {
                                 s = String.format(Locale.UK, "%.2f", d);
                             }
-                            subjects1.get(i).avg = Double.valueOf(s);
+                            subjects.get(i).avg = Double.valueOf(s);
                         }
-                        sasha(String.valueOf(subjects1.get(i).avg));
                         if (obj.has("unitName"))
-                            subjects1.get(i).name = obj.getString("unitName");
+                            subjects.get(i).name = obj.getString("unitName");
                         if (obj.has("rating"))
-                            subjects1.get(i).rating = obj.getString("rating");
+                            subjects.get(i).rating = obj.getString("rating");
                         if (obj.has("unitId"))
-                            subjects1.get(i).unitid = obj.getInt("unitId");
+                            subjects.get(i).unitid = obj.getInt("unitId");
+                        subjects.get(i).calls = new ArrayList<>();
                     }
-                    URL url3 = new URL("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=97932");
-                    HttpURLConnection con3 = (HttpURLConnection) url3.openConnection();
-                    con3.setRequestMethod("GET");
-                    con3.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    StringBuilder result3 = new StringBuilder();
-                    sasha("1");
-                    BufferedReader rd3 = new BufferedReader(new InputStreamReader(con3.getInputStream()));
-                    while ((line = rd3.readLine()) != null) {
-                        result3.append(line);
+                    URL url1 = new URL("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=97932");
+                    HttpURLConnection con1 = (HttpURLConnection) url1.openConnection();
+                    con1.setRequestMethod("GET");
+                    con1.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                    StringBuilder result1 = new StringBuilder();
+                    BufferedReader rd1 = new BufferedReader(new InputStreamReader(con1.getInputStream()));
+                    while ((line = rd1.readLine()) != null) {
+                        result1.append(line);
                     }
-                    sasha(String.valueOf(result3));
-                    rd3.close();
-                    JSONObject object = new JSONObject(result3.toString());
-                    JSONArray arraydaylessons = object.getJSONArray("result");
+                    rd1.close();
+                    JSONObject object1 = new JSONObject(result1.toString());
+                    JSONArray arraydaylessons = object1.getJSONArray("result");
                     for (int i = 0; i < arraydaylessons.length(); i++) {
-                        object = arraydaylessons.getJSONObject(i);
+                        object1 = arraydaylessons.getJSONObject(i);
                         Call call = new Call();
-                        if (object.has("lptName"))
-                            call.lptname = object.getString("lptName");
-                        if (object.has("markDate"))
-                            call.markdate = object.getString("markDate");
-                        if (object.has("lessonId"))
-                            call.lessonid = object.getLong("lessonId");
-                        if (object.has("markVal"))
-                            call.markvalue = object.getString("markVal");
-                        if (object.has("mktWt"))
-                            call.mktWt = object.getDouble("mktWt");
-                        if (object.has("teachFio"))
-                            call.teachFio = object.getString("teachFio");
-                        if (object.has("startDt"))
-                            call.date = object.getString("startDt");
-                        sasha(call.teachFio + " " + call.lptname + " " + call.markvalue + " " + call.mktWt);
+                        if (object1.has("lptName"))
+                            call.lptname = object1.getString("lptName");
+                        if (object1.has("markDate"))
+                            call.markdate = object1.getString("markDate");
+                        if (object1.has("lessonId"))
+                            call.lessonid = object1.getLong("lessonId");
+                        if (object1.has("markVal"))
+                            call.markvalue = object1.getString("markVal");
+                        if (object1.has("mktWt"))
+                            call.mktWt = object1.getDouble("mktWt");
+                        if (object1.has("teachFio"))
+                            call.teachFio = object1.getString("teachFio");
+                        if (object1.has("startDt"))
+                            call.date = object1.getString("startDt");
+                        if (object1.has("unitId"))
+                            call.unitid = object1.getInt("unitId");
                         calls.add(call);
                     }
-                    sasha(String.valueOf((calls.size() + " " + arraydaylessons.length())) + " hhh ");
-
                     COOKIE = TheSingleton.getInstance().getCOOKIE();
                     ROUTE = TheSingleton.getInstance().getROUTE();
                     USER_ID = TheSingleton.getInstance().getUSER_ID();
@@ -255,79 +154,40 @@ public class PeriodFragment extends Fragment {
                     Long d1 = format.parse(s1).getTime();
                     Long d2 = format.parse(s2).getTime();
 
-                    sasha("2");
-
-                    URL url4 = new URL("https://app.eschool.center/ec-server/student/diary?" +
+                    URL url2 = new URL("https://app.eschool.center/ec-server/student/diary?" +
                             "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2);
-                    HttpURLConnection con4 = (HttpURLConnection) url4.openConnection();
-                    con4.setRequestMethod("GET");
-                    sasha("3");
+                    HttpURLConnection con2 = (HttpURLConnection) url2.openConnection();
+                    con2.setRequestMethod("GET");
 
-                    con4.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*;" +
+                    con2.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*;" +
                             " site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060." +
                             "16.1554146944.1554139340.");
 
-                    StringBuilder result4 = new StringBuilder();
+                    StringBuilder result2 = new StringBuilder();
 
-                    BufferedReader rd4 = new BufferedReader(new InputStreamReader(con4.getInputStream()));
+                    BufferedReader rd2 = new BufferedReader(new InputStreamReader(con2.getInputStream()));
 
-                    while ((line = rd4.readLine()) != null) {
-                        result4.append(line);
+                    while ((line = rd2.readLine()) != null) {
+                        result2.append(line);
                     }
-                    rd4.close();
-                    JSONObject obj1 = new JSONObject(result4.toString());
-                    JSONArray array2 = obj1.getJSONArray("lesson");
+                    rd2.close();
+                    JSONObject object2 = new JSONObject(result2.toString());
+                    JSONArray array2 = object2.getJSONArray("lesson");
 
                     Long day1 = 0l;
                     Long date1;
                     int isODOD;
                     int index = -1;
                     for (int i = 0; i < array2.length(); i++) {
-                        obj1 = array2.getJSONObject(i);
-                        date1 = Long.valueOf(String.valueOf(obj1.getString("date")));
-                        if (date1.equals(day1) || date1 - day1 == 0) {
-                            isODOD = obj1.getInt("isODOD");
-                            if (isODOD != 1) {
-                                ScheduleFragment.Lesson lesson = new ScheduleFragment.Lesson();
-                                lesson.id = obj1.getLong("id");
-                                lesson.numInDay = obj1.getInt("numInDay");
-                                if (obj1.getJSONObject("unit").has("id"))
-                                    lesson.unitId = obj1.getJSONObject("unit").getLong("id");
-                                if (obj1.getJSONObject("unit").has("name"))
-                                    lesson.name = obj1.getJSONObject("unit").getString("name");
-                                if (obj1.getJSONObject("unit").has("short"))
-                                    lesson.shortname = obj1.getJSONObject("unit").getString("short");
-                                if (obj1.getJSONObject("tp").has("topicName"))
-                                    lesson.topic = obj1.getJSONObject("tp").getString("topicName");
-                                if (obj1.getJSONObject("teacher").has("factTeacherIN"))
-                                    lesson.teachername = obj1.getJSONObject("teacher").getString("factTeacherIN");
-                                JSONArray ar = obj1.getJSONArray("part");
-                                lesson.homeWork = new ScheduleFragment.HomeWork();
-                                lesson.homeWork.stringwork = "";
-                                for (int j = 0; j < ar.length(); j++) {
-                                    if (ar.getJSONObject(j).getString("cat") == "DZ") {
-                                        if (ar.getJSONObject(j).has("variant")) {
-                                            JSONArray ar1 = ar.getJSONObject(j).getJSONArray("variant");
-                                            for (int k = 0; k < ar1.length(); k++) {
-                                                if (ar1.getJSONObject(k).has("text")) {
-                                                    lesson.homeWork.stringwork += ar1.getJSONObject(k).getString("text") + " ";
-                                                }
-                                                JSONArray ar2 = ar1.getJSONObject(j).getJSONArray("file");
-                                                for (int l = 0; l < ar2.length(); l++) {
-                                                    //
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                days1.get(index).lessons.add(lesson);
-                            }
-                        } else {
-                            isODOD = obj1.getInt("isODOD");
-                            if (isODOD != 1) {
-                                days1.add(new Day());
+                        object2 = array2.getJSONObject(i);
+                        date1 = Long.valueOf(String.valueOf(object2.getString("date")));
+                        isODOD = object2.getInt("isODOD");
+                        if (isODOD != 1) {
+                            if (!date1.equals(day1) || date1 - day1 != 0) {
                                 index++;
+                                Date date = new Date(date1);
                                 Day thisday = new Day();
+                                thisday.day = String.valueOf(date);
                                 thisday.daymsec = date1;
                                 Date datathis = new Date();
                                 datathis.setTime(date1);
@@ -356,31 +216,35 @@ public class PeriodFragment extends Fragment {
                                         thisday.numday = 7;
                                         break;
                                 }
-                                ScheduleFragment.Lesson lesson = new ScheduleFragment.Lesson();
-                                lesson.id = obj1.getLong("id");
-                                lesson.numInDay = obj1.getInt("numInDay");
-                                if (obj1.getJSONObject("unit").has("id"))
-                                    lesson.unitId = obj1.getJSONObject("unit").getLong("id");
-                                if (obj1.getJSONObject("unit").has("name"))
-                                    lesson.name = obj1.getJSONObject("unit").getString("name");
-                                if (obj1.getJSONObject("unit").has("short"))
-                                    lesson.shortname = obj1.getJSONObject("unit").getString("short");
-                                if (obj1.getJSONObject("tp").has("topicName"))
-                                    lesson.topic = obj1.getJSONObject("tp").getString("topicName");
-                                if (obj1.getJSONObject("teacher").has("factTeacherIN"))
-                                    lesson.teachername = obj1.getJSONObject("teacher").getString("factTeacherIN");
-                                JSONArray ar = obj1.getJSONArray("part");
-                                lesson.homeWork = new ScheduleFragment.HomeWork();
-                                lesson.homeWork.stringwork = "";
-                                for (int j = 0; j < ar.length(); j++) {
-                                    if (ar.getJSONObject(j).getString("cat") == "DZ") {
-                                        if (ar.getJSONObject(j).has("variant")) {
-                                            JSONArray ar1 = ar.getJSONObject(j).getJSONArray("variant");
-                                            for (int k = 0; k < ar1.length(); k++) {
-                                                if (ar1.getJSONObject(k).has("text")) {
-                                                    lesson.homeWork.stringwork += ar1.getJSONObject(k).getString("text") + " ";
-                                                }
-                                                JSONArray ar2 = ar1.getJSONObject(j).getJSONArray("file");
+                                thisday.lessons = new ArrayList<>();
+                                days.add(thisday);
+                            }
+                            ScheduleFragment.Lesson lesson = new ScheduleFragment.Lesson();
+                            lesson.id = object2.getLong("id");
+                            lesson.numInDay = object2.getInt("numInDay");
+                            if (object2.getJSONObject("unit").has("id"))
+                                lesson.unitId = object2.getJSONObject("unit").getLong("id");
+                            if (object2.getJSONObject("unit").has("name"))
+                                lesson.name = object2.getJSONObject("unit").getString("name");
+                            if (object2.getJSONObject("unit").has("short"))
+                                lesson.shortname = object2.getJSONObject("unit").getString("short");
+                            if (object2.getJSONObject("tp").has("topicName"))
+                                lesson.topic = object2.getJSONObject("tp").getString("topicName");
+                            if (object2.getJSONObject("teacher").has("factTeacherIN"))
+                                lesson.teachername = object2.getJSONObject("teacher").getString("factTeacherIN");
+                            JSONArray ar = object2.getJSONArray("part");
+                            lesson.homeWork = new ScheduleFragment.HomeWork();
+                            lesson.homeWork.stringwork = "";
+                            for (int j = 0; j < ar.length(); j++) {
+                                if (ar.getJSONObject(j).getString("cat").equals("DZ")) {
+                                    if (ar.getJSONObject(j).has("variant")) {
+                                        JSONArray ar1 = ar.getJSONObject(j).getJSONArray("variant");
+                                        for (int k = 0; k < ar1.length(); k++) {
+                                            if (ar1.getJSONObject(k).has("text")) {
+                                                lesson.homeWork.stringwork += ar1.getJSONObject(k).getString("text") + "\n";
+                                            }
+                                            if (ar1.getJSONObject(k).has("file")) {
+                                                JSONArray ar2 = ar1.getJSONObject(k).getJSONArray("file");
                                                 for (int l = 0; l < ar2.length(); l++) {
                                                     //
                                                 }
@@ -388,35 +252,55 @@ public class PeriodFragment extends Fragment {
                                         }
                                     }
                                 }
-                                thisday.lessons = new ArrayList<>();
-                                thisday.lessons.add(lesson);
-                                days1.set(index, thisday);
                             }
+                            days.get(index).lessons.add(lesson);
+                            sasha(lesson.shortname + " " + lesson.teachername + " " + lesson.numInDay + " " + lesson.homeWork.stringwork);
                         }
                         day1 = date1;
                     }
-                    for (int i = 0; i < days1.size(); i++) {
+
+                    for (int i = 0; i < days.size(); i++) {
                         for (int j = 0; j < calls.size(); j++) {
                             s1 = calls.get(j).date;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                             d1 = format.parse(s1).getTime();
-                            if (days1.get(i).daymsec - d1 == 0 || days1.get(i).daymsec == d1) {
-                                sasha(days1.get(i).day + " ");
-                                for (int k = 0; k < days1.get(i).lessons.size(); k++) {
-                                    if (days1.get(i).lessons.get(k).id - calls.get(j).lessonid == 0) {
-                                        ScheduleFragment.Mark mark = new ScheduleFragment.Mark();
-                                        mark.idlesson = calls.get(j).lessonid;
-                                        mark.coefficient = calls.get(j).mktWt;
-                                        mark.value = calls.get(j).markvalue;
-                                        mark.teachFio = calls.get(j).teachFio;
-                                        mark.date = calls.get(j).markdate;
-                                        mark.topic = calls.get(j).lptname;
-                                        days1.get(i).lessons.get(k).marks.add(mark);
+                            if (calls.get(j).mktWt != 0) {
+                                if (days.get(i).daymsec - d1 == 0 || days.get(i).daymsec.equals(d1)) {
+                                    for (int k = 0; k < days.get(i).lessons.size(); k++) {
+                                        if (days.get(i).lessons.get(k).id.equals(calls.get(j).lessonid)) {
+                                            ScheduleFragment.Mark mark = new ScheduleFragment.Mark();
+                                            mark.idlesson = calls.get(j).lessonid;
+                                            mark.coefficient = calls.get(j).mktWt;
+                                            if (calls.get(j).markvalue != null)
+                                                mark.value = calls.get(j).markvalue;
+                                            else
+                                                mark.value = "";
+                                            mark.teachFio = calls.get(j).teachFio;
+                                            mark.date = calls.get(j).markdate;
+
+                                            mark.topic = calls.get(j).lptname;
+                                            mark.unitid = calls.get(j).unitid;
+                                            for (int l = 0; l < subjects.size() - 1; l++) {
+                                                if (subjects.get(l).unitid == mark.unitid) {
+                                                    subjects.get(l).calls.add(calls.get(j));
+                                                    if (subjects.get(l).shortname != null)
+                                                        subjects.get(l).shortname = days.get(i).lessons.get(k).shortname;
+                                                    if (days.get(i).lessons.get(k).shortname.equals("Обществозн."))
+                                                        subjects.get(l).shortname = "Общест.";
+                                                    if (days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
+                                                        subjects.get(l).shortname = "Физ-ра";
+                                                    if (days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
+                                                        subjects.get(l).shortname = "Информ.";
+                                                }
+                                            }
+                                            days.get(i).lessons.get(k).marks.add(mark);
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    ready = true;
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (Exception e) {
                     sasha(e.toString());
@@ -426,101 +310,97 @@ public class PeriodFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.diary, container, false);
+        return v;
     }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.diary, container, false);
-    }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        while(true) {
+        while (true) {
             try {
                 Thread.sleep(10);
-                if(ready)
+                if (ready)
                     break;
             } catch (InterruptedException e) {
-                //
             }
+
         }
-        LinearLayout l_subjects = view.findViewById(R.id.linear);
-        LinearLayout tmp;
-        TextView tv_tmp;
-        for (Subject s: subjects) {
-            if(s == null) {
-                log("null");
-                continue;
+        StringBuilder y = new StringBuilder();
+        layout = view.findViewById(R.id.linear);
+        layout1 = view.findViewById(R.id.linear1);
+        layout2 = view.findViewById(R.id.linear2);
+        layout3 = view.findViewById(R.id.linear3);
+        for (int i = 0; i < subjects.size() - 1; i++) {
+            TextView txt1 = new TextView(getActivity().getApplicationContext());
+            TextView txt2 = new TextView(getActivity().getApplicationContext());
+            LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
+            txt1.setTextColor(Color.WHITE);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(0, 0, 40, 10);
+            txt1.setLayoutParams(lp);
+            txt1.setTextSize(20);
+            txt2.setTextSize(20);
+            txt2.setLayoutParams(lp);
+            txt2.setTextColor(getResources().getColor(R.color.two));
+            txt1.setText(subjects.get(i).shortname);
+            txt2.setText(String.valueOf(subjects.get(i).avg));
+            layout2.addView(txt2);
+            layout1.addView(txt1);
+            for (int j = 0; j < subjects.get(i).calls.size(); j++) {
+                if (subjects.get(i).calls.get(j).mktWt != 0) {
+                    Double d = subjects.get(i).calls.get(j).mktWt;
+                    TextView txt3 = new TextView(getActivity().getApplicationContext());
+                    LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                    lp1.setMargins(0, 0, 10, 10);
+                    txt3.setLayoutParams(lp1);
+                    txt3.setTextSize(20);
+                    txt3.setTextColor(Color.WHITE);
+                    txt3.setPadding(15, 0, 15, 0);
+                    if (d <= 0.5)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff1));
+                    else if (d <= 1)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff2));
+                    else if (d <= 1.25)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff3));
+                    else if (d <= 1.35)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff4));
+                    else if (d <= 1.5)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff5));
+                    else if (d <= 1.75)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff6));
+                    else if (d <= 2)
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff7));
+                    else
+                        txt3.setBackgroundColor(getResources().getColor(R.color.coff8));
+                    if (subjects.get(i).calls.get(j).markvalue != null)
+                        txt3.setText(subjects.get(i).calls.get(j).markvalue);
+                    else {
+                        txt3.setText("7");
+                        txt3.setTextColor(Color.TRANSPARENT);
+                    }
+                    linearLayout.addView(txt3);
+                }
             }
-            log(s.toString());
-            tmp = new LinearLayout(getContext());
-            tmp.setOrientation(LinearLayout.HORIZONTAL);
-            tv_tmp = new TextView(getContext());
-            tv_tmp.setText(s.name);
-            tv_tmp.setTextSize(16);
-            tv_tmp.setTextColor(getResources().getColor(R.color.three));
-            tv_tmp.setPadding(0, 0, 8, 0);
-            tmp.addView(tv_tmp);
-
-            if(!(s.avg == -1)) {
-                tv_tmp = new TextView(getContext());
-                tv_tmp.setText(String.format(Locale.UK, "%.2f", s.avg));
-                tv_tmp.setTextSize(16);
-                tv_tmp.setTextColor(getResources().getColor(R.color.two));
-                tv_tmp.setPadding(0, 0, 8, 0);
-                tmp.addView(tv_tmp);
-
-            }
-
-            if(!s.rating.equals("")) {
-                tv_tmp = new TextView(getContext());
-                tv_tmp.setText(s.rating);
-                tv_tmp.setTextSize(16);
-                tv_tmp.setTextColor(getResources().getColor(R.color.one));
-                tv_tmp.setPadding(0, 0, 8, 0);
-                tmp.addView(tv_tmp);
-            }
-            tmp.setPadding(0, 0, 0, 0);
-            l_subjects.addView(tmp);
+            layout3.addView(linearLayout);
         }
-
-        HorizontalScrollView scroll = view.findViewById(R.id.tv_users);
-        LinearLayout layout = new LinearLayout(getContext());
-        if(table.getParent() != null) {
-            ((ViewGroup)table.getParent()).removeView(table);
-        }
-        layout.addView(table, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        scroll.addView(layout, HorizontalScrollView.LayoutParams.MATCH_PARENT, HorizontalScrollView.LayoutParams.WRAP_CONTENT);
     }
 
-    class Subject {
-        String name, rating;
+    public class Subject {
+        String name, rating = "", shortname = "";
         double avg;
         int unitid;
-
-        Subject(String name, double avg, String rating) {
-            this.name = name;
-            this.avg = avg;
-            this.rating = rating;
-        }
+        ArrayList<Call> calls;
 
         Subject() {
-        }
-
-        @Override
-        public String toString() {
-            return name + " " + rating + " " + avg;
         }
     }
 
     class Call {
         String lptname, markvalue, date;
-        double mktWt;
+        double mktWt = 0;
         Long lessonid;
         String markdate, teachFio;
+        int unitid;
 
         Call() {
         }
@@ -529,11 +409,8 @@ public class PeriodFragment extends Fragment {
     class Day {
         Long daymsec;
         String day;
-        int numday, unitid;
+        int numday;
         ArrayList<ScheduleFragment.Lesson> lessons;
-
-        Day(String day, ArrayList<ScheduleFragment.Lesson> lessons) {
-        }
 
         Day() {
         }
@@ -542,12 +419,10 @@ public class PeriodFragment extends Fragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        log("onAttach");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        log("onDetach");
     }
 }

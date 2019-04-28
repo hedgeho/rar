@@ -506,6 +506,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
     }
 
     static class Mark {
+        public int unitid;
         String value, teachFio, date, topic;
         double coefficient;
         Long idlesson;
