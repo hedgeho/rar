@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,11 +20,15 @@ import com.google.firebase.iid.InstanceIdResult;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.List;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -128,25 +133,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void run() {
                     try {
-                        HttpURLConnection con = (HttpURLConnection) new URL("https://still-cove-90434.herokuapp.com/login").openConnection();
+                        URL url;
+                        HttpURLConnection con;
+
+                        url = new URL("https://still-cove-90434.herokuapp.com/login");
+                        con = (HttpURLConnection) url.openConnection();
                         con.setRequestMethod("POST");
                         con.setDoOutput(true);
-                        JSONObject obj = new JSONObject();
-                        obj.put("login", login).put("password", pw).put("firebase_id", fb_id);
                         con.connect();
-                        log(obj.toString());
-                        //con.getOutputStream().write(obj.toString().getBytes());
-                        con.getOutputStream().write(("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id).getBytes());
-                        loge(con.getResponseMessage());
+                        OutputStream os = con.getOutputStream();
+                        os.write(("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id).getBytes());
+                        con.connect();
                         login(login, pw);
-                        BufferedReader rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                        String line;
-                        StringBuilder result = new StringBuilder();
-                        while ((line = rd.readLine()) != null) {
-                            result.append(line);
-                        }
-                        rd.close();
-                        loge(result.toString());
                     } catch (Exception e) {
                         loge(e.toString());
                     }
@@ -165,38 +163,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         BufferedReader rd;
         String line;
 
-        result = new StringBuilder();
-        url = new URL("https://app.eschool.center/ec-server/esia/useType");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Cookie", "site_ver=app; _pk_ses.1.81ed=*; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-        con.getInputStream();
-        System.out.println("header: " + con.getHeaderField("Set-Cookie"));
-
-        String route = con.getHeaderFields().values().toArray()[9].toString().split("route=")[1].split(";")[0];
-        log("route: " + route);
-        String COOKIE = con.getHeaderField("Set-Cookie").split(";")[0];
-        log(COOKIE);
-        rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-        rd.close();
-        log("useType " + result);
-
         url = new URL("https://app.eschool.center/ec-server/login");
         con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
-        con.setRequestProperty("Cookie", COOKIE + "; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+        con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setDoOutput(true);
         con.connect();
         OutputStream os = con.getOutputStream();
         os.write(("username=" + login + "&password=" + hash).getBytes());
-        String COOKIE2 = con.getHeaderField("Set-Cookie").split(";")[0];
+        con.connect();
+        Map<String, List<String>> a = con.getHeaderFields();
+        Object[] b = a.entrySet().toArray();
+        String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+        String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
         log("login: " + COOKIE2);
         //new Scanner(System.in).nextLine();
 
-        url = new URL("https://app.eschool.center/ec-server/state");
+        url = new URL("https://app.eschool.center/ec-server/state?menu=false");
         con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
         con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");// "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.13.1554062260.1554051192.");
@@ -227,4 +211,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Log.v("mylog", msg);
     }
     static void loge(String msg) {Log.e("mylog", msg);}
+
+    static String connect(String url, @Nullable String query) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+        con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+        if(query == null) {
+            con.setRequestMethod("GET");
+            con.connect();
+        } else {
+            con.setRequestMethod("POST");
+            con.setDoOutput(true);
+            con.connect();
+            con.getOutputStream().write(query.getBytes());
+        }
+        if(con.getResponseCode() != 200) {
+            loge("connect failed, code " + con.getResponseCode() + ", message: " + con.getResponseMessage());
+            return "";
+        }
+        if(con.getInputStream() != null) {
+            BufferedReader rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String line;
+            StringBuilder result = new StringBuilder();
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            rd.close();
+            return result.toString();
+        } else
+            return "";
+    }
 }

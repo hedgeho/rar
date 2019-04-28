@@ -1,9 +1,12 @@
 package com.example.sch;
 
+import android.content.BroadcastReceiver;
+
 class TheSingleton {
     private static final TheSingleton ourInstance = new TheSingleton();
     private String COOKIE, ROUTE;
     private int USER_ID, PERSON_ID;
+    private BroadcastReceiver receiver;
 
     static TheSingleton getInstance() {
         return ourInstance;
@@ -41,5 +44,13 @@ class TheSingleton {
 
     void setPERSON_ID(int PERSON_ID) {
         this.PERSON_ID = PERSON_ID;
+    }
+
+    BroadcastReceiver getReceiver() {
+        return receiver;
+    }
+
+    void setReceiver(BroadcastReceiver receiver) {
+        this.receiver = receiver;
     }
 }

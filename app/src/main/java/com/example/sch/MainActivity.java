@@ -1,16 +1,23 @@
 package com.example.sch;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 
 import java.util.List;
 
@@ -49,6 +56,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                List<Fragment> a = getSupportFragmentManager().getFragments();
+                if (a.get(a.size() - 1) instanceof MessagesFragment) {
+                    ((MessagesFragment) a.get(a.size() - 1)).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0), intent.getStringExtra("sender_id"));
+                } else if (a.get(a.size() - 1) instanceof ChatFragment) {
+                    ((ChatFragment) a.get(a.size() - 1)).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
+                            intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
+                            intent.getStringExtra("sender_fio"));
+                }
+            }
+        };
+        registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
+
 
         periodFragment = new PeriodFragment();
         periodFragment.start(getApplicationContext());
@@ -73,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setSupActionBar(android.support.v7.widget.Toolbar toolbar) {
-        //setSupportActionBar(toolbar);
+        if(getSupportActionBar() == null)
+            setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
@@ -100,8 +123,8 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
         } else {
-            if (a.get(a.size() - 1) instanceof ScheduleFragment) {
-                log("last in stack = ChatFragment");
+            if (a.get(a.size() - 1) instanceof DayFragment) {
+                log("last in stack = DayFragment");
                 set_visible(true);
                 getSupportActionBar().setTitle("Diary");
                 getSupportActionBar().setHomeButtonEnabled(false);
@@ -126,10 +149,14 @@ public class MainActivity extends AppCompatActivity {
                 onBackPressed();
                 break;
             case 1:
-                SharedPreferences pref = getSharedPreferences("pref", 0);
-                pref.edit().putBoolean("first_time", true).apply();
-                finish();
+                quit();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    void quit() {
+        SharedPreferences pref = getSharedPreferences("pref", 0);
+        pref.edit().putBoolean("first_time", true).apply();
+        finish();
     }
 }
