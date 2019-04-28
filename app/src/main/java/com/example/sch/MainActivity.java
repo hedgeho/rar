@@ -11,8 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.Toolbar;
 
 import java.util.List;
 
@@ -60,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
         scheduleFragment.start();
 
         loadFragment(periodFragment);
-        //loadFragment(messagesFragment);
         BottomNavigationView bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
 
@@ -102,6 +99,15 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
+        } else {
+            if (a.get(a.size() - 1) instanceof ScheduleFragment) {
+                log("last in stack = ChatFragment");
+                set_visible(true);
+                getSupportActionBar().setTitle("Diary");
+                getSupportActionBar().setHomeButtonEnabled(false);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                getSupportActionBar().setDisplayShowHomeEnabled(false);
+            }
         }
         if(!(getSupportFragmentManager().getBackStackEntryCount() == 0))
             getSupportFragmentManager().popBackStack();

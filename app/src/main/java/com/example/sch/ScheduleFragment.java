@@ -1,7 +1,6 @@
 package com.example.sch;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
@@ -111,7 +110,8 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
             e.printStackTrace();
         }
         d2 = d1 + d * 6;
-
+        sasha(dayOfTheWeek);
+        sasha(String.valueOf(dateNow));
         new Thread() {
             @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
@@ -228,22 +228,22 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
             ArrayList<Mark> marks = new ArrayList<>();
             for (int i = 0; i < array3.length(); i++) {
                 JSONObject object1 = array3.getJSONObject(i);
-                marks.add(new Mark(Integer.valueOf(object1.getString("value")), 1, object1.getLong("lessonID")));
+                //marks.add(new Mark(object1.getString("value"), 1, object1.getLong("lessonID")));
             }
             int numinday;
-            Long day;
-            Long date;
+            Long day1;
+            Long date1;
             int isODOD;
             String namesubject = "";
             String topic = "";
             String nameteacher = "";
             HomeWork homeWork = new HomeWork("");
-            Long id;
+            Long id1;
 
             for (int i = 0; i < array1.length(); i++) {
                 obj1 = array1.getJSONObject(i);
-                date = Long.valueOf(String.valueOf(obj1.getString("date")));
-                id = obj1.getLong("id");
+                date1 = Long.valueOf(String.valueOf(obj1.getString("date")));
+                id1 = obj1.getLong("id");
                 isODOD = obj1.getInt("isODOD");
                 if (isODOD != 1) {
                     JSONArray array11 = obj1.getJSONArray("part");
@@ -252,7 +252,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                         homeWork = new HomeWork(obj2.getJSONArray("variant").getJSONObject(0).getString("text"));
                     } catch (Exception e) {
                     }
-                    day = (date - d1) / d;
+                    day1 = (date1 - d1) / d;
                     numinday = obj1.getInt("numInDay");
                     JSONObject obj11 = obj1.getJSONObject("unit");
                     JSONObject obj12 = obj1.getJSONObject("tp");
@@ -269,17 +269,17 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                     if (i == 17) {
                         numinday += 1;
                     }
-                    lessons.get(index)[day.intValue()][numinday - 1] = new Lesson(id, numinday, (int) (day + 1), namesubject, nameteacher, topic, homeWork);
+                    lessons.get(index)[day1.intValue()][numinday - 1] = new Lesson(id1, numinday, (int) (day1 + 1), namesubject, nameteacher, topic, homeWork);
                     homeWork = new HomeWork(" ");
                 }
             }
             for (int i = 0; i < 6; i++) {
                 for (int j = 0; j < 6; j++) {
                     Lesson lesson = lessons.get(index)[i][j];
-                    Long id1 = lesson.id;
+                    Long id2 = lesson.id;
                     for (int k = 0; k < marks.size(); k++) {
                         Mark mark = marks.get(k);
-                        if (id1 - mark.idlesson == 0) {
+                        if (id2 - mark.idlesson == 0) {
                             lessons.get(index)[i][j].marks.add(mark);
                         }
                     }
@@ -319,7 +319,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
             tv1.setTextColor(Color.WHITE);
             tv2.setId(i);
             tv3.setId(i);
-            sasha(String.valueOf(tv2.getHeight()));
 
             final int finalI = i;
             try {
@@ -407,7 +406,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
     //@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
     @Override
     public void onClick(View v) {
-        sasha(String.valueOf(v.getId()));
         switch(v.getId()){
             case R.id.button1:
                 day--;
@@ -429,7 +427,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                                 }
                             }
                         }.start();
-                        System.out.println(lessons.size());
+
                     }
                     day = 7;
                 }
@@ -438,6 +436,7 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                 tv[day - 1].setTextColor(Color.BLACK);
                 tableLayout1.removeAllViews();
                 CreateTable();
+                sasha(String.valueOf(index));
                 break;
             case R.id.button2:
                 day++;
@@ -458,7 +457,6 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                                 }
                             }
                         }.start();
-                        System.out.println(lessons.size());
                     }
                     day = 1;
                 }
@@ -467,16 +465,18 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
                 tv[day - 1].setTextColor(Color.BLACK);
                 tableLayout1.removeAllViews();
                 CreateTable();
+                sasha(String.valueOf(index));
                 break;
         }
     }
 
-    class Lesson {
+    static class Lesson {
         int numInDay, numDay;
-        String name, teachername, topic;
+        String name = "", teachername = "", topic = "", shortname = "";
         HomeWork homeWork;
         ArrayList<Mark> marks = new ArrayList<>();
         Long id;
+        long unitId = 0;
 
         Lesson(Long id, int numInDay, int numDay, String name, String teachername, String topic, HomeWork homeWork) {
             this.numInDay = numInDay;
@@ -493,9 +493,9 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
 
     }
 
-    class HomeWork {
-        int[] idfils;
-        String stringwork;
+    static class HomeWork {
+        ArrayList<Integer> idfils;
+        String stringwork = "";
 
         HomeWork(String a) {
             stringwork = a;
@@ -505,16 +505,13 @@ public class ScheduleFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    class Mark {
-        int value;
+    static class Mark {
+        public int unitid;
+        String value, teachFio, date, topic;
         double coefficient;
         Long idlesson;
 
-        Mark(int value, double coefficient, Long idlesson) {
-            this.value = value;
-            this.coefficient = coefficient;
-            this.idlesson = idlesson;
+        Mark() {
         }
     }
-
 }
