@@ -5,15 +5,23 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.crashlytics.android.Crashlytics;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -37,7 +45,7 @@ public class PeriodFragment extends Fragment {
     ArrayList<Subject> subjects;
     ArrayList<Day> days;
     boolean ready = false;
-    boolean red = false;
+    //boolean red = false;
     ArrayList<Cell> cells;
     ArrayList<TextView> txts;
     public PeriodFragment () {}
@@ -71,7 +79,7 @@ public class PeriodFragment extends Fragment {
         txts = new ArrayList<>();
         Download();
     }
-
+/*
     ArrayList<Day> getDays() {
         return days;
     }
@@ -82,7 +90,7 @@ public class PeriodFragment extends Fragment {
 
     boolean isReady() {
         return red;
-    }
+    }*/
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -224,6 +232,11 @@ public class PeriodFragment extends Fragment {
             }
             layout3.addView(linearLayout);
         }
+
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle("Period");
+        setHasOptionsMenu(true);
+        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
         return view;
     }
 
@@ -252,7 +265,7 @@ public class PeriodFragment extends Fragment {
                     JSONObject object = new JSONObject(result.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
-                        subjects.add(new PeriodFragment.Subject());
+                        subjects.add(new Subject());
                         JSONObject obj = array.getJSONObject(i);
                         if (obj.has("overMark")) {
                             double d = obj.getDouble("overMark");
@@ -286,7 +299,7 @@ public class PeriodFragment extends Fragment {
                     JSONArray arraydaylessons = object1.getJSONArray("result");
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
-                        PeriodFragment.Cell call = new PeriodFragment.Cell();
+                        Cell call = new Cell();
                         if (object1.has("lptName"))
                             call.lptname = object1.getString("lptName");
                         if (object1.has("markDate"))
@@ -347,7 +360,7 @@ public class PeriodFragment extends Fragment {
                             if (!date1.equals(day1) || date1 - day1 != 0) {
                                 index++;
                                 Date date = new Date(date1);
-                                PeriodFragment.Day thisday = new PeriodFragment.Day();
+                                Day thisday = new Day();
                                 thisday.day = String.valueOf(date);
                                 thisday.daymsec = date1;
                                 Date datathis = new Date();
@@ -461,7 +474,9 @@ public class PeriodFragment extends Fragment {
                         }
                     }
                     ready = true;
-                    red = true;
+                    //red = true;
+
+                    ((MainActivity) getActivity()).set(subjects, days);
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (Exception e) {
                     Download();
@@ -537,12 +552,20 @@ public class PeriodFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        menu.add(0, 1, 0, "Выход");
+        menu.add(0, 2, 0, "CRUSH");
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == 1) {
+            ((MainActivity) getActivity()).quit();
+        } else if(item.getItemId() == 2) {
+            Crashlytics.getInstance().crash();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

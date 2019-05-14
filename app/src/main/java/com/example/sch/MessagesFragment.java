@@ -45,7 +45,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+
+import javax.annotation.Nonnull;
 
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
@@ -58,12 +62,13 @@ public class MessagesFragment extends Fragment {
     String[] senders, topics;
     int[] threadIds;
     int[] users = null;
-    ArrayList<String> f_senders, f_topics, s_senders = null, s_messages;
-    ArrayList<Integer> f_users = null, f_threadIds, s_threadIds;
+    ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
+    ArrayList<Integer> f_users = null, f_threadIds, s_threadIds, s_msgIds;
     String s_query = "";
     int count = 25, s_count = 0;
     boolean first_time = true;
     LinearLayout container;
+    ViewTreeObserver.OnScrollChangedListener scrollListener;
 
     public MessagesFragment() {}
 
@@ -151,12 +156,9 @@ public class MessagesFragment extends Fragment {
         View view = inflater.inflate(R.layout.messages, contain, false);
         container = view.findViewById(R.id.container1);
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        //toolbar.setTitle("Messages");
 
-        log("ssss");
         setHasOptionsMenu(true);
         ((MainActivity)getActivity()).setSupportActionBar(toolbar);
-        // Inflate the layout for this fragment``
         //((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         return view;
     }
@@ -164,81 +166,99 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(final Menu menu, MenuInflater inflate) {
         inflate.inflate(R.menu.toolbar_nav, menu);
-        final MenuItem myActionMenuItem = menu.findItem( R.id.action_search);
+        final MenuItem myActionMenuItem = menu.findItem(R.id.action_search);
         final SearchView searchView = (SearchView) myActionMenuItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             String query;
             @SuppressLint("HandlerLeak")
             final Handler h = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                container.removeAllViews();
-                LayoutInflater inflater = getLayoutInflater();
-                View item;
-                TextView tv;
-                ImageView img;
-                String message;
-                int index;
-                Spannable spannable;
-                for (int i = 0; i < s_senders.size(); i++) {
-                    item = inflater.inflate(R.layout.thread_item, container, false);
-                    tv = item.findViewById(R.id.tv_sender);
-                    tv.setText(s_senders.get(i));
-                    tv = item.findViewById(R.id.tv_topic);
-                    Spanned mess = Html.fromHtml(s_messages.get(i));
+                @Override
+                public void handleMessage(Message msg) {
+                    container.removeAllViews();
 
+                    if(msg.what == 123) {
+                        getView().findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
+                        getView().findViewById(R.id.scroll).setVisibility(View.VISIBLE);
+                        TextView tv = getView().findViewById(R.id.tv_error);
+                        tv.setText("Нет сообщений, удовлетворяющих условиям поиска.");
+                        tv.setVisibility(View.VISIBLE);
+                        return;
+                    }
+                    LayoutInflater inflater = getLayoutInflater();
+                    View item;
+                    TextView tv;
+                    ImageView img;
+                    int index;
+                    Spannable spannable;
+                    Spanned mess;
                     String s;
-                    index = mess.toString().toLowerCase().indexOf(query.toLowerCase());
-                    log("index: " + index);
-                    int start, end;
-                    if(index > 30)
-                        start = index-30;
-                    else
-                        start = 0;
-                    if(mess.toString().length() > index + query.length() + 30)
-                        end = index + query.length() + 30;
-                    else
-                        end = mess.toString().length()-1;
-                        s = (start == 0?"":"...") + mess.subSequence(start, end).toString() + (end == mess.toString().length()-1?"":"...");
+                    for (int i = 0; i < s_senders.size(); i++) {
+                        item = inflater.inflate(R.layout.thread_item, container, false);
+                        tv = item.findViewById(R.id.tv_sender);
+                        tv.setText(s_senders.get(i));
+                        tv = item.findViewById(R.id.tv_topic);
+                        mess = Html.fromHtml(s_messages.get(i));
+
+                        index = mess.toString().toLowerCase().indexOf(query.toLowerCase());
+                        log("index: " + index);
+                        int start, end;
+                        if(index > 30)
+                            start = index-30;
+                        else
+                            start = 0;
+                        if(mess.toString().length() > index + query.length() + 30)
+                            end = index + query.length() + 30;
+                        else
+                            end = mess.toString().length()-1;
+                        s = (start == 0?"":"...") + mess.subSequence(start, end+1).toString() + (end == mess.toString().length()-1?"":"...");
+                        loge("sub: " + s);
                         spannable = new SpannableString(s);
                         spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    tv.setText(spannable);
+                        tv.setText(spannable);
 
-                    tv = item.findViewById(R.id.tv_users);
-                    tv.setText("");
-//                            img = item.findViewById(R.id.img);
-                    final int j = i;
-                    item.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                            ChatFragment fragment = new ChatFragment();
-                            fragment.threadId = s_threadIds.get(j);
-                            fragment.threadName = s_senders.get(j);
-                            ((MainActivity)getActivity()).set_visible(false);
-                            transaction.replace(R.id.chat_container, fragment);
-                            transaction.addToBackStack(null);
-                            transaction.commit();
-                        }
-                    });
-                    container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    container.addView(inflater.inflate(R.layout.divider, container, false));
+                        tv = item.findViewById(R.id.tv_users);
+                        tv.setText("");
+                        tv = item.findViewById(R.id.tv_time);
+                        tv.setText(s_time.get(i));
+                        img = item.findViewById(R.id.img);
+                        img.setVisibility(View.GONE);
+                        final int j = i;
+                        item.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                ChatFragment fragment = new ChatFragment();
+                                fragment.threadId = s_threadIds.get(j);
+                                fragment.threadName = s_senders.get(j);
+                                fragment.searchMsgId = s_msgIds.get(j);
+                                ((MainActivity)getActivity()).set_visible(false);
+                                transaction.replace(R.id.chat_container, fragment);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                            }
+                        });
+                        container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        container.addView(inflater.inflate(R.layout.divider, container, false));
+                    }
+                    log("shown count: " + s_senders.size());
+                    if(s_count != -1)
+                        s_count = s_senders.size();
+
+                    getView().findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
+                    getView().findViewById(R.id.scroll).setVisibility(View.VISIBLE);
                 }
-                log("shown count: " + s_senders.size());
-                if(s_count != -1)
-                    s_count = s_senders.size();
+            };
 
-                getView().findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
-                getView().findViewById(R.id.scroll).setVisibility(View.VISIBLE);
-            }
-        };
             @Override
-            public boolean onQueryTextSubmit(final String query) {
-                log( "query: " + query);
-                /*if(!searchView.isIconified()) {
-                    Log.e("mylog", "dd");
-                    //searchView.setIconified(true);
-                }*/
+            public boolean onQueryTextSubmit(String q) {
+                if(q.replaceAll(" ", "").length() < 3)
+                    return false;
+                if(q.charAt(q.length()-1) == ' ')
+                    q = q.substring(0, q.length()-1);
+                final String query = q;
+                getView().findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
+                log( "query: '" + query + "'");
+
                 s_query = query;
                 this.query = query;
                 getView().findViewById(R.id.loading_bar).setVisibility(View.VISIBLE);
@@ -251,23 +271,42 @@ public class MessagesFragment extends Fragment {
                             s_senders = new ArrayList<>();
                             s_messages = new ArrayList<>();
                             s_threadIds = new ArrayList<>();
+                            s_time = new ArrayList<>();
+                            s_msgIds = new ArrayList<>();
 
                             String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=25&text=" + query, null);
                             log("search result: " + result);
                             JSONArray array = new JSONArray(result), a, b;
+                            if(array.length() == 0) {
+                                h.sendEmptyMessage(123);
+                                return;
+                            }
                             JSONObject obj, c;
+                            String A, B, C;
                             for (int i = 0; i < array.length(); i++) {
                                 obj = array.getJSONObject(i);
                                 a = obj.getJSONArray("filterNumbers");
                                 for (int j = 0; j < a.length(); j++) {
-                                    result = connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&rowStart=0&rowsCount=2" +
-                                            "&threadId=" + obj.getInt("threadId") +"&msgStart=" + (/*obj.getInt("msgNum")*/a.optInt(j)+1), null);
+                                    result = connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&rowStart=0&rowsCount=1" +
+                                            "&threadId=" + obj.getInt("threadId") +"&msgStart=" + (a.optInt(j)+1), null);
 
                                     b = new JSONArray(result);
                                     c = b.getJSONObject(0);
-                                    s_senders.add(c.getString("senderFio"));
+                                    obj = array.getJSONObject(i);
+                                    A = obj.getString("senderFio").split(" ")[0];
+                                    B = obj.getString("senderFio").split(" ")[1];
+                                    if (obj.getString("senderFio").split(" ").length <= 2) {
+                                        loge("fio strange:");
+                                        loge(obj.toString());
+                                        C = "a";
+                                    } else
+                                        C = obj.getString("senderFio").split(" ")[2];
+                                    s_senders.add(A + " " + B.charAt(0) + ". " + C.charAt(0) + ".");
                                     s_messages.add(c.getString("msg"));
                                     s_threadIds.add(c.getInt("threadId"));
+                                    s_msgIds.add(a.optInt(j));
+                                    Date date = new Date(c.getLong("createDate"));
+                                    s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
                                 }
                             }
                             if(array.length() < 25)
@@ -301,21 +340,33 @@ public class MessagesFragment extends Fragment {
 
     boolean uploading = false;
     @Override
-    public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(@Nonnull final View view, @Nullable Bundle savedInstanceState) {
         log("onViewCreated");
         while(true) {
             if(!(users == null))
                 break;
         }
 
+        if(view == null) {
+            loge("null in MessagesFragment");
+            return;
+        }
         LinearLayout container1 = view.findViewById(R.id.container1);
+        if(container1 == null) {
+            loge("null in MessagesFragment");
+            return;
+        }
         container1.removeAllViews();
+
 
         View item;
         TextView tv;
         ImageView img;
         LayoutInflater inflater = getLayoutInflater();
 
+        tv = view.findViewById(R.id.tv_error);
+        tv.setText("");
+        tv.setVisibility(View.INVISIBLE);
         for (int i = 0; i < f_senders.size(); i++) {
             item = inflater.inflate(R.layout.thread_item, container1, false);
             tv = item.findViewById(R.id.tv_sender);
@@ -352,10 +403,20 @@ public class MessagesFragment extends Fragment {
             container1.addView(inflater.inflate(R.layout.divider, container1, false));
         }
         final ScrollView scroll = view.findViewById(R.id.scroll);
+        scroll.scrollTo(0, 0);
 
         if(first_time) {
-            scroll.getViewTreeObserver()
-                    .addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+            @SuppressLint("HandlerLeak") final Handler h = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    scroll.getViewTreeObserver()
+                            .addOnScrollChangedListener(scrollListener);
+                }
+            };
+            new Thread() {
+                @Override
+                public void run() {
+                    scrollListener = new ViewTreeObserver.OnScrollChangedListener() {
                         @Override
                         public void onScrollChanged() {
                             if (scroll.getChildAt(0).getBottom() - 200
@@ -369,7 +430,6 @@ public class MessagesFragment extends Fragment {
                                 @SuppressLint("HandlerLeak") final Handler h = new Handler() {
                                     @Override
                                     public void handleMessage(Message msg) {
-
                                         if(msg.what == 0) {
                                             LinearLayout container = view.findViewById(R.id.container1);
 
@@ -427,17 +487,37 @@ public class MessagesFragment extends Fragment {
                                                 count += senders.length;
                                             uploading = false;
                                         }
-                                        else {
+                                        else if(msg.what == 1){
                                             LayoutInflater inflater = getLayoutInflater();
                                             View item;
                                             TextView tv;
                                             ImageView img;
+                                            int index;
+                                            Spanned mess;
+                                            String s;
+                                            Spannable spannable;
                                             for (int i = s_count; i < s_senders.size(); i++) {
                                                 item = inflater.inflate(R.layout.thread_item, container, false);
                                                 tv = item.findViewById(R.id.tv_sender);
                                                 tv.setText(s_senders.get(i));
                                                 tv = item.findViewById(R.id.tv_topic);
-                                                tv.setText(Html.fromHtml(s_messages.get(i)));
+                                                mess = Html.fromHtml(s_messages.get(i));
+
+                                                index = mess.toString().toLowerCase().indexOf(s_query.toLowerCase());
+                                                log("index: " + index);
+                                                int start, end;
+                                                if(index > 30)
+                                                    start = index-30;
+                                                else
+                                                    start = 0;
+                                                if(mess.toString().length() > index + s_query.length() + 30)
+                                                    end = index + s_query.length() + 30;
+                                                else
+                                                    end = mess.toString().length()-1;
+                                                s = (start == 0?"":"...") + mess.subSequence(start, end).toString() + (end == mess.toString().length()-1?"":"...");
+                                                spannable = new SpannableString(s);
+                                                spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(s_query.toLowerCase()), s.toLowerCase().indexOf(s_query.toLowerCase()) + s_query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                                tv.setText(spannable);
                                                 tv = item.findViewById(R.id.tv_users);
                                                 tv.setText("");
 //                            img = item.findViewById(R.id.img);
@@ -445,10 +525,12 @@ public class MessagesFragment extends Fragment {
                                                 item.setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
+                                                        // todo
                                                         FragmentTransaction transaction = getFragmentManager().beginTransaction();
                                                         ChatFragment fragment = new ChatFragment();
                                                         fragment.threadId = s_threadIds.get(j);
                                                         fragment.threadName = s_senders.get(j);
+                                                        fragment.searchMsgId = s_msgIds.get(j);
                                                         ((MainActivity)getActivity()).set_visible(false);
                                                         transaction.replace(R.id.chat_container, fragment);
                                                         transaction.addToBackStack(null);
@@ -487,7 +569,7 @@ public class MessagesFragment extends Fragment {
                                                     a = obj.getString("senderFio").split(" ")[0];
                                                     b = obj.getString("senderFio").split(" ")[1];
                                                     if (obj.getString("senderFio").split(" ").length <= 2) {
-                                                        loge("fio strange");
+                                                        loge("fio strange:");
                                                         loge(obj.toString());
                                                         c = "a";
                                                     } else
@@ -519,6 +601,10 @@ public class MessagesFragment extends Fragment {
                                                 String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=" + s_count + "&rowsCount=25&text=" + s_query, null);
                                                 log("search result: " + result);
                                                 JSONArray array = new JSONArray(result), a, b;
+                                                if(array.length() == 0) {
+                                                    h.sendEmptyMessage(2);
+                                                    return;
+                                                }
                                                 JSONObject obj, c;
                                                 for (int i = 0; i < array.length(); i++) {
                                                     obj = array.getJSONObject(i);
@@ -532,6 +618,9 @@ public class MessagesFragment extends Fragment {
                                                         s_senders.add(c.getString("senderFio"));
                                                         s_messages.add(c.getString("msg"));
                                                         s_threadIds.add(c.getInt("threadId"));
+                                                        s_msgIds.add(a.optInt(j));
+                                                        Date date = new Date(c.getLong("createDate"));
+                                                        s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
                                                     }
                                                 }
                                                 h.sendMessage(h.obtainMessage(1, array.length()==25?0:1, 0));
@@ -543,7 +632,11 @@ public class MessagesFragment extends Fragment {
                                 }.start();
                             }
                         }
-                    });
+                    };
+                    h.sendEmptyMessage(0);
+                }
+            }.start();
+
             first_time = false;
         }
     }

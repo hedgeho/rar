@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -12,6 +13,9 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -115,7 +119,27 @@ public class DayFragment extends Fragment {
             tv1.setPadding(50, 50, 50, 50);
             linearLayout.addView(tv1);
         }
+
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        //  todo заголовок на тулбаре - дата
+        toolbar.setTitle("Day");
+        setHasOptionsMenu(true);
+        ((MainActivity)getActivity()).setSupActionBar(toolbar);
+        ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         return view;
+    }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        menu.add(0, 1, 0, "Выход");
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == 1)
+            ((MainActivity) getActivity()).quit();
+        return super.onOptionsItemSelected(item);
     }
 }
 
