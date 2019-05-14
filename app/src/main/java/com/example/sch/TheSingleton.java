@@ -2,11 +2,15 @@ package com.example.sch;
 
 import android.content.BroadcastReceiver;
 
+import java.util.ArrayList;
+
 class TheSingleton {
     private static final TheSingleton ourInstance = new TheSingleton();
     private String COOKIE, ROUTE;
     private int USER_ID, PERSON_ID;
     private BroadcastReceiver receiver;
+    private ArrayList<PeriodFragment.Subject> subjects;
+    private ArrayList<PeriodFragment.Day> days;
 
     static TheSingleton getInstance() {
         return ourInstance;

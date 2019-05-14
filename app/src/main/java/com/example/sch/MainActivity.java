@@ -7,21 +7,20 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.sch.LoginActivity.log;
+import static java.lang.Thread.sleep;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     MessagesFragment messagesFragment;
     ConstraintLayout main, chat;
     ScheduleFragment scheduleFragment;
+    ArrayList<PeriodFragment.Subject> subjects;
+    ArrayList<PeriodFragment.Day> days;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -71,18 +72,30 @@ public class MainActivity extends AppCompatActivity {
         };
         registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
 
-
         periodFragment = new PeriodFragment();
-        periodFragment.start(getApplicationContext());
+        periodFragment.start();
         messagesFragment = new MessagesFragment();
         messagesFragment.start();
-        scheduleFragment = new ScheduleFragment();
-        scheduleFragment.start();
 
         loadFragment(periodFragment);
         BottomNavigationView bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
 
+        while (true) {
+            try {
+                sleep(10);
+                if (periodFragment.isReady()) {
+                    System.out.println("//////////////////////////------------------------------------");
+                    subjects = periodFragment.getSubjects();
+                    days = periodFragment.getDays();
+                    System.out.println(days.size());
+                    break;
+                }
+            } catch (InterruptedException e) {
+            }
+        }
+        scheduleFragment = new ScheduleFragment();
+        scheduleFragment.setDays(days);
         main = findViewById(R.id.main_container);
         chat = findViewById(R.id.chat_container);
     }

@@ -5,16 +5,14 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
-import android.widget.TableLayout;
 import android.widget.TextView;
 
 import org.json.JSONArray;
@@ -30,16 +28,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import static java.lang.Thread.sleep;
+
 public class PeriodFragment extends Fragment {
 
     private String COOKIE, ROUTE;
     private int USER_ID;
-    TableLayout table;
     ArrayList<Subject> subjects;
-    Long d = 86400000L;
-    boolean ready = false;
-    ArrayList<Call> calls;
     ArrayList<Day> days;
+    boolean ready = false;
+    boolean red = false;
+    ArrayList<Cell> cells;
+    ArrayList<TextView> txts;
     public PeriodFragment () {}
 
     static void sasha(String s) {
@@ -61,14 +61,173 @@ public class PeriodFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
-    void start(final Context context) {
-        calls = new ArrayList<>();
+    void start() {
+        cells = new ArrayList<>();
         days = new ArrayList<>();
         subjects = new ArrayList<>();
         COOKIE = TheSingleton.getInstance().getCOOKIE();
         ROUTE = TheSingleton.getInstance().getROUTE();
         USER_ID = TheSingleton.getInstance().getUSER_ID();
-        table = new TableLayout(context);
+        txts = new ArrayList<>();
+        Download();
+    }
+
+    ArrayList<Day> getDays() {
+        return days;
+    }
+
+    ArrayList<Subject> getSubjects() {
+        return subjects;
+    }
+
+    boolean isReady() {
+        return red;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.diary, container, false);
+        while (true) {
+            try {
+                sleep(10);
+                if (ready)
+                    break;
+            } catch (InterruptedException e) {
+            }
+
+        }
+        StringBuilder y = new StringBuilder();
+        layout = view.findViewById(R.id.linear);
+        layout1 = view.findViewById(R.id.linear1);
+        layout2 = view.findViewById(R.id.linear2);
+        layout3 = view.findViewById(R.id.linear3);
+        for (int i = 0; i < subjects.size() - 1; i++) {
+            TextView txt1 = new TextView(getActivity().getApplicationContext());
+            TextView txt2 = new TextView(getActivity().getApplicationContext());
+            LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
+            txt1.setTextColor(Color.WHITE);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(0, 0, 40, 10);
+            txt1.setLayoutParams(lp);
+            txt1.setTextSize(20);
+            txt2.setTextSize(20);
+            txt2.setLayoutParams(lp);
+            txt2.setTextColor(getResources().getColor(R.color.two));
+            txt1.setText(subjects.get(i).shortname);
+            txt2.setText(String.valueOf(subjects.get(i).avg));
+            try {
+                txt2.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        MarkFragment fragment = new MarkFragment();
+                        transaction.replace(R.id.frame, fragment);
+                        try {
+
+                        } catch (Exception e) {
+                        }
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                    }
+                });
+            } catch (Exception e) {
+            }
+            try {
+                txt1.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+
+                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        MarkFragment fragment = new MarkFragment();
+                        transaction.replace(R.id.frame, fragment);
+                        try {
+
+                        } catch (Exception e) {
+                        }
+                        transaction.addToBackStack(null);
+                        transaction.commit();
+                    }
+                });
+            } catch (Exception e) {
+            }
+            layout2.addView(txt2);
+            layout1.addView(txt1);
+            try {
+                for (int j = 0; j < subjects.get(i).calls.size(); j++) {
+                    if (subjects.get(i).calls.get(j).mktWt != 0) {
+                        Double d = subjects.get(i).calls.get(j).mktWt;
+                        txts.add(new TextView(getActivity().getApplicationContext()));
+                        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        lp1.setMargins(0, 0, 10, 10);
+                        txts.get(txts.size() - 1).setLayoutParams(lp1);
+                        try {
+                            final int finalI = i;
+                            final int finalJ = j;
+                            txts.get(txts.size() - 1).setOnClickListener(new View.OnClickListener() {
+
+                                @Override
+                                public void onClick(View v) {
+
+                                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                    MarkFragment fragment = new MarkFragment();
+                                    transaction.replace(R.id.frame, fragment);
+                                    try {
+                                        fragment.coff = subjects.get(finalI).calls.get(finalJ).mktWt;
+                                        fragment.data = subjects.get(finalI).calls.get(finalJ).date;
+                                        fragment.teachname = subjects.get(finalI).calls.get(finalJ).teachFio;
+                                        fragment.topic = subjects.get(finalI).calls.get(finalJ).lptname;
+                                        fragment.value = subjects.get(finalI).calls.get(finalJ).markvalue;
+                                        fragment.subject = subjects.get(finalI).name;
+                                    } catch (Exception e) {
+                                    }
+                                    transaction.addToBackStack(null);
+                                    transaction.commit();
+                                }
+                            });
+                        } catch (Exception e) {
+                        }
+                        txts.get(txts.size() - 1).setTextSize(20);
+                        txts.get(txts.size() - 1).setTextColor(Color.WHITE);
+                        txts.get(txts.size() - 1).setBackground(getResources().getDrawable(R.drawable.gradient_list));
+                        txts.get(txts.size() - 1).setPadding(15, 0, 15, 0);
+//
+                        if (d <= 0.5)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff1));
+                        else if (d <= 1)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff2));
+                        else if (d <= 1.25)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff3));
+                        else if (d <= 1.35)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff4));
+                        else if (d <= 1.5)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff5));
+                        else if (d <= 1.75)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff6));
+                        else if (d <= 2)
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff7));
+                        else
+                            txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff8));
+
+                        if (subjects.get(i).calls.get(j).markvalue != null)
+                            txts.get(txts.size() - 1).setText(subjects.get(i).calls.get(j).markvalue);
+                        else {
+                            txts.get(txts.size() - 1).setText("7");
+                            txts.get(txts.size() - 1).setTextColor(Color.TRANSPARENT);
+                        }
+                        linearLayout.addView(txts.get(txts.size() - 1));
+                    }
+                }
+            } catch (Exception e) {
+            }
+            layout3.addView(linearLayout);
+        }
+        return view;
+    }
+
+    void Download() {
 
         new Thread() {
             @SuppressLint("SimpleDateFormat")
@@ -93,7 +252,7 @@ public class PeriodFragment extends Fragment {
                     JSONObject object = new JSONObject(result.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
-                        subjects.add(new Subject());
+                        subjects.add(new PeriodFragment.Subject());
                         JSONObject obj = array.getJSONObject(i);
                         if (obj.has("overMark")) {
                             double d = obj.getDouble("overMark");
@@ -103,6 +262,8 @@ public class PeriodFragment extends Fragment {
                             }
                             subjects.get(i).avg = Double.valueOf(s);
                         }
+                        if (obj.has("totalMark"))
+                            subjects.get(i).totalmark = obj.getString("totalMark");
                         if (obj.has("unitName"))
                             subjects.get(i).name = obj.getString("unitName");
                         if (obj.has("rating"))
@@ -125,7 +286,7 @@ public class PeriodFragment extends Fragment {
                     JSONArray arraydaylessons = object1.getJSONArray("result");
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
-                        Call call = new Call();
+                        PeriodFragment.Cell call = new PeriodFragment.Cell();
                         if (object1.has("lptName"))
                             call.lptname = object1.getString("lptName");
                         if (object1.has("markDate"))
@@ -142,14 +303,14 @@ public class PeriodFragment extends Fragment {
                             call.date = object1.getString("startDt");
                         if (object1.has("unitId"))
                             call.unitid = object1.getInt("unitId");
-                        calls.add(call);
+                        cells.add(call);
                     }
                     COOKIE = TheSingleton.getInstance().getCOOKIE();
                     ROUTE = TheSingleton.getInstance().getROUTE();
                     USER_ID = TheSingleton.getInstance().getUSER_ID();
 
-                    String s1 = calls.get(0).date;
-                    String s2 = calls.get(calls.size() - 1).date;
+                    String s1 = cells.get(0).date;
+                    String s2 = cells.get(cells.size() - 1).date;
                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                     Long d1 = format.parse(s1).getTime();
                     Long d2 = format.parse(s2).getTime();
@@ -186,7 +347,7 @@ public class PeriodFragment extends Fragment {
                             if (!date1.equals(day1) || date1 - day1 != 0) {
                                 index++;
                                 Date date = new Date(date1);
-                                Day thisday = new Day();
+                                PeriodFragment.Day thisday = new PeriodFragment.Day();
                                 thisday.day = String.valueOf(date);
                                 thisday.daymsec = date1;
                                 Date datathis = new Date();
@@ -219,7 +380,7 @@ public class PeriodFragment extends Fragment {
                                 thisday.lessons = new ArrayList<>();
                                 days.add(thisday);
                             }
-                            ScheduleFragment.Lesson lesson = new ScheduleFragment.Lesson();
+                            Lesson lesson = new Lesson();
                             lesson.id = object2.getLong("id");
                             lesson.numInDay = object2.getInt("numInDay");
                             if (object2.getJSONObject("unit").has("id"))
@@ -233,7 +394,7 @@ public class PeriodFragment extends Fragment {
                             if (object2.getJSONObject("teacher").has("factTeacherIN"))
                                 lesson.teachername = object2.getJSONObject("teacher").getString("factTeacherIN");
                             JSONArray ar = object2.getJSONArray("part");
-                            lesson.homeWork = new ScheduleFragment.HomeWork();
+                            lesson.homeWork = new HomeWork();
                             lesson.homeWork.stringwork = "";
                             for (int j = 0; j < ar.length(); j++) {
                                 if (ar.getJSONObject(j).getString("cat").equals("DZ")) {
@@ -254,35 +415,34 @@ public class PeriodFragment extends Fragment {
                                 }
                             }
                             days.get(index).lessons.add(lesson);
-                            sasha(lesson.shortname + " " + lesson.teachername + " " + lesson.numInDay + " " + lesson.homeWork.stringwork);
                         }
                         day1 = date1;
                     }
 
                     for (int i = 0; i < days.size(); i++) {
-                        for (int j = 0; j < calls.size(); j++) {
-                            s1 = calls.get(j).date;
+                        for (int j = 0; j < cells.size(); j++) {
+                            s1 = cells.get(j).date;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                             d1 = format.parse(s1).getTime();
-                            if (calls.get(j).mktWt != 0) {
+                            if (cells.get(j).mktWt != 0) {
                                 if (days.get(i).daymsec - d1 == 0 || days.get(i).daymsec.equals(d1)) {
                                     for (int k = 0; k < days.get(i).lessons.size(); k++) {
-                                        if (days.get(i).lessons.get(k).id.equals(calls.get(j).lessonid)) {
-                                            ScheduleFragment.Mark mark = new ScheduleFragment.Mark();
-                                            mark.idlesson = calls.get(j).lessonid;
-                                            mark.coefficient = calls.get(j).mktWt;
-                                            if (calls.get(j).markvalue != null)
-                                                mark.value = calls.get(j).markvalue;
+                                        if (days.get(i).lessons.get(k).id.equals(cells.get(j).lessonid)) {
+                                            Mark mark = new Mark();
+                                            mark.idlesson = cells.get(j).lessonid;
+                                            mark.coefficient = cells.get(j).mktWt;
+                                            if (cells.get(j).markvalue != null)
+                                                mark.value = cells.get(j).markvalue;
                                             else
                                                 mark.value = "";
-                                            mark.teachFio = calls.get(j).teachFio;
-                                            mark.date = calls.get(j).markdate;
+                                            mark.teachFio = cells.get(j).teachFio;
+                                            mark.date = cells.get(j).markdate;
 
-                                            mark.topic = calls.get(j).lptname;
-                                            mark.unitid = calls.get(j).unitid;
+                                            mark.topic = cells.get(j).lptname;
+                                            mark.unitid = cells.get(j).unitid;
                                             for (int l = 0; l < subjects.size() - 1; l++) {
                                                 if (subjects.get(l).unitid == mark.unitid) {
-                                                    subjects.get(l).calls.add(calls.get(j));
+                                                    subjects.get(l).calls.add(cells.get(j));
                                                     if (subjects.get(l).shortname != null)
                                                         subjects.get(l).shortname = days.get(i).lessons.get(k).shortname;
                                                     if (days.get(i).lessons.get(k).shortname.equals("Обществозн."))
@@ -301,118 +461,78 @@ public class PeriodFragment extends Fragment {
                         }
                     }
                     ready = true;
+                    red = true;
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (Exception e) {
-                    sasha(e.toString());
+                    Download();
                 }
             }
         }.start();
     }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.diary, container, false);
-        return v;
-    }
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        while (true) {
-            try {
-                Thread.sleep(10);
-                if (ready)
-                    break;
-            } catch (InterruptedException e) {
-            }
-
-        }
-        StringBuilder y = new StringBuilder();
-        layout = view.findViewById(R.id.linear);
-        layout1 = view.findViewById(R.id.linear1);
-        layout2 = view.findViewById(R.id.linear2);
-        layout3 = view.findViewById(R.id.linear3);
-        for (int i = 0; i < subjects.size() - 1; i++) {
-            TextView txt1 = new TextView(getActivity().getApplicationContext());
-            TextView txt2 = new TextView(getActivity().getApplicationContext());
-            LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
-            txt1.setTextColor(Color.WHITE);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.setMargins(0, 0, 40, 10);
-            txt1.setLayoutParams(lp);
-            txt1.setTextSize(20);
-            txt2.setTextSize(20);
-            txt2.setLayoutParams(lp);
-            txt2.setTextColor(getResources().getColor(R.color.two));
-            txt1.setText(subjects.get(i).shortname);
-            txt2.setText(String.valueOf(subjects.get(i).avg));
-            layout2.addView(txt2);
-            layout1.addView(txt1);
-            for (int j = 0; j < subjects.get(i).calls.size(); j++) {
-                if (subjects.get(i).calls.get(j).mktWt != 0) {
-                    Double d = subjects.get(i).calls.get(j).mktWt;
-                    TextView txt3 = new TextView(getActivity().getApplicationContext());
-                    LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                    lp1.setMargins(0, 0, 10, 10);
-                    txt3.setLayoutParams(lp1);
-                    txt3.setTextSize(20);
-                    txt3.setTextColor(Color.WHITE);
-                    txt3.setPadding(15, 0, 15, 0);
-                    if (d <= 0.5)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff1));
-                    else if (d <= 1)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff2));
-                    else if (d <= 1.25)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff3));
-                    else if (d <= 1.35)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff4));
-                    else if (d <= 1.5)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff5));
-                    else if (d <= 1.75)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff6));
-                    else if (d <= 2)
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff7));
-                    else
-                        txt3.setBackgroundColor(getResources().getColor(R.color.coff8));
-                    if (subjects.get(i).calls.get(j).markvalue != null)
-                        txt3.setText(subjects.get(i).calls.get(j).markvalue);
-                    else {
-                        txt3.setText("7");
-                        txt3.setTextColor(Color.TRANSPARENT);
-                    }
-                    linearLayout.addView(txt3);
-                }
-            }
-            layout3.addView(linearLayout);
-        }
-    }
-
-    public class Subject {
-        String name, rating = "", shortname = "";
-        double avg;
-        int unitid;
-        ArrayList<Call> calls;
-
-        Subject() {
-        }
-    }
-
-    class Call {
+    static class Cell {
         String lptname, markvalue, date;
         double mktWt = 0;
         Long lessonid;
         String markdate, teachFio;
         int unitid;
 
-        Call() {
+        Cell() {
         }
     }
 
-    class Day {
+    static class Day {
         Long daymsec;
         String day;
         int numday;
-        ArrayList<ScheduleFragment.Lesson> lessons;
+        ArrayList<Lesson> lessons;
 
         Day() {
+        }
+    }
+
+    static class Lesson {
+        int numInDay, numDay;
+        String name = "", teachername = "", topic = "", shortname = "";
+        HomeWork homeWork;
+        ArrayList<Mark> marks = new ArrayList<>();
+        Long id;
+        long unitId = 0;
+
+        Lesson() {
+        }
+
+    }
+
+    static class HomeWork {
+        ArrayList<Integer> idfils;
+        String stringwork = "";
+
+        HomeWork(String a) {
+            stringwork = a;
+        }
+
+        HomeWork() {
+        }
+    }
+
+    static class Mark {
+        public int unitid;
+        String value, teachFio, date, topic;
+        double coefficient;
+        Long idlesson;
+
+        Mark() {
+        }
+    }
+
+    public class Subject {
+        String name, rating = "", shortname = "", totalmark;
+        double avg;
+        int unitid;
+        ArrayList<Cell> calls;
+
+        Subject() {
         }
     }
 
