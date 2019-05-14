@@ -1,19 +1,26 @@
 package com.example.sch;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 
@@ -24,9 +31,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.MessageDigest;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +49,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(getResources().getColor(R.color.gr1));
+        }
+
         new Thread() {
             @Override
             public void run() {
@@ -51,21 +62,39 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         final SharedPreferences settings = getSharedPreferences("pref", 0);
 
+        if(settings.getString("error", "") != null) {
+            if(!settings.getString("error", "").equals("")) {
+                final Snackbar s = Snackbar.make(findViewById(R.id.root), settings.getString("error", ""), Snackbar.LENGTH_LONG);
+                s.setAction("OK", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        settings.edit().remove("error").apply();
+                        s.dismiss();
+                    }
+                });
+                s.show();
+                loge(settings.getString("error", ""));
+            }
+        }
+
         if (!settings.getBoolean("first_time", true)) {
-            //the app is being launched for first time, do something
+            //the app is being launched not for the first time
 
             new Thread() {
                 @Override
                 public void run() {
                     try {
-                        login(settings.getString("login", ""), settings.getString("hash", ""));
-                    }catch (Exception e) {
+                        login(settings.getString("login", ""), settings.getString("hash", ""), 1);
+                    } catch (Exception e) {
                         loge(e.toString());
                     }
                 }
             }.start();
+        } else {
+            log("first time");
+//            findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
+//            findViewById(R.id.l_login).setVisibility(View.VISIBLE);
         }
-
 
         fab = findViewById(R.id.fab_go);
         btn_hash = findViewById(R.id.btn_hash);
@@ -83,7 +112,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onComplete(@NonNull Task<InstanceIdResult> task) {
                         if (!task.isSuccessful()) {
-                            log("getInstanceId failed: " + task.getException().toString());
+                            loge("getInstanceId failed: " + task.getException().toString());
                             return;
                         }
 
@@ -102,7 +131,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     }
 
-    public void onClick(View v) {
+    @Override
+    protected void onResume() {
+        log("onResume");
+        findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
+        findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+        super.onResume();
+    }
+
+    public void onClick(final View v) {
         String logi = et_login.getText().toString();
         String password;
         if(v.getId() == R.id.btn_hash)
@@ -143,8 +180,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         con.connect();
                         OutputStream os = con.getOutputStream();
                         os.write(("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id).getBytes());
-                        con.connect();
-                        login(login, pw);
+                        log("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id);
+                        loge(con.getResponseMessage());
+                        int mode;
+                        if(v.getId() == R.id.btn_test)
+                            mode = 0;
+                        else if(v.getId() == R.id.btn_hash)
+                            mode = 3;
+                        else
+                            mode = 2;
+                        login(login, pw, mode);
                     } catch (Exception e) {
                         loge(e.toString());
                     }
@@ -156,7 +201,41 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    void login(final String login, final String hash) throws Exception {
+    @SuppressLint("HandlerLeak")
+    Handler h = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            findViewById(R.id.l_skip).setVisibility(View.VISIBLE);
+            findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
+            TextView tv = findViewById(R.id.tv_dead);
+            Calendar calendar = Calendar.getInstance();
+            log("DAYS TO DEADLINE: " + (31-calendar.get(Calendar.DAY_OF_MONTH)) + "!");
+            tv.setText("до дедлайна осталось всего " + (31-calendar.get(Calendar.DAY_OF_MONTH)) + " дней");
+        }
+    };
+
+    void login(final String login, final String hash, int mode) throws Exception {
+        FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
+        Bundle bundle = new Bundle();
+        switch (mode) {
+            case 0:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "test");
+                break;
+            case 1:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "auto");
+                log("auto");
+                break;
+            case 2:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "password");
+                break;
+            case 3:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "hash");
+                break;
+                default:
+                    bundle.putString(FirebaseAnalytics.Param.METHOD, "some_method");
+        }
+        analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
+        h.sendEmptyMessage(0);
         URL url;
         HttpURLConnection con;
         StringBuilder result;
@@ -207,9 +286,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 
-    static void log(String msg) {
-        Log.v("mylog", msg);
-    }
+    static void log(String msg) {Log.v("mylog", msg);}
     static void loge(String msg) {Log.e("mylog", msg);}
 
     static String connect(String url, @Nullable String query) throws IOException {

@@ -6,8 +6,10 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -16,11 +18,25 @@ import android.text.style.RelativeSizeSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -173,6 +189,10 @@ public class ScheduleFragment extends Fragment {
             }
         });
 
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle("Schedule");
+        setHasOptionsMenu(true);
+        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
         return v;
     }
 
@@ -181,16 +201,6 @@ public class ScheduleFragment extends Fragment {
             tv[i].setBackground(null);
             tv[i].setTextColor(Color.WHITE);
         }
-    }
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        log("onAttach");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
@@ -210,5 +220,23 @@ public class ScheduleFragment extends Fragment {
             return pageCount;
         }
 
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        menu.add(0, 1, 0, "Выход");
+        MenuItem item = menu.add(0, 2, 0, "Настройки");
+        item.setIcon(R.drawable.settings);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == 1) {
+            ((MainActivity) getActivity()).quit();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

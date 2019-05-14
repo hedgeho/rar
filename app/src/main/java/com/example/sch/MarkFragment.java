@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -11,6 +12,9 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -36,6 +40,8 @@ public class MarkFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
+
         View v = inflater.inflate(R.layout.fragment_mark, container, false);
         LinearLayout linearLayout = v.findViewById(R.id.ll);
         if (topic != null && !topic.equals("") && !topic.equals(" ")) {
@@ -77,17 +83,27 @@ public class MarkFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             linearLayout.addView(tv1);
         }
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle("Mark");
+        setHasOptionsMenu(true);
+        ((MainActivity)getActivity()).setSupActionBar(toolbar);
+        ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
+
         return v;
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        menu.add(0, 1, 0, "Выход");
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == 1) {
+            ((MainActivity) getActivity()).quit();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
