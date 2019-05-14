@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public class DayFragment extends Fragment {
 
     String homework = "";
-    ArrayList<ScheduleFragment.Mark> marks = new ArrayList<>();
+    ArrayList<PeriodFragment.Mark> marks = new ArrayList<>();
     String topic = "";
     String teachername = "";
 
@@ -44,6 +44,8 @@ public class DayFragment extends Fragment {
         linearLayout.setBaselineAligned(false);
         if (homework != " " && homework != "") {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append("Домашнее задание:").append("\n").append(homework).toString();
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -52,11 +54,13 @@ public class DayFragment extends Fragment {
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
-            tv1.setGravity(Gravity.NO_GRAVITY);
+            tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {
             TextView tv2 = new TextView(getActivity().getApplicationContext());
+            tv2.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s2;
             if (marks.size() > 1) {
                 s2 = new StringBuilder().append("Оценки:").toString();
@@ -85,6 +89,8 @@ public class DayFragment extends Fragment {
         }
         if (topic != " " && topic != "") {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append("Тема:").append("\n").append(topic).toString();
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -93,10 +99,13 @@ public class DayFragment extends Fragment {
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 50);
+            tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
         }
         if (teachername != " " && teachername != "") {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append(teachername).toString();
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
