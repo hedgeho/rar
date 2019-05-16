@@ -19,18 +19,19 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 import static com.example.sch.LoginActivity.log;
 
 public class PageFragment extends Fragment {
 
     static final String SAVE_PAGE_NUMBER = "save_page_number";
     TableLayout tableLayout;
-    int index = 0;
-    int weekday = 6;
     PeriodFragment.Day day;
     int dayofyear;
-
+    ArrayList<PeriodFragment.Subject> subjects;
     int pageNumber;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,7 +47,6 @@ public class PageFragment extends Fragment {
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
         } else {
-            System.out.println("fghjgfdsasubehvdr");
             TableRow tbrow1 = new TableRow(getActivity().getApplicationContext());
             tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
@@ -102,6 +102,7 @@ public class PageFragment extends Fragment {
                             fragment.teachername = lesson.teachername;
                             fragment.topic = lesson.topic;
                             fragment.marks = lesson.marks;
+                            fragment.subjects = subjects;
                         } catch (Exception e) {
                         }
                         transaction.addToBackStack(null);
@@ -116,7 +117,7 @@ public class PageFragment extends Fragment {
             System.out.println(lesson.numInDay);
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
-                String s = lesson.name + "\n" + lesson.homeWork.stringwork;
+                String s = new StringBuilder().append(lesson.name).append("\n").append(lesson.homeWork.stringwork).toString();
                 Spannable spans = new SpannableString(s);
                 spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                 spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -127,21 +128,25 @@ public class PageFragment extends Fragment {
             tv1.setPadding(15, 0, 15, 0);
             tv2.setPadding(30, 30, 30, 30);
             tv3.setPadding(30, 0, 30, 0);
-            tv2.setMaxLines(3);
+            tv2.setMaxLines(2);
             tv2.setEllipsize(TextUtils.TruncateAt.END);
             try {
                 StringBuilder s1 = new StringBuilder();
                 for (int j = 0; j < lesson.marks.size(); j++) {
-                    s1.append(lesson.marks.get(j).value);
-                    if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1) {
-                        s1.append("/");
+                    if (lesson.marks.get(j).value != null && lesson.marks.get(j).value != " " && lesson.marks.get(j).value != "") {
+                        s1.append(lesson.marks.get(j).value);
+                        if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1 && lesson.marks.get(j + 1).value != null && lesson.marks.get(j + 1).value != " " && lesson.marks.get(j + 1).value != "") {
+                            s1.append("/");
+                        }
                     }
                 }
                 s1.append("\n");
                 for (int j = 0; j < lesson.marks.size(); j++) {
-                    s1.append(lesson.marks.get(j).coefficient);
-                    if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1) {
-                        s1.append("/");
+                    if (lesson.marks.get(j).value != null && lesson.marks.get(j).value != " " && lesson.marks.get(j).value != "") {
+                        s1.append(lesson.marks.get(j).coefficient);
+                        if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1 && lesson.marks.get(j + 1).value != null && lesson.marks.get(j + 1).value != " " && lesson.marks.get(j + 1).value != "") {
+                            s1.append("/");
+                        }
                     }
                 }
                 Spannable spans1 = new SpannableString(s1.toString());

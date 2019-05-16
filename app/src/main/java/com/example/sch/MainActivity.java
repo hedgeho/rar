@@ -6,37 +6,30 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.strictmode.IntentReceiverLeakedViolation;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
-import android.support.multidex.MultiDexApplication;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import java.security.spec.ECField;
-import java.util.ArrayList;
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
-import static java.lang.Thread.sleep;
 import static com.example.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+
             switch (item.getItemId()) {
                 case R.id.navigation_period:
                     setTitle("Period");
@@ -154,36 +148,25 @@ public class MainActivity extends AppCompatActivity {
 
         snackbar = Snackbar.make(main, "No internet connection", Snackbar.LENGTH_INDEFINITE);
 
-        periodFragment = new PeriodFragment();
-        periodFragment.start();
+
+        scheduleFragment = new ScheduleFragment();
+        scheduleFragment.start();
         messagesFragment = new MessagesFragment();
         messagesFragment.start();
 
-        loadFragment(periodFragment);
+        loadFragment(scheduleFragment);
         BottomNavigationView bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
-
-        /*while (true) {
-            try {
-                sleep(10);
-                if (periodFragment.isReady()) {
-                    System.out.println("//////////////////////////------------------------------------");
-                    subjects = periodFragment.getSubjects();
-                    days = periodFragment.getDays();
-                    System.out.println(days.size());
-                    break;
-                }
-            } catch (InterruptedException ignore) {
-            }
-        }*/
+        bottomnav.setSelectedItemId(R.id.navigation_diary);
     }
 
 
     void set(ArrayList<PeriodFragment.Subject> subjects, ArrayList<PeriodFragment.Day> days) {
         this.subjects = subjects;
         this.days = days;
-        scheduleFragment = new ScheduleFragment();
-        scheduleFragment.setDays(days);
+        periodFragment = new PeriodFragment();
+
+        periodFragment.subjects = subjects;
     }
 
     void loadFragment(Fragment fragment) {
