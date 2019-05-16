@@ -250,8 +250,8 @@ public class PeriodFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Выход");
-        menu.add(0, 2, 0, "CRUSH");
+        menu.add(0, 1, 0, "Quit");
+        menu.add(0, 2, 0, "CRASH");
         super.onCreateOptionsMenu(menu, inflater);
     }
 

@@ -6,11 +6,8 @@ import java.util.ArrayList;
 
 class TheSingleton {
     private static final TheSingleton ourInstance = new TheSingleton();
-    private String COOKIE, ROUTE;
+    private String COOKIE, ROUTE, fb_id;
     private int USER_ID, PERSON_ID;
-    private BroadcastReceiver receiver;
-    private ArrayList<PeriodFragment.Subject> subjects;
-    private ArrayList<PeriodFragment.Day> days;
 
     static TheSingleton getInstance() {
         return ourInstance;
@@ -50,11 +47,11 @@ class TheSingleton {
         this.PERSON_ID = PERSON_ID;
     }
 
-    BroadcastReceiver getReceiver() {
-        return receiver;
+    String getFb_id() {
+        return fb_id;
     }
 
-    void setReceiver(BroadcastReceiver receiver) {
-        this.receiver = receiver;
+    void setFb_id(String fb_id) {
+        this.fb_id = fb_id;
     }
 }

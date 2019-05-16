@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
             switch (item.getItemId()) {
                 case R.id.navigation_period:
                     setTitle("Period");
@@ -59,7 +58,10 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.navigation_messages:
                     setTitle("Messages");
-                    loadFragment(messagesFragment);
+                    if(getStackTop() instanceof MessagesFragment)
+                        ((MessagesFragment) getStackTop()).refresh();
+                    else
+                        loadFragment(messagesFragment);
                     return true;
             }
             return false;
@@ -106,11 +108,12 @@ public class MainActivity extends AppCompatActivity {
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                List<Fragment> a = getSupportFragmentManager().getFragments();
-                if (a.get(a.size() - 1) instanceof MessagesFragment) {
-                    ((MessagesFragment) a.get(a.size() - 1)).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0), intent.getStringExtra("sender_id"));
-                } else if (a.get(a.size() - 1) instanceof ChatFragment) {
-                    ((ChatFragment) a.get(a.size() - 1)).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
+                if (getStackTop() instanceof MessagesFragment) {
+                    ((MessagesFragment) getStackTop()).newMessage(intent.getStringExtra("text"),
+                            intent.getLongExtra("time", 0), intent.getIntExtra("sender_id", 0),
+                            intent.getIntExtra("thread_id", 0));
+                } else if (getStackTop() instanceof ChatFragment) {
+                    ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
                             intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
                             intent.getStringExtra("sender_fio"));
                 }
@@ -165,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
         this.subjects = subjects;
         this.days = days;
         periodFragment = new PeriodFragment();
-
         periodFragment.subjects = subjects;
     }
 
@@ -271,7 +273,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    connect("https://still-cove-90434.herokuapp.com/logout", "firebase_id=");
+                    connect("https://still-cove-90434.herokuapp.com/logout",
+                            "firebase_id=" + TheSingleton.getInstance().getFb_id());
                 } catch (Exception e) {
                     loge("logout: " + e.toString());
                 }
@@ -280,6 +283,11 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getSharedPreferences("pref", 0);
         pref.edit().putBoolean("first_time", true).apply();
         finish();
+    }
+
+    Fragment getStackTop() {
+        List<Fragment> a = getSupportFragmentManager().getFragments();
+        return a.get(a.size() - 1);
     }
 
     public static boolean hasConnection(final Context context) {

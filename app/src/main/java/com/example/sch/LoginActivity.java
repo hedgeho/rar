@@ -121,6 +121,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                         log(token);
                         fb_id = token;
+                        TheSingleton.getInstance().setFb_id(fb_id);
                         // Log and toast
 //                        String msg = getString(R.string.msg_token_fmt, token);
 //                        log(msg);
@@ -209,7 +210,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
             TextView tv = findViewById(R.id.tv_dead);
             Calendar calendar = Calendar.getInstance();
-            log("DAYS TO DEADLINE: " + (31-calendar.get(Calendar.DAY_OF_MONTH)) + "!");
+            loge("DAYS TO DEADLINE: " + (31-calendar.get(Calendar.DAY_OF_MONTH)) + "!");
             tv.setText("до дедлайна осталось всего " + (31-calendar.get(Calendar.DAY_OF_MONTH)) + " дней");
         }
     };
