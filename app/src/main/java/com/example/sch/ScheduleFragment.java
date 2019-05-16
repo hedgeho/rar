@@ -1,5 +1,7 @@
 package com.example.sch;
 
+import android.content.Context;
+import android.content.Intent;
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Build;
@@ -493,8 +495,8 @@ public class ScheduleFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Выход");
-        MenuItem item = menu.add(0, 2, 0, "Настройки");
+        menu.add(0, 1, 0, "Quit");
+        MenuItem item = menu.add(0, 2, 0, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
@@ -504,6 +506,8 @@ public class ScheduleFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == 1) {
             ((MainActivity) getActivity()).quit();
+        } else if(item.getItemId() == 2) {
+            startActivity(new Intent(getContext(), SettingsActivity.class));
         }
         return super.onOptionsItemSelected(item);
     }

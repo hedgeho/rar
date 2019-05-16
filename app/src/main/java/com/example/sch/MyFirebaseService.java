@@ -26,60 +26,67 @@ public class MyFirebaseService extends FirebaseMessagingService {
     }
 
     @Override
-    public void onCreate() {
-
-    }
-
-    @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         log("message received");
         log("from: " + remoteMessage.getFrom()); 
         log("msg id: " + remoteMessage.getMessageId());
-        log("sender: " + remoteMessage.toIntent().getStringExtra("senderFio"));
-        log("text: " + remoteMessage.toIntent().getStringExtra("text"));
-
-        String text = remoteMessage.toIntent().getStringExtra("text");
-        //long time = Integer.valueOf(remoteMessage.toIntent().getStringExtra("date"));
+        Intent data = remoteMessage.toIntent();
         long time = 15551882447791L;
-        String sender_fio = remoteMessage.toIntent().getStringExtra("senderFio");
-        int sender = Integer.parseInt(remoteMessage.toIntent().getStringExtra("senderId"));
-        int thread_id = Integer.parseInt(remoteMessage.toIntent().getStringExtra("threadId"));
-        NotificationManager notificationManager;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            notificationManager = getSystemService(NotificationManager.class);
-            if (notificationManager.getNotificationChannel("1") == null) {
-                CharSequence ch_name = "New messages";
-                String description = "CHANNEL_DESCRIPTION";
+        if (data.getStringExtra("type").equals("mark")) {
 
-                int importance = NotificationManager.IMPORTANCE_HIGH;
-                NotificationChannel channel = new NotificationChannel("1", ch_name, importance);
-                channel.setDescription(description);
-                // Register the channel with the system; you can't change the importance
-                // or other notification behaviors after this
+        } else if (data.getStringExtra("type").equals("msg")) {
+            log("sender: " + remoteMessage.toIntent().getStringExtra("senderFio"));
+            log("text: " + remoteMessage.toIntent().getStringExtra("text"));
+            String text = remoteMessage.toIntent().getStringExtra("text");
+            String sender_fio = remoteMessage.toIntent().getStringExtra("senderFio");
+            int sender = Integer.parseInt(remoteMessage.toIntent().getStringExtra("senderId"));
+            int thread_id = Integer.parseInt(remoteMessage.toIntent().getStringExtra("threadId"));
+            NotificationManager notificationManager;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                notificationManager = getSystemService(NotificationManager.class);
+                if (notificationManager.getNotificationChannel("1") == null) {
+                    CharSequence ch_name = "New messages";
+                    String description = "CHANNEL_DESCRIPTION";
 
-                notificationManager.createNotificationChannel(channel);
+                    int importance = NotificationManager.IMPORTANCE_HIGH;
+                    NotificationChannel channel = new NotificationChannel("1", ch_name, importance);
+                    channel.setDescription(description);
+                    // Register the channel with the system; you can't change the importance
+                    // or other notification behaviors after this
+
+                    notificationManager.createNotificationChannel(channel);
+                }
+                ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                List<ActivityManager.RunningTaskInfo> runningTaskInfo = manager.getRunningTasks(1);
+                ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
+                if(!componentInfo.getPackageName().equals("com.example.sch")) {
+                    // background/not running
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
+                    builder.setContentTitle(remoteMessage.toIntent().getStringExtra("senderFio"))
+                            .setContentText(remoteMessage.toIntent().getStringExtra("text"))
+                            .setSmallIcon(R.drawable.attach);
+                    Notification notif = builder.build();
+                    notificationManager.notify(0, notif);
+                } else {
+                    // application is in foreground
+                    log("sending to broadcast");
+                    this.sendBroadcast(new Intent("com.example.sch.action").putExtra("text", text).putExtra("sender_fio", sender_fio)
+                            .putExtra("time", time).putExtra("sender_id", sender).putExtra("thread_id", thread_id));
+                }
+                if(remoteMessage.getNotification() != null) {
+                    log(remoteMessage.getNotification().getTitle() + "");
+                    log(remoteMessage.getNotification().getBody() + "");
+                }
             }
-            ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-            List<ActivityManager.RunningTaskInfo> runningTaskInfo = manager.getRunningTasks(1);
-            ComponentName componentInfo = runningTaskInfo.get(0).topActivity;
-            if(!componentInfo.getPackageName().equals("com.example.sch")) {
-                // background/not running
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-                builder.setContentTitle(remoteMessage.toIntent().getStringExtra("senderFio"))
-                        .setContentText(remoteMessage.toIntent().getStringExtra("text"))
-                        .setSmallIcon(R.drawable.attach);
-                Notification notif = builder.build();
-                notificationManager.notify(0, notif);
-            } else {
-                // application is in foreground
-                this.sendBroadcast(new Intent("com.example.sch.action").putExtra("text", text).putExtra("sender_fio", sender_fio)
-                .putExtra("time", time).putExtra("sender_id", sender).putExtra("thread_id", thread_id));
-            }
-            if(remoteMessage.getNotification() != null) {
-                log(remoteMessage.getNotification().getTitle() + "");
-                log(remoteMessage.getNotification().getBody() + "");
-            }
+
+        } else if (data.getStringExtra("type").equals("lesson")) {
+
         }
+
+
+        //long time = Integer.valueOf(remoteMessage.toIntent().getStringExtra("date"));
+
+
         //Toast.makeText(getApplicationContext(), remoteMessage.getNotification().getTitle() + ":\n" + remoteMessage.getNotification().getBody(), Toast.LENGTH_LONG).show();
     }
 

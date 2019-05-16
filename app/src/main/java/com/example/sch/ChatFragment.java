@@ -117,6 +117,7 @@ public class ChatFragment extends Fragment {
 
     void newMessage(String text, long time, int sender_id, int thread_id, String sender_fio) {
         log("new message in ChatFragment");
+        log("notif thread: " + thread_id + ", this thread id: " + this.threadId);
         if(thread_id != this.threadId) {
             log("wrong thread, sorry");
             NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), "1");
@@ -128,12 +129,13 @@ public class ChatFragment extends Fragment {
                 //  todo early versions
                 getActivity().getSystemService(NotificationManager.class).notify(1, notif);
             }
+            return;
         }
         final LinearLayout container = view.findViewById(R.id.container);
         LayoutInflater inflater = getLayoutInflater();
         View item;
         LinearLayout.LayoutParams params;
-        TextView tv, tv_attach;
+        TextView tv, tv_attach; // todo attach
         item = inflater.inflate(R.layout.chat_item, container, false);
         tv = item.findViewById(R.id.tv_text);
         if(Html.fromHtml(text).toString().equals("")) {
@@ -145,7 +147,6 @@ public class ChatFragment extends Fragment {
         tv.setMovementMethod(LinkMovementMethod.getInstance());
         tv.setTextColor(Color.WHITE);
         tv.setMaxWidth(view.getMeasuredWidth()-300);
-        loge("long:" + time + ", int: " + sender_id);
         Date date = new Date(time);
 
         tv = item.findViewById(R.id.tv_time);
@@ -153,15 +154,20 @@ public class ChatFragment extends Fragment {
         //tv.setText(time);
         item.setPadding(0, 16, 4, 0);
         params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.gravity = Gravity.END;
+        log("person_id: " + PERSON_ID + ", sender: " + sender_id);
+        ConstraintLayout l = item.findViewById(R.id.item_main);
         if(PERSON_ID != sender_id) {
-            ConstraintLayout l = item.findViewById(R.id.item_main);
+            l.setBackground(getResources().getDrawable(R.drawable.chat_border));
+            params.gravity = Gravity.END;
+        } else {
             l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
             params.gravity = Gravity.START;
         }
         params.topMargin = 20;
         params.bottomMargin = 20;
-        container.addView(item);
+
+        container.addView(item, params);
+        scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
     }
 
     @SuppressLint("HandlerLeak")
