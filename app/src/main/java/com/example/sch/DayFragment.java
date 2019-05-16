@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -30,6 +31,7 @@ public class DayFragment extends Fragment {
     ArrayList<PeriodFragment.Mark> marks = new ArrayList<>();
     String topic = "";
     String teachername = "";
+    ArrayList<PeriodFragment.Subject> subjects;
 
     public DayFragment() {
     }
@@ -44,7 +46,7 @@ public class DayFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_day, container, false);
 
-        LinearLayout linearLayout = view.findViewById(R.id.ll);
+        LinearLayout linearLayout = view.findViewById(R.id.container);
         linearLayout.setBaselineAligned(false);
         if (homework != " " && homework != "") {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
@@ -62,33 +64,72 @@ public class DayFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {
-            TextView tv2 = new TextView(getActivity().getApplicationContext());
-            tv2.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            String s2;
-            if (marks.size() > 1) {
-                s2 = new StringBuilder().append("Оценки:").toString();
-            } else {
-                s2 = new StringBuilder().append("Оценкa:").toString();
-            }
-            Spannable spans2 = new SpannableString(s2);
-            spans2.setSpan(new RelativeSizeSpan(1.7f), 0, s2.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans2.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s2.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            tv2.setText(spans2);
-            tv2.setPadding(50, 50, 50, 10);
-            linearLayout.addView(tv2);
+            int g = 0; // та самая мусорная переменная
             for (int i = 0; i < marks.size(); i++) {
-                TextView tv1 = new TextView(getActivity().getApplicationContext());
-                String s1 = new StringBuilder().append(marks.get(i).value).append("   ").append(marks.get(i).coefficient).toString();
-                Spannable spans1 = new SpannableString(s1);
-                spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("   "), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("   "), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                tv1.setText(spans1);
-                tv1.setGravity(Gravity.CENTER);
-                tv1.setPadding(80, 10, 80, 10);
-                linearLayout.addView(tv1);
+                if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
+                    g++;
+                }
+            }
+            if (g > 0) {
+                TextView tv2 = new TextView(getActivity().getApplicationContext());
+                tv2.setLayoutParams(new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                String s2;
+                if (g > 1) {
+                    s2 = new StringBuilder().append("Оценки:").toString();
+                } else {
+                    s2 = new StringBuilder().append("Оценкa:").toString();
+                }
+                Spannable spans2 = new SpannableString(s2);
+                spans2.setSpan(new RelativeSizeSpan(1.7f), 0, s2.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans2.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s2.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                tv2.setText(spans2);
+                tv2.setPadding(50, 50, 50, 10);
+                linearLayout.addView(tv2);
+                for (int i = 0; i < marks.size(); i++) {
+                    if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
+                        TextView tv1 = new TextView(getActivity().getApplicationContext());
+                        String s1 = new StringBuilder().append(marks.get(i).value).append("   ").append(marks.get(i).coefficient).toString();
+                        Spannable spans1 = new SpannableString(s1);
+                        spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                        spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("   "), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                        spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("   "), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        tv1.setText(spans1);
+                        tv1.setGravity(Gravity.CENTER);
+                        tv1.setPadding(80, 10, 80, 10);
+                        final int finalI = i;
+                        final int finalJ;
+                        tv1.setOnClickListener(new View.OnClickListener() {
+
+                            @Override
+                            public void onClick(View v) {
+                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                MarkFragment fragment = new MarkFragment();
+                                transaction.replace(R.id.frame, fragment);
+                                try {
+                                    PeriodFragment.Cell cell = marks.get(finalI).cell;
+                                    fragment.coff = cell.mktWt;
+                                    fragment.data = cell.date;
+                                    fragment.markdata = cell.markdate;
+                                    fragment.teachname = cell.teachFio;
+                                    fragment.topic = cell.lptname;
+                                    fragment.value = cell.markvalue;
+                                    for (int j = 0; j < subjects.size(); j++) {
+                                        if (marks.get(finalI).unitid - subjects.get(j).unitid == 0) {
+                                            fragment.subject = subjects.get(j).name;
+                                            break;
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                }
+                                transaction.addToBackStack(null);
+                                transaction.commit();
+                            }
+                        });
+                        linearLayout.addView(tv1);
+                    }
+                }
             }
         }
         if (topic != " " && topic != "") {

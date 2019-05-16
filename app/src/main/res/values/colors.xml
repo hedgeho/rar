@@ -10,13 +10,13 @@
     <color name="five">#020202</color>
     <color name="six">#1B1B1B</color>
     <color name="seven">#707070</color>
-    <color name="coff1">#6E7474</color>
-    <color name="coff2">#D1C0C0</color>
-    <color name="coff3">#749AA2</color>
-    <color name="coff4">#4B7A86</color>
-    <color name="coff5">#4BA4B1</color>
-    <color name="coff6">#39BCCC</color>
-    <color name="coff7">#00E1FF</color>
-    <color name="coff8">#D5FAFF</color>
+    <color name="coff1">#303030</color>
+    <color name="coff2">#587279</color>
+    <color name="coff3">#4C858F</color>
+    <color name="coff4">#2E85A2</color>
+    <color name="coff5">#2B759C</color>
+    <color name="coff6">#0A5574</color>
+    <color name="coff7">#003D5F</color>
+    <color name="coff8">#003644</color>
     <color name="gr1">#303030</color>
 </resources>

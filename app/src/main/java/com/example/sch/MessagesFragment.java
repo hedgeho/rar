@@ -1,29 +1,21 @@
 package com.example.sch;
 
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.support.v7.widget.ViewUtils;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,7 +25,6 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -46,7 +37,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import javax.annotation.Nonnull;
@@ -154,7 +144,7 @@ public class MessagesFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.messages, contain, false);
-        container = view.findViewById(R.id.container1);
+        container = view.findViewById(R.id.container);
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
 
         setHasOptionsMenu(true);
@@ -351,7 +341,7 @@ public class MessagesFragment extends Fragment {
             loge("null in MessagesFragment");
             return;
         }
-        LinearLayout container1 = view.findViewById(R.id.container1);
+        LinearLayout container1 = view.findViewById(R.id.container);
         if(container1 == null) {
             loge("null in MessagesFragment");
             return;
@@ -431,7 +421,7 @@ public class MessagesFragment extends Fragment {
                                     @Override
                                     public void handleMessage(Message msg) {
                                         if(msg.what == 0) {
-                                            LinearLayout container = view.findViewById(R.id.container1);
+                                            LinearLayout container = view.findViewById(R.id.container);
 
                                             View item;
                                             TextView tv;

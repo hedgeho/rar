@@ -1,6 +1,5 @@
 package com.example.sch;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,6 +19,13 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.text.DateFormat;
+import java.text.DateFormatSymbols;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 
 public class MarkFragment extends Fragment {
 
@@ -27,6 +33,20 @@ public class MarkFragment extends Fragment {
     Double coff;
     String teachname;
     String data;
+    private static DateFormatSymbols myDateFormatSymbols = new DateFormatSymbols() {
+
+        @Override
+        public String[] getWeekdays() {
+            return new String[]{" ", "воскресенье", "понедельник", "вторник", "среду", "четверг", "пятницу", "субботу"};
+        }
+
+        @Override
+        public String[] getMonths() {
+            return new String[]{"января", "февраля", "марта", "апреля", "мая", "июня",
+                    "июля", "августа", "сентября", "октября", "ноября", "декабря"};
+        }
+
+    };
     String topic;
     String subject;
 
@@ -38,19 +58,21 @@ public class MarkFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    String markdata;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
 
         View v = inflater.inflate(R.layout.fragment_mark, container, false);
-        LinearLayout linearLayout = v.findViewById(R.id.ll);
+        LinearLayout linearLayout = v.findViewById(R.id.container);
         if (topic != null && !topic.equals("") && !topic.equals(" ")) {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append(topic).append(":").toString();
             Spannable spans1 = new SpannableString(s1);
-            spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
@@ -76,15 +98,73 @@ public class MarkFragment extends Fragment {
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = String.valueOf(coff);
             Spannable spans1 = new SpannableString(s1);
-            spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 10, 50, 10);
             tv1.setGravity(Gravity.CENTER);
             linearLayout.addView(tv1);
         }
+        if (data != null && !data.equals("") && !data.equals(" ")) {
+            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            String s1 = data;
+            DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
+            try {
+                Date date = format.parse(s1);
+                format = new SimpleDateFormat("EEEE, d MMMM yyyy", myDateFormatSymbols);
+                System.out.println(date);
+                s1 = format.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            s1 = "Оценка поставлена на \n" + s1;
+            Spannable spans1 = new SpannableString(s1);
+            spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            tv1.setText(spans1);
+            tv1.setPadding(50, 50, 50, 10);
+            tv1.setGravity(Gravity.CENTER_VERTICAL);
+            linearLayout.addView(tv1);
+        }
+        if (markdata != null && !markdata.equals("") && !markdata.equals(" ")) {
+            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            String s1 = markdata;
+            DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
+            try {
+                Date date = format.parse(s1);
+                format = new SimpleDateFormat("EEEE, d MMMM yyyy, 'в' HH:mm ", myDateFormatSymbols);
+                s1 = format.format(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            s1 = "Оценка выставлена в \n" + s1;
+            Spannable spans1 = new SpannableString(s1);
+            spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            tv1.setText(spans1);
+            tv1.setPadding(50, 50, 50, 10);
+            tv1.setGravity(Gravity.CENTER_VERTICAL);
+            linearLayout.addView(tv1);
+        }
+        if (teachname != null && !teachname.equals("") && !teachname.equals(" ")) {
+            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            String s1 = teachname;
+            Spannable spans1 = new SpannableString(s1);
+            spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            tv1.setText(spans1);
+            tv1.setPadding(50, 50, 50, 10);
+            tv1.setGravity(Gravity.CENTER);
+            linearLayout.addView(tv1);
+        }
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setTitle("Mark");
+        toolbar.setTitle(subject);
         setHasOptionsMenu(true);
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
