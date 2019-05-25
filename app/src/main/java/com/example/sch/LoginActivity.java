@@ -1,8 +1,12 @@
 package com.example.sch;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,6 +15,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -43,6 +48,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     Button btn_hash, btn_test;
     EditText et_login, et_password, et_hash;
     String fb_id;
+    int threadId = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +66,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
         }.start();
 
+        if(getIntent().getStringExtra("type") != null) {
+            threadId = getIntent().getIntExtra("threadId", -1);
+        }
+        NotificationManagerCompat.from(this).cancelAll();
+
         final SharedPreferences settings = getSharedPreferences("pref", 0);
 
-        if(settings.getString("error", "") != null) {
+        /*if(settings.getString("error", "") != null) {
             if(!settings.getString("error", "").equals("")) {
                 final Snackbar s = Snackbar.make(findViewById(R.id.root), settings.getString("error", ""), Snackbar.LENGTH_LONG);
                 s.setAction("OK", new View.OnClickListener() {
@@ -75,7 +86,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 s.show();
                 loge(settings.getString("error", ""));
             }
-        }
+        }*/
 
         if (!settings.getBoolean("first_time", true)) {
             //the app is being launched not for the first time
@@ -84,7 +95,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void run() {
                     try {
-                        login(settings.getString("login", ""), settings.getString("hash", ""), 1);
+                        if(settings.getBoolean("auto", true))
+                            login(settings.getString("login", ""), settings.getString("hash", ""), 1);
                     } catch (Exception e) {
                         loge(e.toString());
                     }
@@ -171,6 +183,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void run() {
                     try {
+                        int mode;
+                        if(v.getId() == R.id.btn_test)
+                            mode = 0;
+                        else if(v.getId() == R.id.btn_hash)
+                            mode = 3;
+                        else
+                            mode = 2;
+                        login(login, pw, mode);
                         URL url;
                         HttpURLConnection con;
 
@@ -183,14 +203,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         os.write(("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id).getBytes());
                         log("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id);
                         loge(con.getResponseMessage());
-                        int mode;
-                        if(v.getId() == R.id.btn_test)
-                            mode = 0;
-                        else if(v.getId() == R.id.btn_hash)
-                            mode = 3;
-                        else
-                            mode = 2;
-                        login(login, pw, mode);
                     } catch (Exception e) {
                         loge(e.toString());
                     }
@@ -215,96 +227,89 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     };
 
-    void login(final String login, final String hash, int mode) throws Exception {
-        FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
-        Bundle bundle = new Bundle();
-        switch (mode) {
-            case 0:
-                bundle.putString(FirebaseAnalytics.Param.METHOD, "test");
-                break;
-            case 1:
-                bundle.putString(FirebaseAnalytics.Param.METHOD, "auto");
-                log("auto");
-                break;
-            case 2:
-                bundle.putString(FirebaseAnalytics.Param.METHOD, "password");
-                break;
-            case 3:
-                bundle.putString(FirebaseAnalytics.Param.METHOD, "hash");
-                break;
-                default:
-                    bundle.putString(FirebaseAnalytics.Param.METHOD, "some_method");
-        }
-        analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
+    void login(final String login, final String hash, int mode) {
         h.sendEmptyMessage(0);
-        URL url;
-        HttpURLConnection con;
-        StringBuilder result;
-        BufferedReader rd;
-        String line;
 
-        url = new URL("https://app.eschool.center/ec-server/login");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        con.setDoOutput(true);
-        con.connect();
-        OutputStream os = con.getOutputStream();
-        os.write(("username=" + login + "&password=" + hash).getBytes());
-        con.connect();
-        Map<String, List<String>> a = con.getHeaderFields();
-        Object[] b = a.entrySet().toArray();
-        String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
-        String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
-        log("login: " + COOKIE2);
-        //new Scanner(System.in).nextLine();
+        if(threadId != -1)
+            startActivity(new Intent(getApplicationContext(), MainActivity.class)
+                    .putExtra("type", "msg").putExtra("notif", true)
+                    .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
+            .putExtra("mode", mode));
+        else
+            startActivity(new Intent(getApplicationContext(), MainActivity.class)
+                    .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
 
-        url = new URL("https://app.eschool.center/ec-server/state?menu=false");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");// "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.13.1554062260.1554051192.");
-        con.connect();
-        result = new StringBuilder();
-        log(con.getResponseMessage());
-
-        rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
-        }
-        rd.close();
-
-        log("state: " + result.toString());
-        JSONObject obj = new JSONObject(result.toString());
-        int userId = -1;
-        if (obj.has("userId"))
-            userId = obj.getInt("userId");
-        TheSingleton.getInstance().setCOOKIE(COOKIE2);
-        TheSingleton.getInstance().setROUTE(route);
-        TheSingleton.getInstance().setUSER_ID(userId);
-        TheSingleton.getInstance().setPERSON_ID(obj.getJSONObject("user").getInt("prsId"));
-        startActivity(new Intent(getApplicationContext(), MainActivity.class));
     }
 
-    static void log(String msg) {Log.v("mylog", msg);}
-    static void loge(String msg) {Log.e("mylog", msg);}
+    static void log(String msg) {if(msg != null) Log.v("mylog", msg); else loge("null log");}
+    static void loge(String msg) {if(msg != null) Log.e("mylog", msg); else loge("null log");}
 
-    static String connect(String url, @Nullable String query) throws IOException {
+    static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
         if(query == null) {
             con.setRequestMethod("GET");
             con.connect();
         } else {
-            con.setRequestMethod("POST");
+            if(put)
+                con.setRequestMethod("PUT");
+            else
+                con.setRequestMethod("POST");
             con.setDoOutput(true);
             con.connect();
             con.getOutputStream().write(query.getBytes());
         }
         if(con.getResponseCode() != 200) {
             loge("connect failed, code " + con.getResponseCode() + ", message: " + con.getResponseMessage());
-            return "";
+            loge(url);
+            loge("query: '" + query + "'");
+            if(context == null) {
+                loge("null context");
+                return "";
+            }
+            if(con.getResponseCode() == 401) {
+                URL Url = new URL("https://app.eschool.center/ec-server/login");
+                con = (HttpURLConnection) Url.openConnection();
+                con.setRequestMethod("POST");
+                con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                con.setDoOutput(true);
+                con.connect();
+                OutputStream os = con.getOutputStream();
+                SharedPreferences data = context.getSharedPreferences("pref", 0);
+                String login = data.getString("login", ""),
+                        password = data.getString("hash", "");
+                log("username=" + login + "&password=" + password);
+                os.write(("username=" + login + "&password=" + password).getBytes());
+                con.connect();
+                log(con.getResponseMessage());
+                Map <String, List<String>> a = con.getHeaderFields();
+                Object[] b = a.entrySet().toArray();
+                String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+                String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
+                TheSingleton.getInstance().setROUTE(route);
+                TheSingleton.getInstance().setCOOKIE(COOKIE2);
+                log("route: " + route);
+                log(COOKIE2);
+
+
+                con = (HttpURLConnection) new URL(url).openConnection();
+                con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                if(query == null) {
+                    con.setRequestMethod("GET");
+                    con.connect();
+                } else {
+                    con.setRequestMethod("POST");
+                    con.setDoOutput(true);
+                    con.connect();
+                    con.getOutputStream().write(query.getBytes());
+                }
+                if(con.getResponseCode() != 200) {
+                    return "";
+                }
+            } else {
+                return "";
+            }
         }
         if(con.getInputStream() != null) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
@@ -317,5 +322,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return result.toString();
         } else
             return "";
+    }
+    static String connect(String url, @Nullable String query, Context context) throws IOException {
+        return connect(url, query, context, false);
     }
 }
