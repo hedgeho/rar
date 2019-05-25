@@ -38,6 +38,9 @@ public class Countcoff extends Fragment {
     Double avg;
     ArrayList<String> strings;
     TextView txt1;
+    boolean modRemove = false;
+    boolean modAdd = false;
+    boolean nodChange = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,7 +86,6 @@ public class Countcoff extends Fragment {
                 spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv1.setText(spans1);
                 tv1.setBackgroundColor(getResources().getColor(R.color.coff6));
-
                 if (colinlast > 7) {
                     LinearLayout lin = new LinearLayout(getContext());
                     lin.setOrientation(LinearLayout.HORIZONTAL);
