@@ -22,19 +22,17 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-
-import static com.example.sch.LoginActivity.log;
-import static com.example.sch.LoginActivity.loge;
+import java.util.Calendar;
 
 public class PageFragment extends Fragment {
 
     static final String SAVE_PAGE_NUMBER = "save_page_number";
     TableLayout tableLayout;
     PeriodFragment.Day day;
-    int dayofyear;
     ArrayList<PeriodFragment.Subject> subjects;
     int pageNumber;
-
+    Calendar c;
+    int dayofweek;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,12 +48,19 @@ public class PageFragment extends Fragment {
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
         } else {
+            tableLayout.setColumnStretchable(0, true);
+            tableLayout.setColumnShrinkable(0, true);
             TableRow tbrow1 = new TableRow(getContext());
             tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
             TextView tv1 = new TextView(getContext());
-            tv1.setText("12345");
+            tv1.setText("Уроков нет");
+            tv1.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             tbrow1.addView(tv1);
+            tv1.setTextColor(Color.GRAY);
+            tv1.setGravity(Gravity.CENTER);
+            tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
         }
         return v;
@@ -123,9 +128,14 @@ public class PageFragment extends Fragment {
                 });
             } catch (Exception e) {
             }
-            tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-            tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-            tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+            if (i - day.lessons.size() + 1 == 0) {
+                tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
+                tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
+            } else {
+                tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+                tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+                tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone3));
+            }
             System.out.println(lesson.numInDay);
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
@@ -137,7 +147,7 @@ public class PageFragment extends Fragment {
                 tv2.setText(spans);
             } catch (Exception e) {
             }
-            tv1.setPadding(15, 0, 15, 0);
+            tv1.setPadding(15, 0, 30, 0);
             tv2.setPadding(30, 30, 30, 30);
             tv3.setPadding(30, 0, 30, 0);
             tv2.setMaxLines(2);
@@ -190,4 +200,6 @@ public class PageFragment extends Fragment {
         super.onSaveInstanceState(outState);
         outState.putInt(SAVE_PAGE_NUMBER, pageNumber);
     }
+
+
 }

@@ -22,12 +22,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.text.DateFormat;
 import java.text.DateFormatSymbols;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
 
 public class SubjectFragment extends Fragment {
 
@@ -48,6 +44,7 @@ public class SubjectFragment extends Fragment {
     String subname;
     String periodname = "4 четверть"; // пока так
     ArrayList<PeriodFragment.Cell> cells;
+    ArrayList<PeriodFragment.Subject> subjects;
     Double avg;
     String rating;
     String totalmark;
@@ -108,6 +105,24 @@ public class SubjectFragment extends Fragment {
             tv1.setText(spans1);
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
+            tv1.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    Countcoff fragment = new Countcoff();
+                    transaction.replace(R.id.frame, fragment);
+                    try {
+                        fragment.subjects = subjects;
+                        fragment.subname = subname;
+                        fragment.avg = avg;
+                    } catch (Exception e) {
+                    }
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
+            });
             ln1.addView(tv1);
         }
         if (totalmark != " " && totalmark != "" && totalmark != null) {
@@ -143,45 +158,6 @@ public class SubjectFragment extends Fragment {
             ln1.addView(tv1);
         }
         linearLayout.addView(ln1);
-        btn = new Button(getActivity().getApplicationContext());
-        btn.setText("Посчитать среднмй балл");
-        btn.setTextSize(30);
-        btn.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                MarkFragment fragment = new MarkFragment();
-                transaction.replace(R.id.frame, fragment);
-                try {
-
-                } catch (Exception e) {
-                }
-                transaction.addToBackStack(null);
-                transaction.commit();
-            }
-        });
-        LinearLayout containerview = v.findViewById(R.id.container);
-        LayoutInflater inflaterview = getLayoutInflater();
-        Long A = 0L;
-        for (int i = 0; i < cells.size(); i++) {
-            Long B = 0L;
-            DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
-            try {
-                Date date = format.parse(cells.get(i).date);
-                B = date.getTime();
-            } catch (Exception e) {
-            }
-            if (B - A != 0) {
-                View item = inflaterview.inflate(R.layout.mark_item, containerview, false);
-                TextView date = item.findViewById(R.id.date);
-                LinearLayout ln2 = item.findViewById(R.id.linear);
-                containerview.addView(item);
-            }
-            A = B;
-        }
-
-
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(periodname);
         setHasOptionsMenu(true);
