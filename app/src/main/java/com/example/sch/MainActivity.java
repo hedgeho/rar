@@ -19,9 +19,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
@@ -34,7 +36,7 @@ import static com.example.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
 
-    PeriodFragment periodFragment;
+    PeriodFragment1 periodFragment;
     MessagesFragment messagesFragment;
     ConstraintLayout main, chat;
     ScheduleFragment scheduleFragment;
@@ -164,12 +166,18 @@ public class MainActivity extends AppCompatActivity {
         bottomnav.setSelectedItemId(R.id.navigation_diary);
     }
 
+    void sasha(String s) {
+        Log.v("sasha", s);
+    }
 
-    void set(ArrayList<PeriodFragment.Subject> subjects, ArrayList<PeriodFragment.Day> days) {
+    void set(ArrayList<PeriodFragment.Subject> subjects, ArrayList<PeriodFragment.Day> days, ArrayList<LinearLayout> lins) {
         this.subjects = subjects;
         this.days = days;
-        periodFragment = new PeriodFragment();
+        sasha(" PeriodFragment1");
+        periodFragment = new PeriodFragment1();
         periodFragment.subjects = subjects;
+        periodFragment.days = days;
+        periodFragment.lins = lins;
         TheSingleton.getInstance().setSubjects(subjects);
         TheSingleton.getInstance().setDays(days);
     }

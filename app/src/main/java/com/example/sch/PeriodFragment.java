@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,7 +25,6 @@ public class PeriodFragment extends Fragment {
 
     ArrayList<Subject> subjects;
     ArrayList<TextView> txts;
-
     public PeriodFragment() {
         txts = new ArrayList<>();
     }
@@ -65,6 +65,7 @@ public class PeriodFragment extends Fragment {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             lp.setMargins(0, 0, 40, 10);
             txt1.setLayoutParams(lp);
+            txt1.setGravity(Gravity.CENTER);
             txt1.setTextSize(20);
             txt2.setTextSize(20);
             txt2.setLayoutParams(lp);
@@ -228,7 +229,7 @@ public class PeriodFragment extends Fragment {
 
     static class Mark {
         public int unitid;
-        String value, teachFio, date, topic;
+        String value, teachFio, date, topic, markdate;
         double coefficient;
         Long idlesson;
         Cell cell;

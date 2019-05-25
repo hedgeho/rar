@@ -10,7 +10,7 @@
     <color name="five">#020202</color>
     <color name="six">#1B1B1B</color>
     <color name="seven">#707070</color>
-    <color name="coff1">#303030</color>
+    <color name="coff1">#3D3D3D</color>
     <color name="coff2">#587279</color>
     <color name="coff3">#4C858F</color>
     <color name="coff4">#2E85A2</color>
@@ -19,4 +19,5 @@
     <color name="coff7">#003D5F</color>
     <color name="coff8">#003644</color>
     <color name="gr1">#303030</color>
+    <color name="gr2">#313030</color>
 </resources>

@@ -12,6 +12,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -59,6 +60,12 @@ public class DayFragment extends Fragment {
             spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
+            try {
+                Linkify.addLinks(tv1, Linkify.WEB_URLS);
+                tv1.setLinksClickable(true);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
