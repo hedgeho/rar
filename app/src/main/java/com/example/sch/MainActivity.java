@@ -95,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        scheduleFragment = new ScheduleFragment();
+
+        messagesFragment = new MessagesFragment();
+
         final String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
         new Thread() {
             @Override
@@ -183,10 +187,6 @@ public class MainActivity extends AppCompatActivity {
         snackbar = Snackbar.make(main, "No internet connection", Snackbar.LENGTH_INDEFINITE);
 
         layoutInflater = getLayoutInflater();
-
-        scheduleFragment = new ScheduleFragment();
-
-        messagesFragment = new MessagesFragment();
 
         bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);

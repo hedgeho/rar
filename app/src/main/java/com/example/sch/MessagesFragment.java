@@ -1075,6 +1075,7 @@ public class MessagesFragment extends Fragment {
         ChatFragment fragment = new ChatFragment();
         fragment.threadId = threadId;//f_threadIds.get(j);
         fragment.threadName = threadName;//f_senders.get(j);
+        fragment.context = context;
         if(searchId != -1)
             fragment.searchMsgId = searchId;
         ((MainActivity)getActivity()).set_visible(false);

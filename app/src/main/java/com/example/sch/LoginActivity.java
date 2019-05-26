@@ -32,6 +32,7 @@ import com.google.firebase.iid.InstanceIdResult;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -41,6 +42,10 @@ import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -202,6 +207,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         OutputStream os = con.getOutputStream();
                         os.write(("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id).getBytes());
                         log("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id);
+
                         loge(con.getResponseMessage());
                     } catch (Exception e) {
                         loge(e.toString());

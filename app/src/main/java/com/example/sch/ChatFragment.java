@@ -7,6 +7,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
@@ -22,6 +24,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -35,6 +38,42 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static com.example.sch.LoginActivity.connect;
+import static com.example.sch.LoginActivity.log;
+import static com.example.sch.LoginActivity.loge;
+import static java.util.Calendar.MONTH;
+import static java.util.Calendar.YEAR;
+import static java.util.Calendar.getInstance;
+
 //import org.apache.http.client.HttpClient;
 //import org.apache.http.HttpResponse;
 //import org.apache.http.client.HttpClient;
@@ -44,27 +83,6 @@ import android.widget.TextView;
 //import org.apache.http.entity.mime.content.StringBody;
 ////import org.apache.http.impl.client.DefaultHttpClient;
 //import org.apache.http.impl.client.DefaultHttpClient;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
-import static com.example.sch.LoginActivity.connect;
-import static com.example.sch.LoginActivity.log;
-import static com.example.sch.LoginActivity.loge;
-import static java.util.Calendar.MONTH;
-import static java.util.Calendar.YEAR;
-import static java.util.Calendar.getInstance;
 
 //import org.apache.http.client.HttpClient;
 //import org.apache.http.client.methods.HttpPost;
@@ -93,6 +111,7 @@ public class ChatFragment extends Fragment {
     private boolean scrolled = false, first_time = true;
     private MenuItem itemToEnable = null;
 
+    Context context;
     int threadId = 0;
     String threadName = "";
     int searchMsgId = -1;
@@ -613,31 +632,35 @@ public class ChatFragment extends Fragment {
                 final Handler hand = new Handler() {
                     @Override
                     public void handleMessage(Message msg) {
-                        String text = (String) msg.obj;
-                        View item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
-                        TextView tv = item.findViewById(R.id.tv_text);
-                        if(Html.fromHtml(text).toString().equals("")) {
-                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                            params1.setMargins(0,0,0,0);
-                            tv.setLayoutParams(params1);
-                        }
-                        tv.setText(Html.fromHtml(text));
-                        tv.setTextColor(Color.WHITE);
-                        tv.setMaxWidth(view.getMeasuredWidth()-300);
-                        tv = item.findViewById(R.id.tv_time);
-                        tv.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
-                        item.setPadding(0, 16, 4, 0);
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        params.gravity = Gravity.END;
-                        params.topMargin = 20;
-                        params.bottomMargin = 20;
-                        container.addView(item, params);
-                        scroll.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                scroll.fullScroll(ScrollView.FOCUS_DOWN);
+                        try {
+                            String text = (String) msg.obj;
+                            View item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
+                            TextView tv = item.findViewById(R.id.tv_text);
+                            if (Html.fromHtml(text).toString().equals("")) {
+                                ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                                params1.setMargins(0, 0, 0, 0);
+                                tv.setLayoutParams(params1);
                             }
-                        });
+                            tv.setText(Html.fromHtml(text));
+                            tv.setTextColor(Color.WHITE);
+                            tv.setMaxWidth(view.getMeasuredWidth() - 300);
+                            tv = item.findViewById(R.id.tv_time);
+                            tv.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
+                            item.setPadding(0, 16, 4, 0);
+                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            params.gravity = Gravity.END;
+                            params.topMargin = 20;
+                            params.bottomMargin = 20;
+                            container.addView(item, params);
+                            scroll.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    scroll.fullScroll(ScrollView.FOCUS_DOWN);
+                                }
+                            });
+                        } catch (Exception e) {
+                            loge("hand: " + e.toString());
+                        }
                     }
                 };
                 scroll = view.findViewById(R.id.scroll);
@@ -647,15 +670,21 @@ public class ChatFragment extends Fragment {
                     public void onClick(View v) {
                         final String text = et.getText().toString();
                         final ArrayList<Uri> files = attach;
-                        attach = null;
+                        //attach = null;
                         et.setText("");
                         new Thread() {
                             @Override
                             public void run() {
                                 try {
+                                    log("rar");
                                     hand.sendMessage(hand.obtainMessage(0, text));
                                     if(files != null) {
-                                        //sendFile(files.get(0), threadId, text);
+                                        try {
+//                                            sendFile(files.get(0), threadId, text);
+                                            uploadFile(files.get(0));
+                                        } catch (Exception e) {
+                                            loge("sendFile: " + e.toString());
+                                        }
                                     } else {
                                         HttpURLConnection con = (HttpURLConnection) new URL("https://app.eschool.center/ec-server/chat/sendNew").openConnection();
                                         con.setRequestMethod("POST");
@@ -669,7 +698,7 @@ public class ChatFragment extends Fragment {
                                     }
                                     //con.connect();
                                 } catch (Exception e) {
-                                    loge(e.toString());
+                                    loge("rar: " + e.toString());
                                 }
                             }
                         }.start();
@@ -714,6 +743,7 @@ public class ChatFragment extends Fragment {
 
         if(attach == null)
             attach = new ArrayList<>();
+
         attach.add(data.getData());
     }
 
@@ -773,6 +803,174 @@ public class ChatFragment extends Fragment {
         if(h != null)
             h.sendEmptyMessage(1);
     }
+
+    public void uploadFile(Uri uri) throws IOException {
+        HttpURLConnection conn = null;
+        DataOutputStream dos = null;
+        String lineEnd = "\r\n";
+        String twoHyphens = "--";
+        //String boundary = "----WebKitFormBoundarymBTAnQQ5kHFE0Vyx";
+        String boundary = "----WebKitFormBoundarywivugwcoddchjcde";
+        int bytesRead, bytesAvailable, bufferSize;
+        byte[] buffer;
+        int maxBufferSize = 1024 * 1024 * 1024;
+        File file = new File(getActivity().getCacheDir(), "test.png");
+        OutputStream outputStream = new FileOutputStream(file);
+        InputStream is = context.getContentResolver().openInputStream(uri);
+
+        int read;
+        byte[] bytes = new byte[1024];
+        while ((read = is.read(bytes)) != -1) {
+            outputStream.write(bytes, 0, read);
+        }
+
+        log("file path: " + file.getAbsolutePath());
+
+        if (!file.isFile()) {
+
+            loge("Source File not exist");
+        } else {
+            try {
+
+                // open a URL connection to the Servlet
+                FileInputStream fileInputStream = new FileInputStream(file);
+                URL url = new URL("https://app.eschool.center/ec-server/chat/sendNew");
+
+                // Open a HTTP  connection to  the URL
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setDoInput(true); // Allow Inputs
+                conn.setDoOutput(true); // Allow Outputs
+                conn.setUseCaches(false); // Don't use a Cached Copy
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Connection", "Keep-Alive");
+                conn.setRequestProperty("ENCTYPE", "multipart/form-data");
+                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+//                conn.setRequestProperty("Content-Length", "12094");
+//                conn.setRequestProperty("uploaded_file", "test.png");
+                conn.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+
+                dos = new DataOutputStream(conn.getOutputStream());
+
+                StringBuilder msg = new StringBuilder();
+                msg.append(boundary);
+                msg.append("Content-Disposition: form-data; name=\"msgText\"" + lineEnd);
+                msg.append("test text");
+
+                msg.append(boundary);
+                msg.append("Content-Disposition: form-data; name=\"threadId\"" + lineEnd);
+                msg.append("611127");
+
+                msg.append(boundary);
+                msg.append("Content-Disposition: form-data; name=\"msgUID\"" + lineEnd);
+                msg.append("" + System.currentTimeMillis());
+
+                log("l: " + msg.toString().getBytes().length);
+
+                dos.writeBytes(boundary);
+                dos.writeBytes("\n\rContent-Disposition: form-data; name=\"msgText\"" + lineEnd);
+                dos.writeBytes(lineEnd + "test text" + lineEnd);
+
+                dos.writeBytes(boundary);
+                dos.writeBytes(lineEnd + "Content-Disposition: form-data; name=\"threadId\"" + lineEnd);
+                dos.writeBytes(lineEnd + "611127" + lineEnd);
+
+                dos.writeBytes(boundary);
+                dos.writeBytes(lineEnd + "Content-Disposition: form-data; name=\"msgUID\"" + lineEnd);
+                dos.writeBytes(lineEnd + System.currentTimeMillis() + lineEnd);
+
+                log(System.currentTimeMillis() + "");
+                //dos.writeBytes(twoHyphens + boundary + lineEnd);
+                dos.writeBytes(boundary);
+                dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
+                        + "test.png" + "\"" + lineEnd);
+                dos.writeBytes("Content-Type: image/png\n\r");
+
+                log(msg.toString());
+//                dos.writeBytes(lineEnd);
+
+                // create a buffer of  maximum size
+                bytesAvailable = fileInputStream.available();
+
+                bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                buffer = new byte[bufferSize];
+
+                // read file and write it into form...
+                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+
+                while (bytesRead > 0) {
+                    dos.write(buffer, 0, bufferSize);
+                    bytesAvailable = fileInputStream.available();
+                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
+                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
+                }
+
+                // send multipart form data necessary after file data...
+//                dos.writeBytes(lineEnd);
+//                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
+                dos.writeBytes(boundary);
+
+                // Responses from the server (code and message)
+                int serverResponseCode = conn.getResponseCode();
+                String serverResponseMessage = conn.getResponseMessage();
+
+                log("HTTP Response is: "
+                        + serverResponseMessage + ": " + serverResponseCode);
+
+
+                //close the streams //
+                fileInputStream.close();
+                dos.flush();
+                dos.close();
+            } catch (Exception e) {
+                loge(e.toString());
+            }
+        } // End else block
+    }
+
+    private void sendFile(Uri uri, int threadId, String text) throws IOException {
+
+        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
+        File file = new File(getActivity().getCacheDir(), "test.png");
+        OutputStream outputStream = new FileOutputStream(file);
+        InputStream is = context.getContentResolver().openInputStream(uri);
+
+        int read;
+        byte[] bytes = new byte[1024];
+        while ((read = is.read(bytes)) != -1) {
+            outputStream.write(bytes, 0, read);
+        }
+
+        log("file path: " + file.getAbsolutePath());
+        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("https://app.eschool.center").build();
+        RequestBody requestBody = RequestBody.create(MediaType.parse("*/*"), file);
+        MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+        RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
+        RetrofitInterface interf = retrofit.create(RetrofitInterface.class);
+        Call<Model> call = interf.getData("multipart/form-data; boundary=----WebKitFormBoundarymBTAnQQ5kHFE0Vyx",
+                TheSingleton.getInstance().getCOOKIE() + "vc; site_ver=app; routef=" +
+                TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.",
+                threadId, text, System.nanoTime(), fileToUpload, filename);
+        call.enqueue(new Callback<Model>() {
+            @Override
+            public void onResponse(Call call, Response response) {
+                log("success sending file");
+                log("code " + response.code());
+                log("message " + response.message());
+                Model model = (Model) response.body();
+                if(model != null)
+                    log("senderFio: " + model.toString());
+                else
+                    log("null response");
+            }
+
+            @Override
+            public void onFailure(Call call, Throwable t) {
+                loge("failure sending file: " + t.toString());
+            }
+        });
+    }
+
 
    /* private static void sendFile(Uri uri, int threadId, String text){
         File file = new File(uri.getPath());
