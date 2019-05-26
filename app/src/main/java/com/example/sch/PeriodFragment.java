@@ -22,9 +22,11 @@ import java.util.ArrayList;
 
 public class PeriodFragment extends Fragment {
 
-
     ArrayList<Subject> subjects;
     ArrayList<TextView> txts;
+    View view;
+    boolean first_time = true;
+
     public PeriodFragment() {
         txts = new ArrayList<>();
     }
@@ -50,50 +52,44 @@ public class PeriodFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.diary, container, false);
-        StringBuilder y = new StringBuilder();
-        layout = view.findViewById(R.id.linear);
-        layout1 = view.findViewById(R.id.linear1);
-        layout2 = view.findViewById(R.id.linear2);
-        layout3 = view.findViewById(R.id.linear3);
-        sasha("subjects: " + subjects.size());
-        for (int i = 0; i < subjects.size() - 1; i++) {
-            TextView txt1 = new TextView(getActivity().getApplicationContext());
-            TextView txt2 = new TextView(getActivity().getApplicationContext());
-            LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
-            txt1.setTextColor(Color.WHITE);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            lp.setMargins(0, 0, 40, 10);
-            txt1.setLayoutParams(lp);
-            txt1.setGravity(Gravity.CENTER);
-            txt1.setTextSize(20);
-            txt2.setTextSize(20);
-            txt2.setLayoutParams(lp);
-            txt2.setTextColor(getResources().getColor(R.color.two));
-            txt1.setText(subjects.get(i).shortname);
-            txt2.setText(String.valueOf(subjects.get(i).avg));
-            final int finalI1 = i;
-            try {
+        if(first_time) {
+            view = inflater.inflate(R.layout.diary, container, false);
+            layout = view.findViewById(R.id.linear);
+            layout1 = view.findViewById(R.id.linear1);
+            layout2 = view.findViewById(R.id.linear2);
+            layout3 = view.findViewById(R.id.linear3);
+            sasha("subjects: " + subjects.size());
+            for (int i = 0; i < subjects.size() - 1; i++) {
+                TextView txt1 = new TextView(getActivity().getApplicationContext());
+                TextView txt2 = new TextView(getActivity().getApplicationContext());
+                LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
+                txt1.setTextColor(Color.WHITE);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp.setMargins(0, 0, 40, 10);
+                txt1.setLayoutParams(lp);
+                txt1.setGravity(Gravity.CENTER);txt1.setTextSize(20);
+                txt2.setTextSize(20);
+                txt2.setLayoutParams(lp);
+                txt2.setTextColor(getResources().getColor(R.color.two));
+                txt1.setText(subjects.get(i).shortname);
+                txt2.setText(String.valueOf(subjects.get(i).avg));
+                final int finalI1 = i;
                 txt2.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         SwitchToSubjectFragment(subjects.get(finalI1).avg, subjects.get(finalI1).cells, subjects.get(finalI1).name, subjects.get(finalI1).rating, subjects.get(finalI1).totalmark);
                     }
                 });
-            } catch (Exception e) {
-            }
-            try {
                 txt1.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         SwitchToSubjectFragment(subjects.get(finalI1).avg, subjects.get(finalI1).cells, subjects.get(finalI1).name, subjects.get(finalI1).rating, subjects.get(finalI1).totalmark);
                     }
                 });
-            } catch (Exception e) {
-            }
-            layout2.addView(txt2);
-            layout1.addView(txt1);
-            try {
+                layout2.addView(txt2);
+                layout1.addView(txt1);
+                if(subjects.get(i).cells == null)
+                    continue;
                 for (int j = 0; j < subjects.get(i).cells.size(); j++) {
                     if (subjects.get(i).cells.get(j).markvalue != null && subjects.get(i).cells.get(j).markvalue != "") {
                         Double d = subjects.get(i).cells.get(j).mktWt;
@@ -159,16 +155,19 @@ public class PeriodFragment extends Fragment {
                         linearLayout.addView(txts.get(txts.size() - 1));
                     }
                 }
-            } catch (Exception e) {
+                layout3.addView(linearLayout);
             }
-            layout3.addView(linearLayout);
-        }
 
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        toolbar.setTitle("Period");
-        setHasOptionsMenu(true);
-        ((MainActivity)getActivity()).setSupportActionBar(toolbar);
+            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            toolbar.setTitle("Period");
+            setHasOptionsMenu(true);
+            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+        }
         return view;
+    }
+
+    void show() {
+
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<Cell> cells, String name, String rating, String totalmark) {
@@ -238,7 +237,7 @@ public class PeriodFragment extends Fragment {
         }
     }
 
-    public static class Subject {
+    static class Subject {
         String name, rating = "", shortname = "", totalmark;
         double avg;
         int unitid;

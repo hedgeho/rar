@@ -12,6 +12,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
+import android.support.design.internal.BottomNavigationItemView;
+import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -19,16 +21,29 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.LinearLayout;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
@@ -43,7 +58,11 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<PeriodFragment.Subject> subjects;
     ArrayList<PeriodFragment.Day> days;
     Snackbar snackbar;
+    static LayoutInflater layoutInflater;
     BroadcastReceiver receiver, internet_receiver;
+    BottomNavigationView bottomnav;
+    boolean LOAD_READY = false;
+    Thread setting_badge;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -76,6 +95,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        final String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    login(login, hash);
+                } catch (Exception e) {loge("login: " + e.toString());}
+            }
+        }.start();
         /*Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
@@ -106,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "content_type!");
                 analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);*/
             }
-        }.start();
+        };//.start();
 
         receiver = new BroadcastReceiver() {
             @Override
@@ -119,20 +147,20 @@ public class MainActivity extends AppCompatActivity {
                     ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
                             intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
                             intent.getStringExtra("sender_fio"));
+                } else {
+                    BottomNavigationMenuView bottomNavigationMenuView =
+                            (BottomNavigationMenuView) bottomnav.getChildAt(0);
+                    View v = bottomNavigationMenuView.getChildAt(2);
+                    BottomNavigationItemView itemView = (BottomNavigationItemView) v;
+                    TextView tv = itemView.findViewById(R.id.tv_badge);
+                    if(tv.getVisibility() == View.INVISIBLE) {
+                        tv.setVisibility(View.VISIBLE);
+                        tv.setText("1");
+                    } else
+                        tv.setText(Integer.parseInt(tv.getText().toString()) + 1 + "");
                 }
             }
         };
-        /*try {
-            unregisterReceiver(receiver);
-        } catch (IllegalArgumentException e) {
-            log("IllegalArgumentException handled");
-        } finally {
-            try {
-                registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
-            } catch (Exception e) {
-                loge(e.toString());
-            }
-        }*/
         internet_receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -154,16 +182,145 @@ public class MainActivity extends AppCompatActivity {
 
         snackbar = Snackbar.make(main, "No internet connection", Snackbar.LENGTH_INDEFINITE);
 
+        layoutInflater = getLayoutInflater();
 
         scheduleFragment = new ScheduleFragment();
-        scheduleFragment.start();
-        messagesFragment = new MessagesFragment();
-        messagesFragment.start();
 
-        loadFragment(scheduleFragment);
-        BottomNavigationView bottomnav = findViewById(R.id.bottomnav);
+        messagesFragment = new MessagesFragment();
+
+        bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
-        bottomnav.setSelectedItemId(R.id.navigation_diary);
+        BottomNavigationMenuView bottomNavigationMenuView =
+                (BottomNavigationMenuView) bottomnav.getChildAt(0);
+        View v = bottomNavigationMenuView.getChildAt(2);
+        final BottomNavigationItemView itemView = (BottomNavigationItemView) v;
+        /*View badge = */getLayoutInflater().inflate(R.layout.badge, itemView, true);
+
+        setting_badge = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    final String s = connect("https://app.eschool.center/ec-server/chat/count?prsId=" + TheSingleton.getInstance().getPERSON_ID(),
+                            null, getApplicationContext());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView tv = itemView.findViewById(R.id.tv_badge);
+                            if(s.equals("0"))
+                                tv.setVisibility(View.INVISIBLE);
+                            else
+                                tv.setText(s);
+                        }
+                    });
+                } catch (Exception e) {
+                    loge(e.toString());
+                }
+            }
+        };
+
+        if(getIntent().getBooleanExtra("notif", false)) {
+            log("notif");
+            if(getIntent().getStringExtra("type").equals("msg")) {
+                log("type - msg");
+                bottomnav.setSelectedItemId(R.id.navigation_messages);
+                messagesFragment.fromNotification = true;
+                messagesFragment.notifThreadId = getIntent().getIntExtra("threadId", -1);
+                loadFragment(messagesFragment);
+            }
+        } else {
+            loadFragment(scheduleFragment);
+            bottomnav.setSelectedItemId(R.id.navigation_diary);
+        }
+    }
+
+    void login(String login, String hash) throws IOException, JSONException {
+        URL url;
+        HttpURLConnection con;
+        StringBuilder result;
+        BufferedReader rd;
+        String line;
+
+        log("calling login");
+        url = new URL("https://app.eschool.center/ec-server/login");
+        con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setDoOutput(true);
+        con.connect();
+        OutputStream os = con.getOutputStream();
+        os.write(("username=" + login + "&password=" + hash).getBytes());
+        con.connect();
+        Map<String, List<String>> a = con.getHeaderFields();
+        Object[] b = a.entrySet().toArray();
+        String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+        String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
+        log("login: " + COOKIE2);
+        //new Scanner(System.in).nextLine();
+
+        int userId = -1, prsId;
+        String name;
+        SharedPreferences pref = getSharedPreferences("pref", 0);
+        if(pref.getInt("userId", -1) == -1) {
+         //if(true) {
+            log("userId not found, calling state");
+            url = new URL("https://app.eschool.center/ec-server/state?menu=false");
+            con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+            con.connect();
+            result = new StringBuilder();
+            log(con.getResponseMessage());
+
+            rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
+
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+            rd.close();
+
+            log("state: " + result.toString());
+            JSONObject obj = new JSONObject(result.toString());
+            if (obj.has("userId"))
+                userId = obj.getInt("userId");
+            prsId = obj.getJSONObject("user").getInt("prsId");
+            name = obj.getJSONObject("profile").getString("firstName");
+            pref.edit().putInt("userId", userId).putInt("prsId", prsId)
+                    .putString("name", name).apply();
+        } else {
+            userId = pref.getInt("userId", -1);
+            prsId = pref.getInt("prsId", -1);
+            name = pref.getString("name", "");
+        }
+        log("userId: " + userId + ", prsId: " + prsId + ", name: " + name);
+        TheSingleton.getInstance().setCOOKIE(COOKIE2);
+        TheSingleton.getInstance().setROUTE(route);
+        TheSingleton.getInstance().setUSER_ID(userId);
+        TheSingleton.getInstance().setPERSON_ID(prsId);
+        LOAD_READY = true;
+        scheduleFragment.start();
+        messagesFragment.start();
+        setting_badge.start();
+        FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
+        Bundle bundle = new Bundle();
+        switch (getIntent().getIntExtra("mode", -1)) {
+            case 0:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "test");
+                break;
+            case 1:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "auto");
+                log("auto");
+                break;
+            case 2:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "password");
+                break;
+            case 3:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "hash");
+                break;
+            default:
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "some_method");
+        }
+        analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
     }
 
     void sasha(String s) {
@@ -208,7 +365,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        log("fragments on MainActivity: " + getSupportFragmentManager().getBackStackEntryCount());
+        log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
+        List<Fragment> a = getSupportFragmentManager().getFragments();
+        for (int i = 0; i < a.size(); i++) {
+            log(a.get(i).toString());
+        }
         if(getStackTop() instanceof ChatFragment) {
             log("last in stack = ChatFragment");
             set_visible(true);
@@ -290,19 +451,23 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     connect("https://still-cove-90434.herokuapp.com/logout",
-                            "firebase_id=" + TheSingleton.getInstance().getFb_id());
+                            "firebase_id=" + TheSingleton.getInstance().getFb_id(), getApplicationContext());
                 } catch (Exception e) {
                     loge("logout: " + e.toString());
                 }
             }
         }.start();
+        TheSingleton.getInstance().setPERSON_ID(-1);
+        TheSingleton.getInstance().setUSER_ID(-1);
         SharedPreferences pref = getSharedPreferences("pref", 0);
-        pref.edit().putBoolean("first_time", true).apply();
+        pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "").apply();
         finish();
     }
 
     Fragment getStackTop() {
         List<Fragment> a = getSupportFragmentManager().getFragments();
+        if(a.size()==0)
+            return null;
         return a.get(a.size() - 1);
     }
 
