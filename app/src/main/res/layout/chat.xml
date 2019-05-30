@@ -6,6 +6,77 @@
     android:layout_height="match_parent"
     tools:context=".ChatFragment">
 
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/l_new"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        android:background="@drawable/threads_border"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/scroll_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.4"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:gravity="center"
+            android:padding="8dp"
+            android:text="Добро пожаловать!\nВыберите ник:"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/et_nickname"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:ems="10"
+            android:hint="nickname"
+            android:inputType="textPersonName"
+            android:textColor="#000000"
+            android:textColorHint="#FF868686"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_go"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView9"
+            app:layout_constraintVertical_bias="0.0" />
+
+        <ImageView
+            android:id="@+id/btn_go"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:src="@drawable/go"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView9" />
+    </android.support.constraint.ConstraintLayout>
+
     <LinearLayout
         android:id="@+id/scroll_container"
         android:layout_width="match_parent"
@@ -24,11 +95,12 @@
             app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
             <LinearLayout
-                android:id="@+id/container"
+                android:id="@+id/main_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
         </ScrollView>
+
     </LinearLayout>
 
     <android.support.constraint.ConstraintLayout
@@ -50,7 +122,7 @@
             android:layout_marginBottom="8dp"
             android:ems="10"
             android:hint="Message"
-            android:inputType="textMultiLine"
+            android:inputType="textMultiLine|textCapSentences"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_send"
             app:layout_constraintStart_toEndOf="@+id/btn_file" />
