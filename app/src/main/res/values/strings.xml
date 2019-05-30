@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">RAR</string>
+    <string name="app_name">sch</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_home">Оценки за период</string>
-    <string name="title_dashboard">Дневник</string>
-    <string name="title_notifications">Сообщения</string>
+    <string name="title_home">Period</string>
+    <string name="title_dashboard">Diary</string>
+    <string name="title_notifications">Messages</string>
     <item name="TAG_POSITION" type="id" />
 </resources>

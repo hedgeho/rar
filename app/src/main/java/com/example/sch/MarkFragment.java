@@ -65,7 +65,7 @@ public class MarkFragment extends Fragment {
 
 
         View v = inflater.inflate(R.layout.fragment_mark, container, false);
-        LinearLayout linearLayout = v.findViewById(R.id.main_container);
+        LinearLayout linearLayout = v.findViewById(R.id.container);
         if (topic != null && !topic.equals("") && !topic.equals(" ")) {
             TextView tv1 = new TextView(getActivity().getApplicationContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(

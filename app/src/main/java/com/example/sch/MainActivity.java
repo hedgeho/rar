@@ -10,8 +10,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
@@ -24,12 +22,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.LinearLayout;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
@@ -44,6 +42,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
@@ -51,45 +50,40 @@ import static com.example.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
 
-    PeriodFragment periodFragment;
-    PeriodFragment1 periodFragment1;
+    PeriodFragment1 periodFragment;
     MessagesFragment messagesFragment;
     ConstraintLayout main, chat;
     ScheduleFragment scheduleFragment;
     ArrayList<PeriodFragment.Subject> subjects;
     ArrayList<PeriodFragment.Day> days;
     Snackbar snackbar;
+    String[] period;
+    int pernum = 6;
     static LayoutInflater layoutInflater;
     BroadcastReceiver receiver, internet_receiver;
     BottomNavigationView bottomnav;
     boolean LOAD_READY = false;
-    BottomNavigationItemView itemView;
-    boolean mode0 = false;
-
-    // todo fix period1: загрузка и смена
-    // todo исчезание чата
-    // todo адресат в нокноке и чатах
-    // todo смена ника, пролистывание, нормальный фидбек settings
+    Toolbar toolbar;
+    Thread setting_badge;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            Toolbar toolbar = findViewById(R.id.toolbar);
             switch (item.getItemId()) {
                 case R.id.navigation_period:
-                    toolbar.setTitle("Оценки за период");
-                    if(mode0)
-                        loadFragment(periodFragment);
-                    else
-                        loadFragment(periodFragment1);
+                    setTitle("Period");
+                    toolbar.setClickable(true);
+                    loadFragment(periodFragment);
                     return true;
                 case R.id.navigation_diary:
-                    toolbar.setTitle("Дневник");
+                    setTitle("Diary");
+                    toolbar.setClickable(false);
                     loadFragment(scheduleFragment);
                     return true;
                 case R.id.navigation_messages:
-                    toolbar.setTitle("Сообщения");
+                    setTitle("Messages");
+                    toolbar.setClickable(false);
                     if(getStackTop() instanceof MessagesFragment)
                         ((MessagesFragment) getStackTop()).refresh();
                     else
@@ -105,12 +99,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
-
-        periodFragment1 = new PeriodFragment1();
-        periodFragment = new PeriodFragment();
+        toolbar = findViewById(R.id.toolbar);
         scheduleFragment = new ScheduleFragment();
+
         messagesFragment = new MessagesFragment();
 
         final String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
@@ -122,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {loge("login: " + e.toString());}
             }
         }.start();
+        
         /*Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread t, Throwable e) {
@@ -203,13 +195,35 @@ public class MainActivity extends AppCompatActivity {
         layoutInflater = getLayoutInflater();
 
         bottomnav = findViewById(R.id.bottomnav);
+        bottomnav.setVisibility(View.INVISIBLE);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
         BottomNavigationMenuView bottomNavigationMenuView =
                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
         View v = bottomNavigationMenuView.getChildAt(2);
-        itemView = (BottomNavigationItemView) v;
+        final BottomNavigationItemView itemView = (BottomNavigationItemView) v;
         /*View badge = */getLayoutInflater().inflate(R.layout.badge, itemView, true);
 
+        setting_badge = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    final String s = connect("https://app.eschool.center/ec-server/chat/count?prsId=" + TheSingleton.getInstance().getPERSON_ID(),
+                            null, getApplicationContext());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            TextView tv = itemView.findViewById(R.id.tv_badge);
+                            if (s.equals("0"))
+                                tv.setVisibility(View.INVISIBLE);
+                            else
+                                tv.setText(s);
+                        }
+                    });
+                } catch (Exception e) {
+                    loge(e.toString());
+                }
+            }
+        };
 
         if(getIntent().getBooleanExtra("notif", false)) {
             log("notif");
@@ -218,36 +232,38 @@ public class MainActivity extends AppCompatActivity {
                 bottomnav.setSelectedItemId(R.id.navigation_messages);
                 messagesFragment.fromNotification = true;
                 messagesFragment.notifThreadId = getIntent().getIntExtra("threadId", -1);
-                Toolbar toolbar = findViewById(R.id.toolbar);
-                toolbar.setTitle("Сообщения");
-                setSupportActionBar(toolbar);
                 loadFragment(messagesFragment);
             }
         } else {
-            Toolbar toolbar = findViewById(R.id.toolbar);
-            toolbar.setTitle("Дневник");
-            setSupportActionBar(toolbar);
             loadFragment(scheduleFragment);
             bottomnav.setSelectedItemId(R.id.navigation_diary);
         }
     }
 
-    final Handler h = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            if(getStackTop() instanceof MessagesFragment)
-                messagesFragment.show();
-        }
-    };
-
     void login(String login, String hash) throws IOException, JSONException {
-        //new Scanner(System.in).nextLine();
-
         URL url;
         HttpURLConnection con;
         StringBuilder result;
         BufferedReader rd;
         String line;
+
+        log("calling login");
+        url = new URL("https://app.eschool.center/ec-server/login");
+        con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setDoOutput(true);
+        con.connect();
+        OutputStream os = con.getOutputStream();
+        os.write(("username=" + login + "&password=" + hash).getBytes());
+        con.connect();
+        Map<String, List<String>> a = con.getHeaderFields();
+        Object[] b = a.entrySet().toArray();
+        String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+        String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
+        log("login: " + COOKIE2);
+        //new Scanner(System.in).nextLine();
 
         int userId = -1, prsId;
         String name;
@@ -258,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
             url = new URL("https://app.eschool.center/ec-server/state?menu=false");
             con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+            con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
             con.connect();
             result = new StringBuilder();
             log(con.getResponseMessage());
@@ -284,32 +300,14 @@ public class MainActivity extends AppCompatActivity {
             name = pref.getString("name", "");
         }
         log("userId: " + userId + ", prsId: " + prsId + ", name: " + name);
+        TheSingleton.getInstance().setCOOKIE(COOKIE2);
+        TheSingleton.getInstance().setROUTE(route);
         TheSingleton.getInstance().setUSER_ID(userId);
         TheSingleton.getInstance().setPERSON_ID(prsId);
         LOAD_READY = true;
         scheduleFragment.start();
-        messagesFragment.start(h);
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    final String s = connect("https://app.eschool.center/ec-server/chat/count?prsId=" + TheSingleton.getInstance().getPERSON_ID(),
-                            null, getApplicationContext());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            TextView tv = itemView.findViewById(R.id.tv_badge);
-                            if(s.equals("0"))
-                                tv.setVisibility(View.INVISIBLE);
-                            else
-                                tv.setText(s);
-                        }
-                    });
-                } catch (Exception e) {
-                    loge(e.toString());
-                }
-            }
-        }.start();
+        messagesFragment.start();
+        setting_badge.start();
         FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
         Bundle bundle = new Bundle();
         switch (getIntent().getIntExtra("mode", -1)) {
@@ -330,32 +328,26 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putString(FirebaseAnalytics.Param.METHOD, "some_method");
         }
         analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
-
-        url = new URL("https://still-cove-90434.herokuapp.com/login");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
-        con.setDoOutput(true);
-        con.connect();
-        OutputStream os = con.getOutputStream();
-        os.write(("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()).getBytes());
-        log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
-
-        loge(con.getResponseMessage());
     }
 
     void sasha(String s) {
         Log.v("sasha", s);
     }
 
-    void set(ArrayList<PeriodFragment.Subject> subjects, ArrayList<PeriodFragment.Day> days, ArrayList<LinearLayout> lins) {
-        this.subjects = subjects;
-        this.days = days;
-        sasha("set()");
-//        periodFragment.subjects = subjects;
-        periodFragment.set(subjects);
-        periodFragment1.subjects = subjects;
-        periodFragment1.days = days;
-        periodFragment1.lins = lins;
+    void set(ScheduleFragment.Period[] periods, int pernum) {
+        sasha(" PeriodFragment1");
+        periodFragment = new PeriodFragment1();
+        period = scheduleFragment.period;
+        periodFragment.period = period;
+        periodFragment.pernum = pernum;
+        periodFragment.periods = periods;
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                bottomnav.setVisibility(View.VISIBLE);
+            }
+        });
         TheSingleton.getInstance().setSubjects(subjects);
         TheSingleton.getInstance().setDays(days);
     }
@@ -391,17 +383,42 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < a.size(); i++) {
             log(a.get(i).toString());
         }
-        if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
-                getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment) {
+        if (getStackTop() instanceof ChatFragment) {
+            log("last in stack = ChatFragment");
             set_visible(true);
-            getSupportActionBar().setTitle("Сообщения");
+            getSupportActionBar().setTitle("Messages");
             getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
+        } else if (getStackTop() instanceof DayFragment) {
+            log("last in stack = DayFragment");
+            set_visible(true);
+            getSupportActionBar().setTitle("Diary");
+            getSupportActionBar().setHomeButtonEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowHomeEnabled(false);
+        } else if (getStackTop() instanceof MarkFragment) {
+            log("last in stack = MarkFragment");
+            getSupportActionBar().setTitle(period[pernum]);
+            getSupportActionBar().setHomeButtonEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowHomeEnabled(false);
+        } else if (getStackTop() instanceof SubjectFragment) {
+            log("last in stack = SubjectFragment");
+            getSupportActionBar().setTitle(period[pernum]);
+            getSupportActionBar().setHomeButtonEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowHomeEnabled(false);
+        } else if (getStackTop() instanceof Countcoff) {
+            log("last in stack = Countcoff");
+            getSupportActionBar().setTitle(period[pernum]);
+            getSupportActionBar().setHomeButtonEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowHomeEnabled(false);
+
         }
         if(!(getSupportFragmentManager().getBackStackEntryCount() == 0))
-            if(!(getStackTop() instanceof PeriodFragment || getStackTop() instanceof PeriodFragment1
-                    || getStackTop() instanceof ScheduleFragment || getStackTop() instanceof ScheduleFragment1
+            if (!(getStackTop() instanceof PeriodFragment || getStackTop() instanceof ScheduleFragment
                     || getStackTop() instanceof MessagesFragment))
                 getSupportFragmentManager().popBackStack();
     }
@@ -416,7 +433,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             loge(e.toString());
         }
-        mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
     }
 
     @Override
@@ -432,9 +448,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        menu.add(0, 1, 0, "quit");
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                break;
+            case 1:
+                quit();
         }
         return super.onOptionsItemSelected(item);
     }

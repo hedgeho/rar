@@ -76,6 +76,7 @@ import static java.util.Calendar.getInstance;
 //import org.apache.http.entity.mime.MultipartEntity;
 //import org.apache.http.entity.mime.content.FileBody;
 //import org.apache.http.entity.mime.content.StringBody;
+////import org.apache.http.impl.client.DefaultHttpClient;
 //import org.apache.http.impl.client.DefaultHttpClient;
 
 //import org.apache.http.client.HttpClient;
@@ -92,8 +93,10 @@ public class ChatFragment extends Fragment {
     private View view;
     private String COOKIE, ROUTE;
     private int PERSON_ID;
-
-    private Msg[] messages;
+    private String[] msg;
+    private Date[] time;
+    private int[] user_ids, msg_ids;
+    private Attach[][] files;
     private Handler h;
     private boolean uploading = false;
     private int last_msg = -1;
@@ -213,8 +216,8 @@ public class ChatFragment extends Fragment {
     @SuppressLint("HandlerLeak")
     @Override
     public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
-        if(first_time) {
-            scroll = view.findViewById(R.id.scroll);
+        scroll = view.findViewById(R.id.scroll);
+        if (first_time) {
             ViewTreeObserver.OnScrollChangedListener listener = new ViewTreeObserver.OnScrollChangedListener() {
                 @Override
                 public void onScrollChanged() {
@@ -222,7 +225,7 @@ public class ChatFragment extends Fragment {
                         if (!scrolled)
                             scrolled = true;
                         else {
-                            LinearLayout l = scroll.findViewById(R.id.main_container);
+                            LinearLayout l = scroll.findViewById(R.id.container);
                             if (l.findViewWithTag("result") != null && scrolled)
                                 if (l.findViewWithTag("result").getTag(R.id.TAG_POSITION).equals("left"))
                                     l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_left));
@@ -235,40 +238,39 @@ public class ChatFragment extends Fragment {
                             final Handler h = new Handler() {
                                 @Override
                                 public void handleMessage(Message yoyyoyoy) {
-                                    final LinearLayout container = view.findViewById(R.id.main_container);
+                                    final LinearLayout container = view.findViewById(R.id.container);
                                     LayoutInflater inflater = getLayoutInflater();
                                     View item;
                                     LinearLayout.LayoutParams params;
                                     TextView tv, tv_attach;
                                     Calendar cal = getInstance(), cal1 = getInstance();
-                                    int i = 0;
-                                    for (Msg msg : messages) {
+                                    for (int i = 0; i < /*(first_time ? msg : )*/msg.length; i++) {
                                         item = inflater.inflate(R.layout.chat_item, container, false);
                                         tv = item.findViewById(R.id.tv_text);
-                                        if (Html.fromHtml(msg.text).toString().equals("")) {
+                                        if (Html.fromHtml(msg[i]).toString().equals("")) {
                                             ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
                                             params1.setMargins(0, 0, 0, 0);
                                             tv.setLayoutParams(params1);
                                         }
-                                        tv.setText(Html.fromHtml(msg.text));
+                                        tv.setText(Html.fromHtml(msg[i]));
                                         tv.setMovementMethod(LinkMovementMethod.getInstance());
                                         tv.setTextColor(Color.WHITE);
                                         tv.setMaxWidth(view.getMeasuredWidth() - 300);
                                         tv = item.findViewById(R.id.tv_time);
 
-                                        tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
+                                        tv.setText(String.format(Locale.UK, "%02d:%02d", time[i].getHours(), time[i].getMinutes()));
                                         item.setPadding(0, 16, 4, 0);
                                         params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                                         params.gravity = Gravity.END;
-                                        if (PERSON_ID != msg.user_id) {
+                                        if (PERSON_ID != user_ids[i]) {
                                             ConstraintLayout l = item.findViewById(R.id.item_main);
                                             l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
                                             params.gravity = Gravity.START;
                                         }
                                         params.topMargin = 20;
                                         params.bottomMargin = 20;
-                                        if (msg.files != null) {
-                                            for (final Attach a : msg.files) {
+                                        if (files[i] != null) {
+                                            for (final Attach a : files[i]) {
                                                 tv_attach = new TextView(getContext());
                                                 float size = a.size;
                                                 String s = "B";
@@ -304,9 +306,9 @@ public class ChatFragment extends Fragment {
                                             }
                                         }
                                         container.addView(item, 0, params);
-                                        if(i != messages.length-1) {
-                                            cal1.setTime(msg.time);
-                                            cal.setTime(messages[i+1].time);
+                                        if (i != msg.length - 1) {
+                                            cal1.setTime(time[i]);
+                                            cal.setTime(time[i + 1]);
                                             //log("comparing day " + сal1.get(Calendar.DAY_OF_MONTH) + " and " + cal.get(Calendar.DAY_OF_MONTH));
                                             if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
                                                 item = inflater.inflate(R.layout.date_divider, container, false);
@@ -315,13 +317,12 @@ public class ChatFragment extends Fragment {
                                                 container.addView(item, 0);
                                             }
                                         }
-                                        i++;
                                     }
                                     scroll.post(new Runnable() {
                                         @Override
                                         public void run() {
-                                            if (container.getChildCount() >= 25 && messages.length > 0)
-                                                scroll.scrollTo(0, container.getChildAt(messages.length - 1).getBottom());
+                                            if (container.getChildCount() >= 25 && msg.length > 0)
+                                                scroll.scrollTo(0, container.getChildAt(msg.length - 1).getBottom());
                                         }
                                     });
                                     uploading = false;
@@ -333,38 +334,37 @@ public class ChatFragment extends Fragment {
                                     try {
                                         JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
                                                 "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, getContext()));
-                                        messages = new Msg[array.length()];
-                                        for (int i = 0; i < messages.length; i++) {
-                                            messages[i] = new Msg();
-                                        }
+                                        msg = new String[array.length()];
+                                        time = new Date[array.length()];
+                                        user_ids = new int[array.length()];
+                                        files = new Attach[array.length()][];
+                                        msg_ids = new int[array.length()];
                                         JSONObject tmp, tmp1;
-                                        Msg msg;
                                         for (int i = 0; i < array.length(); i++) {
-                                            msg = messages[i];
                                             tmp = array.getJSONObject(i);
-                                            msg.time = new Date(tmp.getLong("sendDate"));
+                                            time[i] = new Date(tmp.getLong("sendDate"));
                                             if (tmp.getInt("attachCount") <= 0) {
-                                                msg.files = null;
+                                                files[i] = null;
                                             } else {
-                                                msg.files = new Attach[tmp.getInt("attachCount")];
-                                                for (int j = 0; j < msg.files.length; j++) {
+                                                files[i] = new Attach[tmp.getInt("attachCount")];
+                                                for (int j = 0; j < files[i].length; j++) {
                                                     tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                                                    msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                                    files[i][j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
                                                             tmp1.getString("fileName"), tmp1.getString("fileType"));
                                                 }
                                             }
-                                            msg.user_id = tmp.getInt("senderId");
-                                            msg.msg_id = tmp.getInt("msgNum");
+                                            user_ids[i] = tmp.getInt("senderId");
+                                            msg_ids[i] = tmp.getInt("msgNum");
                                             if (i == array.length() - 1) {
                                                 last_msg = tmp.getInt("msgNum");
                                             }
                                             if (!tmp.has("msg")) {
                                                 // todo
                                                 loge(tmp.toString());
-                                                msg.text = "";
+                                                msg[i] = "";
                                                 continue;
                                             }
-                                            msg.text = tmp.getString("msg");
+                                            msg[i] = tmp.getString("msg");
                                         }
                                         h.sendEmptyMessage(0);
                                     } catch (Exception e) {
@@ -386,12 +386,10 @@ public class ChatFragment extends Fragment {
                                     LinearLayout.LayoutParams params;
                                     TextView tv, tv_attach;
                                     Calendar cal = getInstance(), cal1 = getInstance();
-                                    Msg msg;
-                                    for (int i = messages.length - 1; i >= 0; i--) {
-                                        msg = messages[i];
-                                        if(i != messages.length-1) {
-                                            cal.setTime(msg.time);
-                                            cal1.setTime(messages[i+1].time);
+                                    for (int i = msg.length - 1; i >= 0; i--) {
+                                        if (i != msg.length - 1) {
+                                            cal.setTime(time[i]);
+                                            cal1.setTime(time[i + 1]);
                                             if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
                                                 item = inflater.inflate(R.layout.date_divider, container, false);
                                                 tv = item.findViewById(R.id.tv_date);
@@ -401,30 +399,30 @@ public class ChatFragment extends Fragment {
                                         }
                                         item = inflater.inflate(R.layout.chat_item, container, false);
                                         tv = item.findViewById(R.id.tv_text);
-                                        if (Html.fromHtml(msg.text).toString().equals("")) {
+                                        if (Html.fromHtml(msg[i]).toString().equals("")) {
                                             ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
                                             params1.setMargins(0, 0, 0, 0);
                                             tv.setLayoutParams(params1);
                                         }
-                                        tv.setText(Html.fromHtml(msg.text));
+                                        tv.setText(Html.fromHtml(msg[i]));
                                         tv.setMovementMethod(LinkMovementMethod.getInstance());
                                         tv.setTextColor(Color.WHITE);
                                         tv.setMaxWidth(view.getMeasuredWidth() - 300);
                                         tv = item.findViewById(R.id.tv_time);
-                                        tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
+                                        tv.setText(String.format(Locale.UK, "%02d:%02d", time[i].getHours(), time[i].getMinutes()));
 //todo
                                         item.setPadding(0, 16, 4, 0);
                                         params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                                         params.gravity = Gravity.END;
-                                        if (PERSON_ID != msg.user_id) {
+                                        if (PERSON_ID != user_ids[i]) {
                                             ConstraintLayout l = item.findViewById(R.id.item_main);
                                             l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
                                             params.gravity = Gravity.START;
                                         }
                                         params.topMargin = 20;
                                         params.bottomMargin = 20;
-                                        if (msg.files != null) {
-                                            for (final Attach a : msg.files) {
+                                        if (files[i] != null) {
+                                            for (final Attach a : files[i]) {
                                                 tv_attach = new TextView(getContext());
                                                 float size = a.size;
                                                 String s = "B";
@@ -479,35 +477,34 @@ public class ChatFragment extends Fragment {
                                         JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
                                                 "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1), null, getContext()));
 
-                                        messages = new Msg[array.length()];
-                                        for (int i = 0; i < messages.length; i++) {
-                                            messages[i] = new Msg();
-                                        }
+                                        msg = new String[array.length()];
+                                        time = new Date[array.length()];
+                                        user_ids = new int[array.length()];
+                                        files = new Attach[array.length()][];
+                                        msg_ids = new int[array.length()];
                                         JSONObject tmp, tmp1;
-                                        Msg msg;
                                         for (int i = 0; i < array.length(); i++) {
-                                            msg = messages[i];
                                             tmp = array.getJSONObject(i);
-                                            msg.time = new Date(tmp.getLong("sendDate"));
+                                            time[i] = new Date(tmp.getLong("sendDate"));
                                             if (tmp.getInt("attachCount") <= 0) {
-                                                msg.files = null;
+                                                files[i] = null;
                                             } else {
-                                                msg.files = new Attach[tmp.getInt("attachCount")];
-                                                for (int j = 0; j < msg.files.length; j++) {
+                                                files[i] = new Attach[tmp.getInt("attachCount")];
+                                                for (int j = 0; j < files[i].length; j++) {
                                                     tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                                                    msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                                    files[i][j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
                                                             tmp1.getString("fileName"), tmp1.getString("fileType"));
                                                 }
                                             }
-                                            msg.user_id = tmp.getInt("senderId");
-                                            msg.msg_id = tmp.getInt("msgNum");
+                                            user_ids[i] = tmp.getInt("senderId");
+                                            msg_ids[i] = tmp.getInt("msgNum");
                                             if (!tmp.has("msg")) {
                                                 // todo
                                                 loge(tmp.toString());
-                                                msg.text = "";
+                                                msg[i] = "";
                                                 continue;
                                             }
-                                            msg.text = tmp.getString("msg");
+                                            msg[i] = tmp.getString("msg");
                                         }
                                         h.sendEmptyMessage(0);
                                     } catch (Exception e) {
@@ -518,27 +515,25 @@ public class ChatFragment extends Fragment {
 
                         }
                     }
-                    // todo подгрузка
                 }
             };
             scroll.getViewTreeObserver().addOnScrollChangedListener(listener);
+        }
         h = new Handler() {
             @Override
             public void handleMessage(Message yoy) {
-                final LinearLayout container = view.findViewById(R.id.main_container);
+                final LinearLayout container = view.findViewById(R.id.container);
                 container.removeAllViews();
                 LayoutInflater inflater = getLayoutInflater();
                 View item;
                 LinearLayout.LayoutParams params;
                 TextView tv, tv_attach;
                 Calendar cal = Calendar.getInstance(), cal1 = Calendar.getInstance();
-                log(messages.length + "");
-                Msg msg;
-                for (int i = messages.length-1; i >= 0; i--) {
-                    msg = messages[i];
-                    if(i != messages.length-1) {
-                        cal.setTime(msg.time);//tg
-                        cal1.setTime(messages[i+1].time);
+                log(msg.length + "");
+                for (int i = msg.length - 1; i >= 0; i--) {
+                    if (i != msg.length - 1) {
+                        cal.setTime(time[i]);
+                        cal1.setTime(time[i + 1]);
                         if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
                             item = inflater.inflate(R.layout.date_divider, container, false);
                             tv = item.findViewById(R.id.tv_date);
@@ -548,21 +543,21 @@ public class ChatFragment extends Fragment {
                     }
                     item = inflater.inflate(R.layout.chat_item, container, false);
                     tv = item.findViewById(R.id.tv_text);
-                    if(Html.fromHtml(msg.text).toString().equals("")) {
+                    if (Html.fromHtml(msg[i]).toString().equals("")) {
                         ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
                         params1.setMargins(0,0,0,0);
                         tv.setLayoutParams(params1);
                     }
-                    tv.setText(Html.fromHtml(msg.text));
+                    tv.setText(Html.fromHtml(msg[i]));
                     tv.setMovementMethod(LinkMovementMethod.getInstance());
                     tv.setTextColor(Color.WHITE);
                     tv.setMaxWidth(view.getMeasuredWidth()-300);
                     tv = item.findViewById(R.id.tv_time);
-                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
+                    tv.setText(String.format(Locale.UK, "%02d:%02d", time[i].getHours(), time[i].getMinutes()));
                     item.setPadding(0, 16, 4, 0);
                     params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                     params.gravity = Gravity.END;
-                    if(PERSON_ID != msg.user_id) {
+                    if (PERSON_ID != user_ids[i]) {
                         ConstraintLayout l = item.findViewById(R.id.item_main);
                         l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
                         params.gravity = Gravity.START;
@@ -571,8 +566,8 @@ public class ChatFragment extends Fragment {
                         item.setTag(R.id.TAG_POSITION, "right");
                     params.topMargin = 20;
                     params.bottomMargin = 20;
-                    if(msg.files != null) {
-                        for (final Attach a: msg.files) {
+                    if (files[i] != null) {
+                        for (final Attach a : files[i]) {
                             tv_attach = new TextView(getContext());
                             float size = a.size;
                             String s = "B";
@@ -607,7 +602,7 @@ public class ChatFragment extends Fragment {
                             ((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
                         }
                     }
-                    if(msg.msg_id == searchMsgId) {
+                    if (msg_ids[i] == searchMsgId) {
                         log("result found");
                         item.setTag("result");
                     }
@@ -686,8 +681,15 @@ public class ChatFragment extends Fragment {
                                             loge("sendFile: " + e.toString());
                                         }
                                     } else {
-                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
-                                                "&msgUID=" + System.currentTimeMillis(), context);
+                                        HttpURLConnection con = (HttpURLConnection) new URL("https://app.eschool.center/ec-server/chat/sendNew").openConnection();
+                                        con.setRequestMethod("POST");
+                                        con.setRequestProperty("Cookie", COOKIE + "; site_ver=app; route=" + ROUTE + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");// "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.13.1554062260.1554051192.");
+                                        con.setDoOutput(true);
+                                        String msg = "threadId=" + threadId + "&msgText=" + text +
+                                                "&msgUID=" + System.currentTimeMillis();
+                                        con.getOutputStream().write(msg.getBytes());
+                                        log(msg);
+                                        log(con.getResponseMessage());
                                     }
                                     //con.connect();
                                 } catch (Exception e) {
@@ -729,7 +731,6 @@ public class ChatFragment extends Fragment {
             }
         }.start();
     }
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -757,27 +758,26 @@ public class ChatFragment extends Fragment {
         do {
             JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&" +
                     "rowStart=1&rowsCount=25&threadId=" + threadId + (last_msg == -1?"":"&msgStart="+last_msg), null, getContext()));
-            messages = new Msg[array.length()];
-            for (int i = 0; i < messages.length; i++) {
-                messages[i] = new Msg();
-            }
-            Msg msg;
+            msg = new String[array.length()];
+            time = new Date[array.length()];
+            user_ids = new int[array.length()];
+            files = new Attach[array.length()][];
+            msg_ids = new int[array.length()];
             for (int i = 0; i < array.length(); i++) {
-                msg = messages[i];
                 tmp = array.getJSONObject(i);
-                msg.time = new Date(tmp.getLong("sendDate"));
+                time[i] = new Date(tmp.getLong("sendDate"));
                 if (tmp.getInt("attachCount") <= 0) {
-                    msg.files = null;
+                    files[i] = null;
                 } else {
-                    msg.files = new Attach[tmp.getInt("attachCount")];
-                    for (int j = 0; j < msg.files.length; j++) {
+                    files[i] = new Attach[tmp.getInt("attachCount")];
+                    for (int j = 0; j < files[i].length; j++) {
                         tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                        msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                        files[i][j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
                                 tmp1.getString("fileName"), tmp1.getString("fileType"));
                     }
                 }
-                msg.user_id = tmp.getInt("senderId");
-                msg.msg_id = tmp.getInt("msgNum");
+                user_ids[i] = tmp.getInt("senderId");
+                msg_ids[i] = tmp.getInt("msgNum");
                 if (i == array.length() - 1)
                     last_msg = tmp.getInt("msgNum");
                 else if (i == 0)
@@ -787,10 +787,10 @@ public class ChatFragment extends Fragment {
                 if (!tmp.has("msg")) {
                     // todo
                     loge(tmp.toString());
-                    msg.text = "";
+                    msg[i] = "";
                     continue;
                 }
-                msg.text = tmp.getString("msg");
+                msg[i] = tmp.getString("msg");
             }
         } while (!found);
         if(first_msgs.size() > 0)
@@ -1019,13 +1019,6 @@ public class ChatFragment extends Fragment {
         else if(current.get(Calendar.DAY_OF_MONTH) + 1 == day)
             return "Вчера";
         return String.format(Locale.getDefault(), "%d " + months[month-1], day);
-    }
-
-    private class Msg {
-        Date time;
-        Attach[] files;
-        int user_id, msg_id;
-        String text;
     }
 
     private class Attach {

@@ -8,12 +8,107 @@
     tools:context=".LoginActivity">
 
     <android.support.constraint.ConstraintLayout
-        android:id="@+id/l_skip"
+        android:id="@+id/l_login"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="0dp"
-        tools:visibility="invisible">
+        android:visibility="invisible">
+
+        <EditText
+            android:id="@+id/et_login"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="244dp"
+            android:layout_marginEnd="80dp"
+            android:layout_marginRight="80dp"
+            android:ems="10"
+            android:hint="login"
+            android:inputType="text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="52dp"
+            android:layout_marginEnd="32dp"
+            android:layout_marginRight="32dp"
+            android:ems="10"
+            android:hint="password"
+            android:inputType="textPassword"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/et_login"
+            app:layout_constraintTop_toBottomOf="@+id/et_login" />
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="152dp"
+            android:text="Welcome!"
+            android:textSize="30sp"
+            app:layout_constraintStart_toStartOf="@+id/et_login"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_go"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="48dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:clickable="true"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/et_password"
+            app:srcCompat="@android:drawable/ic_media_play" />
+
+        <EditText
+            android:id="@+id/et_hash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="80dp"
+            android:layout_marginRight="80dp"
+            android:layout_marginBottom="32dp"
+            android:ems="10"
+            android:hint="hash"
+            android:inputType="text"
+            app:layout_constraintBottom_toTopOf="@+id/btn_hash"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <Button
+            android:id="@+id/btn_hash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="use hash"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/btn_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:text="test"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/fab_go" />
+    </android.support.constraint.ConstraintLayout>
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/l_skip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <ProgressBar
             android:id="@+id/progressBar"
@@ -46,97 +141,6 @@
             app:layout_constraintEnd_toEndOf="@+id/progressBar"
             app:layout_constraintStart_toStartOf="@+id/progressBar" />
 
-    </android.support.constraint.ConstraintLayout>
-
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/l_login"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="invisible"
-        tools:visibility="visible">
-
-        <EditText
-            android:id="@+id/et_login"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="244dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginRight="16dp"
-            android:ems="10"
-            android:hint="login"
-            android:inputType="text"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <EditText
-            android:id="@+id/et_password"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="52dp"
-            android:ems="10"
-            android:hint="password"
-            android:inputType="textPassword"
-            app:layout_constraintEnd_toEndOf="@+id/et_login"
-            app:layout_constraintStart_toStartOf="@+id/et_login"
-            app:layout_constraintTop_toBottomOf="@+id/et_login" />
-
-        <TextView
-            android:id="@+id/textView3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="152dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:text="Welcome!"
-            android:textSize="30sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab_go"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="76dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:background="#FFFFFF"
-            android:clickable="true"
-            app:backgroundTint="#FFFFFF"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/btn_test"
-            app:layout_constraintTop_toBottomOf="@+id/et_password"
-            app:srcCompat="@drawable/go" />
-
-        <Button
-            android:id="@+id/btn_test"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:text="test"
-            android:visibility="invisible"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/fab_go"
-            tools:visibility="visible" />
-
-        <Button
-            android:id="@+id/btn_hash"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
-            android:text="hash"
-            android:visibility="invisible"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            tools:visibility="visible" />
     </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>
