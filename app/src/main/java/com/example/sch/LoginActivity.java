@@ -4,6 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,11 +16,14 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -30,7 +36,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.List;
@@ -40,29 +45,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     FloatingActionButton fab;
     Button btn_hash, btn_test;
-    EditText et_login, et_password, et_hash;
+    EditText et_login;
+    EditText et_password;
     String fb_id;
     int threadId = -1;
-    @SuppressLint("HandlerLeak")
-    Handler h = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            findViewById(R.id.l_skip).setVisibility(View.VISIBLE);
-            findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
-            TextView tv = findViewById(R.id.tv_dead);
-            Calendar calendar = Calendar.getInstance();
-            loge("DAYS TO DEADLINE: " + (31 - calendar.get(Calendar.DAY_OF_MONTH)) + "!");
-            tv.setText("до дедлайна осталось всего " + (31 - calendar.get(Calendar.DAY_OF_MONTH)) + " дней");
-        }
-    };
-
-    @Override
-    protected void onResume() {
-        log("onResume");
-        findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
-        findViewById(R.id.l_login).setVisibility(View.VISIBLE);
-        super.onResume();
-    }
+    boolean hash = false;
+    Drawable btn_default;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +74,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         NotificationManagerCompat.from(this).cancelAll();
 
         final SharedPreferences settings = getSharedPreferences("pref", 0);
+        //settings.edit().putString("knock_token", "").apply();
 
         /*if(settings.getString("error", "") != null) {
             if(!settings.getString("error", "").equals("")) {
@@ -127,11 +116,64 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         btn_test = findViewById(R.id.btn_test);
         et_login = findViewById(R.id.et_login);
         et_password = findViewById(R.id.et_password);
-        et_hash = findViewById(R.id.et_hash);
+
+        btn_default = btn_hash.getBackground();
 
         fab.setOnClickListener(this);
-        btn_hash.setOnClickListener(this);
         btn_test.setOnClickListener(this);
+        btn_hash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(hash) {
+                    et_password.setHint("password");
+//                    btn_hash.setBackground(getResources().getDrawable(android.R.drawable.btn_default));
+                    //TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.l_login));
+                    btn_hash.getBackground().setColorFilter(Color.parseColor("#5a5a5a"), PorterDuff.Mode.MULTIPLY);
+                    btn_hash.setTextColor(Color.parseColor("#ffffff"));
+                } else {
+                    et_password.setHint("hash");
+//                    btn_hash.setBackground(btn_default);
+                    btn_hash.getBackground().setColorFilter(Color.parseColor("#c8c8c8"), PorterDuff.Mode.MULTIPLY);
+                    btn_hash.setTextColor(Color.parseColor("#5a5a5a"));
+                }
+                hash = !hash;
+            }
+        });
+
+        et_login.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(!s.toString().replaceAll(" ", "").equals(""))
+                    et_login.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+        et_password.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(!s.toString().replaceAll(" ", "").equals(""))
+                    et_password.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
@@ -154,24 +196,41 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 //                        Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
 
-
+    @Override
+    protected void onResume() {
+        log("onResume");
+        findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
+        findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+        super.onResume();
     }
 
     public void onClick(final View v) {
         String logi = et_login.getText().toString();
         String password;
-        if (v.getId() == R.id.btn_hash)
-            password = et_hash.getText().toString();
-        else if (v.getId() == R.id.btn_test) {
+        if(v.getId() == R.id.btn_test) {
             logi = "ilya_z";
             password = "Booble19";
         } else
             password = et_password.getText().toString();
+        if(logi.replaceAll(" ", "").equals("")) {
+            et_login.getBackground().mutate().setColorFilter(getResources().getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            et_login.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+        }
+        if(password.replaceAll(" ", "").equals("")) {
+            et_password.getBackground().mutate().setColorFilter(getResources().getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
+        } else {
+            et_password.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+        }
+        if(logi.replaceAll(" ", "").equals("") || password.replaceAll(" ", "").equals("")) {
+            return;
+        }
         try {
-            if (!(v.getId() == R.id.btn_hash)) {
+            if(!hash) {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hashb = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+                byte[] hashb = digest.digest(password.getBytes("UTF-8"));
                 StringBuilder hexString = new StringBuilder();
                 for (byte aHashb : hashb) {
                     String hex = Integer.toHexString(0xff & aHashb);
@@ -197,19 +256,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         else
                             mode = 2;
                         login(login, pw, mode);
-                        URL url;
-                        HttpURLConnection con;
-
-                        url = new URL("https://still-cove-90434.herokuapp.com/login");
-                        con = (HttpURLConnection) url.openConnection();
-                        con.setRequestMethod("POST");
-                        con.setDoOutput(true);
-                        con.connect();
-                        OutputStream os = con.getOutputStream();
-                        os.write(("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id).getBytes());
-                        log("login=" + login + "&password=" + pw + "&firebase_id=" + fb_id);
-
-                        loge(con.getResponseMessage());
                     } catch (Exception e) {
                         loge(e.toString());
                     }
@@ -221,24 +267,75 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    void login(final String login, final String hash, int mode) {
+    @SuppressLint("HandlerLeak")
+    Handler h = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            if(msg.what == 0) {
+                findViewById(R.id.l_skip).setVisibility(View.VISIBLE);
+                findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
+                et_login.setText("");
+                et_password.setText("");
+                TextView tv = findViewById(R.id.tv_dead);
+                //Calendar calendar = Calendar.getInstance();
+                //loge("DAYS TO DEADLINE: " + (31 - calendar.get(Calendar.DAY_OF_MONTH)) + "!");
+                //tv.setText("до дедлайна осталось всего " + (31 - calendar.get(Calendar.DAY_OF_MONTH)) + " дня");
+                tv.setText("Rаботать, Александр, Rаботать");
+            } else {
+                loge("wrong login/password");
+                Toast.makeText(getApplicationContext(), "wrong login/password", Toast.LENGTH_LONG).show();
+                findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
+                findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+            }
+        }
+    };
+
+    void login(final String login, final String hash, int mode) throws IOException {
         h.sendEmptyMessage(0);
 
-        if (threadId != -1)
-            startActivity(new Intent(getApplicationContext(), MainActivity.class)
-                    .putExtra("type", "msg").putExtra("notif", true)
-                    .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
-                    .putExtra("mode", mode));
-        else
-            startActivity(new Intent(getApplicationContext(), MainActivity.class)
-                    .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
+        URL url;
+        HttpURLConnection con;
 
+        log("connect /ec-server/login");
+        url = new URL("https://app.eschool.center/ec-server/login");
+        con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setDoOutput(true);
+        con.connect();
+        OutputStream os = con.getOutputStream();
+        os.write(("username=" + login + "&password=" + hash).getBytes());
+        con.connect();
+        log("code " + con.getResponseCode());
+        if(con.getResponseCode() == 200) {
+            Map<String, List<String>> a = con.getHeaderFields();
+            Object[] b = a.entrySet().toArray();
+            String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+            String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
+
+            log("login: " + COOKIE2);
+            TheSingleton.getInstance().setCOOKIE(COOKIE2);
+            TheSingleton.getInstance().setROUTE(route);
+
+            if (threadId != -1)
+                startActivity(new Intent(getApplicationContext(), MainActivity.class)
+                        .putExtra("type", "msg").putExtra("notif", true)
+                        .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
+                        .putExtra("mode", mode));
+            else
+                startActivity(new Intent(getApplicationContext(), MainActivity.class)
+                        .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
+        } else {
+            h.sendEmptyMessage(1);
+        }
     }
 
     static void log(String msg) {if(msg != null) Log.v("mylog", msg); else loge("null log");}
     static void loge(String msg) {if(msg != null) Log.e("mylog", msg); else loge("null log");}
 
     static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException {
+        log("connect " + url.replaceAll("https://app.eschool.center", ""));
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
         if(query == null) {

@@ -61,7 +61,10 @@ public class PeriodFragment1 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.diary, container, false);
         StringBuilder y = new StringBuilder();
-        Toast.makeText(getContext(), "Вы можете поменять участок времяни, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
+        if (getActivity().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
+            Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
+            getActivity().getSharedPreferences("pref", 0).edit().putString("firstperiod", "dvssc").apply();
+        }
         layout = view.findViewById(R.id.linear);
         layout1 = view.findViewById(R.id.linear1);
         layout2 = view.findViewById(R.id.linear2);
@@ -130,6 +133,9 @@ public class PeriodFragment1 extends Fragment {
         });
         setHasOptionsMenu(true);
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+
+        view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
+        view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
         return view;
     }
 
@@ -151,22 +157,11 @@ public class PeriodFragment1 extends Fragment {
         transaction.commit();
     }
 
+    void set() {}
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Quit");
-        menu.add(0, 2, 0, "CRASH");
         super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == 1) {
-            ((MainActivity) getActivity()).quit();
-        } else if (item.getItemId() == 2) {
-            Crashlytics.getInstance().crash();
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

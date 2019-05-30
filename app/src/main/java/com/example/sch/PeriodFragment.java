@@ -21,6 +21,8 @@ import com.crashlytics.android.Crashlytics;
 
 import java.util.ArrayList;
 
+import static com.example.sch.LoginActivity.loge;
+
 public class PeriodFragment extends Fragment {
 
     ArrayList<TextView> txts;
@@ -250,24 +252,6 @@ public class PeriodFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-        menu.add(0, 1, 0, "Quit");
-        menu.add(0, 2, 0, "CRASH");
-        super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == 1) {
-            ((MainActivity) getActivity()).quit();
-        } else if (item.getItemId() == 2) {
-            Crashlytics.getInstance().crash();
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
     static class Subject {
         String name, rating = "", shortname = "", totalmark;
         double avg = 0;
@@ -276,5 +260,11 @@ public class PeriodFragment extends Fragment {
 
         Subject() {
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        super.onCreateOptionsMenu(menu, inflater);
     }
 }
