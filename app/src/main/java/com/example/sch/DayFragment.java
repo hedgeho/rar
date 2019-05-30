@@ -47,10 +47,10 @@ public class DayFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_day, container, false);
 
-        LinearLayout linearLayout = view.findViewById(R.id.main_container);
+        LinearLayout linearLayout = view.findViewById(R.id.container);
         linearLayout.setBaselineAligned(false);
         if (homework != " " && homework != "") {
-            TextView tv1 = new TextView(getActivity());
+            TextView tv1 = new TextView(getActivity().getApplicationContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append("Домашнее задание:").append("\n").append(homework).toString();
@@ -62,17 +62,16 @@ public class DayFragment extends Fragment {
             tv1.setText(spans1);
             try {
                 Linkify.addLinks(tv1, Linkify.WEB_URLS);
-//                tv1.setMovementMethod(LinkMovementMethod.getInstance());
                 tv1.setLinksClickable(true);
             } catch (Exception e) {
-                System.out.println(e.toString());
+                System.out.println(e);
             }
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {
-            int g = 0; // та самая мусорная переменная (количество непустых оценок)
+            int g = 0; // та самая мусорная переменная
             for (int i = 0; i < marks.size(); i++) {
                 if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
                     g++;

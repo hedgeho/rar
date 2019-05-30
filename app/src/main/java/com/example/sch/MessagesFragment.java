@@ -47,6 +47,8 @@ import static com.example.sch.LoginActivity.loge;
 
 public class MessagesFragment extends Fragment {
 
+    //  todo new thread
+
     String COOKIE, ROUTE;
     int USER_ID, PERSON_ID;
     String[] senders, topics;
@@ -68,11 +70,10 @@ public class MessagesFragment extends Fragment {
     Context context;
     boolean READY = false, shown = false;
     View[] fitems;
-    SwipeRefreshLayout refreshL;
 
     public MessagesFragment() {}
 
-    public void start(final Handler h) {
+    public void start() {
         COOKIE = TheSingleton.getInstance().getCOOKIE();
         ROUTE = TheSingleton.getInstance().getROUTE();
         USER_ID = TheSingleton.getInstance().getUSER_ID();
@@ -126,7 +127,14 @@ public class MessagesFragment extends Fragment {
                     }
                     log("olist l: " + olist.length);
                     READY = true;
-                    h.sendEmptyMessage(431412574);
+                    if (((MainActivity) getActivity()).getStackTop() instanceof MessagesFragment) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                show();
+                            }
+                        });
+                    }
                 } catch (Exception e) {
                     loge(e.toString());
                 }
@@ -312,6 +320,7 @@ public class MessagesFragment extends Fragment {
                     log("shown count: " + s_senders.size());
                     if(s_count != -1)
                         s_count = s_senders.size();
+
                     getView().findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
                     getView().findViewById(R.id.scroll).setVisibility(View.VISIBLE);
                 }
@@ -533,11 +542,6 @@ public class MessagesFragment extends Fragment {
             log("fromNotif");
             loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1);
         }
-        if(READY)
-            if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
-                view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
-            else
-                view.findViewById(R.id.knock_l).setVisibility(View.GONE);
     }
 
     void show() {
@@ -547,21 +551,6 @@ public class MessagesFragment extends Fragment {
             return;
         }
         container1.removeAllViews();
-        if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
-            view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
-            view.findViewById(R.id.knock_l).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    KnockFragment fragment = new KnockFragment();
-                    ((MainActivity) getActivity()).set_visible(false);
-                    transaction.replace(R.id.chat_container, fragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                }
-            });
-        } else
-            view.findViewById(R.id.knock_l).setVisibility(View.GONE);
         TextView tv = view.findViewById(R.id.tv_error);
         tv.setText("");
         tv.setVisibility(View.INVISIBLE);
@@ -635,7 +624,7 @@ public class MessagesFragment extends Fragment {
                             tv.setVisibility(View.INVISIBLE);
 
                         scroll.scrollTo(0, 0);
-                        refreshL = view.findViewById(R.id.l_refresh);
+        final SwipeRefreshLayout refreshL = view.findViewById(R.id.l_refresh);
                         refreshL.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                             @Override
                             public void onRefresh() {
@@ -862,7 +851,7 @@ public class MessagesFragment extends Fragment {
                 }
             }.start();
             Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-            toolbar.setTitle("Сообщения");
+            toolbar.setTitle("Messages");
             toolbar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -973,8 +962,6 @@ public class MessagesFragment extends Fragment {
     }
 
     void refresh() {
-        refreshL.setRefreshing(true);
-
         @SuppressLint("HandlerLeak") final Handler h = new Handler() {
 
             View[] items;
@@ -984,9 +971,6 @@ public class MessagesFragment extends Fragment {
                 log("handling");
                 items = new View[f_senders.size()];
                 final LinearLayout container1 = getView().findViewById(R.id.container);
-                // container1 null
-                if(container1 == null)
-                    return;
                 container1.removeAllViews();
 
                 if(searchView != null) {
@@ -1018,7 +1002,7 @@ public class MessagesFragment extends Fragment {
                             tv.setVisibility(View.VISIBLE);
                             tv.setText(msg.what + "");
                         }
-                        refreshL.setRefreshing(false);
+                        ((SwipeRefreshLayout) getView().findViewById(R.id.l_refresh)).setRefreshing(false);
                     }
                 };
                 new Thread() {
