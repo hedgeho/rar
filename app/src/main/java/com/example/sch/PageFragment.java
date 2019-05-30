@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -54,7 +53,7 @@ public class PageFragment extends Fragment {
             TableRow tbrow1 = new TableRow(getContext());
             tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
-            final TextView tv1 = new TextView(getContext());
+            TextView tv1 = new TextView(getContext());
             tv1.setText("Уроков нет");
             tv1.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
@@ -63,14 +62,6 @@ public class PageFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
-            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
-            refreshL.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    tv1.setText("ты пидр");
-                    refreshL.setRefreshing(false);
-                }
-            });
         }
         return v;
     }

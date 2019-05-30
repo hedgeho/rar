@@ -23,6 +23,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.DateFormatSymbols;
+import java.util.ArrayList;
 
 import static com.example.sch.LoginActivity.loge;
 
@@ -44,10 +45,9 @@ public class SubjectFragment extends Fragment {
     };
     String subname;
     String periodname = "4 четверть"; // пока так
-    ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
+    ArrayList<PeriodFragment.Cell> cells;
+    ArrayList<PeriodFragment.Subject> subjects;
     Double avg;
-    String[] period;
-    int pernum = 6;
     String rating;
     String totalmark;
 
@@ -66,7 +66,6 @@ public class SubjectFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_subject, container, false);
         LinearLayout linearLayout = v.findViewById(R.id.ll);
-        periodname = period[pernum];
         linearLayout.setBaselineAligned(false);
         if(subname == null) {
             loge("subname null!");
@@ -121,11 +120,9 @@ public class SubjectFragment extends Fragment {
                     Countcoff fragment = new Countcoff();
                     transaction.replace(R.id.frame, fragment);
                     try {
-                        fragment.periods = periods;
+                        fragment.subjects = subjects;
                         fragment.subname = subname;
                         fragment.avg = avg;
-                        fragment.period = period;
-                        fragment.pernum = pernum;
                     } catch (Exception e) {
                     }
                     transaction.addToBackStack(null);

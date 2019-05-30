@@ -43,5 +43,5 @@
         android:orientation="vertical"
         android:paddingLeft="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/tv_time"></LinearLayout>
+        app:layout_constraintEnd_toStartOf="@+id/tv_time" />
 </android.support.constraint.ConstraintLayout>
