@@ -133,6 +133,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             return v;
         }
         if(!shown)
+            show();
         log("oncreateview2");
         return v;
     }
@@ -186,6 +187,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageSelected(int position) {
+                    if(position == 0 || position == 1)
+                        return;
                     okras(tv);
                     int w;
                     if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {

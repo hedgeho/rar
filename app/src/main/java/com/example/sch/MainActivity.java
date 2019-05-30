@@ -24,14 +24,11 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.LinearLayout;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
@@ -46,7 +43,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
@@ -71,10 +67,14 @@ public class MainActivity extends AppCompatActivity {
     BottomNavigationItemView itemView;
     boolean mode0 = false;
 
-    // todo fix period1: загрузка и смена
-    // todo исчезание чата
+    // to.do fix period1: загрузка
+    // to.do исчезание чата
     // todo адресат в нокноке и чатах
     // todo смена ника, пролистывание, нормальный фидбек settings
+
+    // завтра
+    // todo переключение периодов
+    // todo pageAdapter при переключении во время загрузки
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             Toolbar toolbar = findViewById(R.id.toolbar);
             switch (item.getItemId()) {
                 case R.id.navigation_period:
-                    setTitle("Оценки за период");
+                    toolbar.setTitle("Оценки за период");
                     toolbar.setClickable(true);
                     if(mode0)
                         loadFragment(periodFragment);
@@ -91,12 +91,12 @@ public class MainActivity extends AppCompatActivity {
                         loadFragment(periodFragment1);
                     return true;
                 case R.id.navigation_diary:
-                    setTitle("Дневник");
+                    toolbar.setTitle("Дневник");
                     toolbar.setClickable(false);
                     loadFragment(scheduleFragment);
                     return true;
                 case R.id.navigation_messages:
-                    setTitle("Сообщения");
+                    toolbar.setTitle("Сообщения");
                     toolbar.setClickable(false);
                     if(getStackTop() instanceof MessagesFragment)
                         ((MessagesFragment) getStackTop()).refresh();
@@ -355,11 +355,19 @@ public class MainActivity extends AppCompatActivity {
 
     void set(ScheduleFragment.Period[] periods, int pernum) {
         sasha(" PeriodFragment1");
-        periodFragment1 = new PeriodFragment1();
+//        periodFragment1 = new PeriodFragment1();
         period = scheduleFragment.period;
         periodFragment1.period = period;
         periodFragment1.pernum = pernum;
         periodFragment1.periods = periods;
+        if(!periodFragment1.first_time&&!periodFragment1.shown) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    periodFragment1.show();
+                }
+            });
+        }
         runOnUiThread(new Runnable() {
 
             @Override

@@ -33,6 +33,9 @@ public class PeriodFragment1 extends Fragment {
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     int pernum = 6;
     LinearLayout layout, layout1, layout2, layout3;
+    View view;
+    boolean shown = false;
+    boolean first_time = true;
 
     public PeriodFragment1() {
         txts = new ArrayList<>();
@@ -59,7 +62,35 @@ public class PeriodFragment1 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.diary, container, false);
+        first_time = false;
+        if(view == null)
+            view = inflater.inflate(R.layout.diary, container, false);
+        if(period==null)
+            return view;
+
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        String periodname = period[pernum];
+        final AlertDialog.Builder alr = new AlertDialog.Builder(getContext());
+        alr.create();
+        alr.setSingleChoiceItems(period, pernum, myClickListener);
+        alr.setTitle("Выберите период");
+        alr.setPositiveButton("ok", myClickListener);
+        toolbar.setTitle(periodname);
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alr.show();
+            }
+        });
+        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+
+        if(periods[pernum] != null && !shown)
+            show();
+        return view;
+    }
+
+    void show() {
+        shown = true;
         StringBuilder y = new StringBuilder();
         if (getActivity().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
@@ -117,26 +148,10 @@ public class PeriodFragment1 extends Fragment {
                 ((ViewGroup) periods[pernum].lins.get(j).getParent()).removeView(periods[pernum].lins.get(j));
             layout3.addView(periods[pernum].lins.get(j));
         }
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        String periodname = period[pernum];
-        final AlertDialog.Builder alr = new AlertDialog.Builder(getContext());
-        alr.create();
-        alr.setSingleChoiceItems(period, pernum, myClickListener);
-        alr.setTitle("Выбирете период");
-        alr.setPositiveButton("ok", myClickListener);
-        toolbar.setTitle(periodname);
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alr.show();
-            }
-        });
         setHasOptionsMenu(true);
-        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
 
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
-        return view;
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<PeriodFragment.Cell> cells, String name, String rating, String totalmark) {
