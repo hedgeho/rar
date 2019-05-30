@@ -71,7 +71,7 @@ public class DayFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {
-            int g = 0; // та самая мусорная переменная
+            int g = 0; // та самая мусорная переменная (количество непустых оценок)
             for (int i = 0; i < marks.size(); i++) {
                 if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
                     g++;

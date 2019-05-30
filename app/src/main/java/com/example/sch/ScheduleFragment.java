@@ -45,6 +45,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
 import static com.example.sch.LoginActivity.loge;
 
@@ -320,7 +321,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             tv[day - 1].setText(spans);
             first = false;
             Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-            toolbar.setTitle("Schedule");
+            toolbar.setTitle("Дневник");
             setHasOptionsMenu(true);
             ((MainActivity) getActivity()).setSupportActionBar(toolbar);
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
@@ -332,7 +333,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 @Override
                 public void run() {
                     Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-                    toolbar.setTitle("Schedule");
+                    toolbar.setTitle("Дневник");
                     toolbar.setClickable(false);
                     setHasOptionsMenu(true);
                     ((MainActivity) getActivity()).setSupportActionBar(toolbar);
@@ -363,20 +364,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             @Override
             public void run() {
                 try {
-                    URL url3 = new URL("https://app.eschool.center/ec-server/dict/periods2?year=" + yearname);
-                    HttpURLConnection con3 = (HttpURLConnection) url3.openConnection();
-                    con3.setRequestMethod("GET");
-                    con3.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    StringBuilder result3 = new StringBuilder();
-
-                    BufferedReader rd3 = new BufferedReader(new InputStreamReader(con3.getInputStream()));
-                    String line3;
-                    while ((line3 = rd3.readLine()) != null) {
-                        result3.append(line3);
-                    }
                     sasha("here if fuck");
-                    rd3.close();
-                    JSONArray array3 = new JSONArray(result3.toString());
+                    JSONArray array3 = new JSONArray(
+                            connect("https://app.eschool.center/ec-server/dict/periods2?year=" + yearname,
+                            null, getContext()));
                     for (int i = 0; i < array3.length(); i++) {
                         if (array3.getJSONObject(i).getInt("typeId") == 1) {
                             JSONArray array4 = array3.getJSONObject(i).getJSONArray("items");
@@ -461,20 +452,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             public void run() {
                 try {
                     //------------------------------------------------------------------------------------------------
-                    StringBuilder result;
-                    URL url = new URL("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=" + id);
-                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                    con.setRequestMethod("GET");
-                    con.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    result = new StringBuilder();
-                    BufferedReader rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    String line;
-                    while ((line = rd.readLine()) != null) {
-                        result.append(line);
-                    }
-                    rd.close();
-
-                    JSONObject object = new JSONObject(result.toString());
+                    JSONObject object = new JSONObject(
+                            connect("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=" + id,
+                                    null, getContext()));
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
                         periods[pernum].subjects.add(new PeriodFragment.Subject());
@@ -497,18 +477,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             periods[pernum].subjects.get(i).unitid = obj.getInt("unitId");
                         periods[pernum].subjects.get(i).cells = new ArrayList<>();
                     }
-                    StringBuilder result1;
-                    URL url1 = new URL("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id);
-                    HttpURLConnection con1 = (HttpURLConnection) url1.openConnection();
-                    con1.setRequestMethod("GET");
-                    con1.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*; site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    result1 = new StringBuilder();
-                    BufferedReader rd1 = new BufferedReader(new InputStreamReader(con1.getInputStream()));
-                    while ((line = rd1.readLine()) != null) {
-                        result1.append(line);
-                    }
-                    rd1.close();
-                    JSONObject object1 = new JSONObject(result1.toString());
+                    JSONObject object1 = new JSONObject(
+                            connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
+                                    null, getContext()));
                     JSONArray arraydaylessons = object1.getJSONArray("result");
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
@@ -537,24 +508,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                     Long d1 = format.parse(s1).getTime();
                     Long d2 = format.parse(s2).getTime();
-                    StringBuilder result2;
-
-                    URL url2 = new URL("https://app.eschool.center/ec-server/student/diary?" +
-                            "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2);
-                    HttpURLConnection con2 = (HttpURLConnection) url2.openConnection();
-                    con2.setRequestMethod("GET");
-
-                    con2.setRequestProperty("Cookie", COOKIE + "; route=" + ROUTE + "; _pk_ses.1.81ed=*;" +
-                            " site_ver=app; _pk_id.1.81ed=de563a6425e21a4f.1553009060." +
-                            "16.1554146944.1554139340.");
-
-                    result2 = new StringBuilder();
-                    BufferedReader rd2 = new BufferedReader(new InputStreamReader(con2.getInputStream()));
-                    while ((line = rd2.readLine()) != null) {
-                        result2.append(line);
-                    }
-
-                    JSONObject object2 = new JSONObject(result2.toString());
+                    JSONObject object2 = new JSONObject(
+                            connect("https://app.eschool.center/ec-server/student/diary?" +
+                                    "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2, null, getContext()));
                     JSONArray array2 = object2.getJSONArray("lesson");
 
                     Long day1 = 0l;
@@ -830,7 +786,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     show();
                                 }
                             });
-
                     }
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (Exception e) {
@@ -845,7 +800,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             }
         }.start();
     }
-
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
@@ -876,13 +830,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-
-        menu.add(0, 1, 0, "Quit");
         MenuItem item = menu.add(0, 2, 0, "Calendar");
-        MenuItem item1 = menu.add(0, 3, 0, "Settings");
-        item1.setIcon(R.drawable.settings);
-        item1.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         item.setIcon(R.drawable.calendar);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item = menu.add(0, 3, 0, "Settings");
+        item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -898,10 +850,18 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 break;
             case 3:
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
-                startActivity(intent);
+                startActivityForResult(intent, 0);
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data!=null)
+            if(data.hasExtra("goal"))
+                if(data.getStringExtra("goal").equals("quit"))
+                    ((MainActivity) getActivity()).quit();
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
