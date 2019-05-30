@@ -21,14 +21,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.LinearLayout;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
@@ -58,10 +57,13 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<PeriodFragment.Subject> subjects;
     ArrayList<PeriodFragment.Day> days;
     Snackbar snackbar;
+    String[] period;
+    int pernum = 6;
     static LayoutInflater layoutInflater;
     BroadcastReceiver receiver, internet_receiver;
     BottomNavigationView bottomnav;
     boolean LOAD_READY = false;
+    Toolbar toolbar;
     Thread setting_badge;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -71,14 +73,17 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.navigation_period:
                     setTitle("Period");
+                    toolbar.setClickable(true);
                     loadFragment(periodFragment);
                     return true;
                 case R.id.navigation_diary:
                     setTitle("Diary");
+                    toolbar.setClickable(false);
                     loadFragment(scheduleFragment);
                     return true;
                 case R.id.navigation_messages:
                     setTitle("Messages");
+                    toolbar.setClickable(false);
                     if(getStackTop() instanceof MessagesFragment)
                         ((MessagesFragment) getStackTop()).refresh();
                     else
@@ -94,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
+        toolbar = findViewById(R.id.toolbar);
         scheduleFragment = new ScheduleFragment();
 
         messagesFragment = new MessagesFragment();
@@ -189,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         layoutInflater = getLayoutInflater();
 
         bottomnav = findViewById(R.id.bottomnav);
+        bottomnav.setVisibility(View.INVISIBLE);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
         BottomNavigationMenuView bottomNavigationMenuView =
                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
@@ -327,14 +333,20 @@ public class MainActivity extends AppCompatActivity {
         Log.v("sasha", s);
     }
 
-    void set(ArrayList<PeriodFragment.Subject> subjects, ArrayList<PeriodFragment.Day> days, ArrayList<LinearLayout> lins) {
-        this.subjects = subjects;
-        this.days = days;
+    void set(ScheduleFragment.Period[] periods, int pernum) {
         sasha(" PeriodFragment1");
         periodFragment = new PeriodFragment1();
-        periodFragment.subjects = subjects;
-        periodFragment.days = days;
-        periodFragment.lins = lins;
+        period = scheduleFragment.period;
+        periodFragment.period = period;
+        periodFragment.pernum = pernum;
+        periodFragment.periods = periods;
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                bottomnav.setVisibility(View.VISIBLE);
+            }
+        });
         TheSingleton.getInstance().setSubjects(subjects);
         TheSingleton.getInstance().setDays(days);
     }
@@ -386,16 +398,23 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(false);
         } else if(getStackTop() instanceof MarkFragment) {
             log("last in stack = MarkFragment");
-            getSupportActionBar().setTitle("Period");
+            getSupportActionBar().setTitle(period[pernum]);
             getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
         } else if(getStackTop() instanceof SubjectFragment) {
             log("last in stack = SubjectFragment");
-            getSupportActionBar().setTitle("Period");
+            getSupportActionBar().setTitle(period[pernum]);
             getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
+        } else if (getStackTop() instanceof Countcoff) {
+            log("last in stack = Countcoff");
+            getSupportActionBar().setTitle(period[pernum]);
+            getSupportActionBar().setHomeButtonEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setDisplayShowHomeEnabled(false);
+
         }
         if(!(getSupportFragmentManager().getBackStackEntryCount() == 0))
             if(!(getStackTop() instanceof PeriodFragment || getStackTop() instanceof ScheduleFragment
