@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottomnav;
     boolean LOAD_READY = false;
     BottomNavigationItemView itemView;
+    boolean isfirst = false;
     boolean mode0 = false;
 
     // to.do fix period1: загрузка
@@ -363,14 +364,21 @@ public class MainActivity extends AppCompatActivity {
         sasha(" PeriodFragment1");
         period = scheduleFragment.period;
         if (t == 1) {
+            periodFragment1 = new PeriodFragment1();
             periodFragment1.period = period;
             periodFragment1.pernum = pernum;
             periodFragment1.periods = periods;
+            if (isfirst)
+                loadFragment(periodFragment1);
         } else {
+            periodFragment = new PeriodFragment();
             periodFragment.period = period;
             periodFragment.pernum = pernum;
             periodFragment.periods = periods;
+            if (isfirst)
+                loadFragment(periodFragment);
         }
+        isfirst = true;
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
        // TheSingleton.getInstance().setDays(days);
     }

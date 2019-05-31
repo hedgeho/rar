@@ -13,15 +13,12 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.crashlytics.android.Crashlytics;
 
 import java.util.ArrayList;
 
@@ -34,6 +31,9 @@ public class PeriodFragment1 extends Fragment {
     int pernum = 6;
     LinearLayout layout, layout1, layout2, layout3;
     View view;
+    String periodname;
+    Toolbar toolbar;
+    AlertDialog.Builder alr;
     boolean shown = false;
     boolean first_time = true;
 
@@ -54,7 +54,21 @@ public class PeriodFragment1 extends Fragment {
         public void onClick(DialogInterface dialog, int which) {
             ListView lv = ((AlertDialog) dialog).getListView();
             if (which == Dialog.BUTTON_POSITIVE) {
-
+                pernum = lv.getCheckedItemPosition();
+                if (periods[pernum].subjects == null) {
+                    ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
+                    periodname = periods[pernum].name;
+                    alr.setSingleChoiceItems(period, pernum, myClickListener);
+                    toolbar.setTitle(periodname);
+                    view.findViewById(R.id.progress).setVisibility(View.VISIBLE);
+                    view.findViewById(R.id.scrollView2).setVisibility(View.INVISIBLE);
+                } else {
+                    periodname = periods[pernum].name;
+                    alr.setSingleChoiceItems(period, pernum, myClickListener);
+                    toolbar.setTitle(periodname);
+                    show();
+                }
+                sasha("------------------------");
             } else {
             }
         }
@@ -68,9 +82,9 @@ public class PeriodFragment1 extends Fragment {
         if(period==null)
             return view;
 
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        String periodname = period[pernum];
-        final AlertDialog.Builder alr = new AlertDialog.Builder(getContext());
+        toolbar = getActivity().findViewById(R.id.toolbar);
+        periodname = period[pernum];
+        alr = new AlertDialog.Builder(getContext());
         alr.create();
         alr.setSingleChoiceItems(period, pernum, myClickListener);
         alr.setTitle("Выберите период");
@@ -83,13 +97,14 @@ public class PeriodFragment1 extends Fragment {
             }
         });
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
-
+        sasha("sasa");
         if(periods[pernum] != null && !shown)
             show();
         return view;
     }
 
     void show() {
+        sasha("asdfghjkl");
         shown = true;
         StringBuilder y = new StringBuilder();
         if (getActivity().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
@@ -98,8 +113,11 @@ public class PeriodFragment1 extends Fragment {
         }
         layout = view.findViewById(R.id.linear);
         layout1 = view.findViewById(R.id.linear1);
+        layout1.removeAllViews();
         layout2 = view.findViewById(R.id.linear2);
+        layout2.removeAllViews();
         layout3 = view.findViewById(R.id.linear3);
+        layout3.removeAllViews();
         layout2.setOrientation(LinearLayout.VERTICAL);
         layout3.setOrientation(LinearLayout.HORIZONTAL);
         sasha("subjects: " + periods[pernum].subjects.size());

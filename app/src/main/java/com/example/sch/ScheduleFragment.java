@@ -423,13 +423,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         }
                     }
                     if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
-                        Download2(periods[3].id, 3);
+                        Download2(periods[3].id, 3, true, true);
                     } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
-                        Download2(periods[4].id, 4);
+                        Download2(periods[4].id, 4, true, true);
                     } else if (datenow.getTime() >= periods[5].datestart && datenow.getTime() <= periods[5].datefinish) {
-                        Download2(periods[5].id, 5);
+                        Download2(periods[5].id, 5, true, true);
                     } else {
-                        Download2(periods[6].id, 6);
+                        Download2(periods[6].id, 6, true, true);
                     }
                 } catch (Exception e) {
                     sasha(String.valueOf(e));
@@ -438,7 +438,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         }.start();
     }
 
-    void Download2(final int id, final int h) {
+    void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
         pernum = h;
         periods[pernum].days = new ArrayList<>();
         periods[pernum].subjects = new ArrayList<>();
@@ -775,8 +775,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         }
                     }
                     sasha("set subjects: " + periods[pernum].subjects.size() + " and days: " + periods[pernum].days.size());
-                    ((MainActivity) getActivity()).set(periods, pernum, 1);
-                    ((MainActivity) getActivity()).set(periods, pernum, 2);
+                    if (isone)
+                        ((MainActivity) getActivity()).set(periods, pernum, 1);
+                    if (istwo)
+                        ((MainActivity) getActivity()).set(periods, pernum, 2);
                     READY = true;
                     if(getActivity()!=null) {
                         if(((MainActivity)getActivity()).getStackTop() instanceof ScheduleFragment)
@@ -794,7 +796,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     periods[pernum].subjects = new ArrayList<>();
                     periods[pernum].lins = new ArrayList<>();
                     periods[pernum].cells = new ArrayList<>();
-                    Download2(id, h);
+                    Download2(id, h, isone, istwo);
 
                 }
             }
