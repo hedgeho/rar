@@ -505,6 +505,11 @@ public class MessagesFragment extends Fragment {
     public void onViewCreated(@Nonnull final View view, @Nullable final Bundle savedInstanceState) {
         if (READY && !shown)
             show();
+        if(READY)
+            if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
+                view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
+            else
+                view.findViewById(R.id.knock_l).setVisibility(View.GONE);
         if(savedView != null)
             if(savedInstanceState == null)
                 return;
@@ -533,11 +538,6 @@ public class MessagesFragment extends Fragment {
             log("fromNotif");
             loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1);
         }
-        if(READY)
-            if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
-                view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
-            else
-                view.findViewById(R.id.knock_l).setVisibility(View.GONE);
     }
 
     void show() {
