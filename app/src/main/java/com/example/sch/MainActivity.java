@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
         main = findViewById(R.id.main_container);
         chat = findViewById(R.id.chat_container);
 
-        snackbar = Snackbar.make(main, "No internet connection", Snackbar.LENGTH_INDEFINITE);
+        snackbar = Snackbar.make(findViewById(R.id.frame), "Нет подключения к интернету", Snackbar.LENGTH_INDEFINITE);
 
         layoutInflater = getLayoutInflater();
 
@@ -224,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
         View v = bottomNavigationMenuView.getChildAt(2);
         itemView = (BottomNavigationItemView) v;
         /*View badge = */getLayoutInflater().inflate(R.layout.badge, itemView, true);
-
 
         if(getIntent().getBooleanExtra("notif", false)) {
             log("notif");
@@ -377,8 +376,8 @@ public class MainActivity extends AppCompatActivity {
             periodFragment.periods = periods;
             if (isfirst)
                 loadFragment(periodFragment);
+            isfirst = true;
         }
-        isfirst = true;
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
        // TheSingleton.getInstance().setDays(days);
     }
@@ -424,7 +423,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if(!(getSupportFragmentManager().getBackStackEntryCount() == 0))
             if(!(getStackTop() instanceof PeriodFragment || getStackTop() instanceof PeriodFragment1
-                    || getStackTop() instanceof ScheduleFragment || getStackTop() instanceof ScheduleFragment1
+                    || getStackTop() instanceof ScheduleFragment// || getStackTop() instanceof ScheduleFragment1
                     || getStackTop() instanceof MessagesFragment))
                 getSupportFragmentManager().popBackStack();
     }

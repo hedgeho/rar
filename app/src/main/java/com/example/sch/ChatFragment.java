@@ -121,7 +121,7 @@ public class ChatFragment extends Fragment {
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(threadName);
         setHasOptionsMenu(true);
-        // todo toolbar subtitle
+        // t/odo toolbar subtitle
         // toolbar.setSubtitle("subtitle");
 
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
@@ -177,6 +177,15 @@ public class ChatFragment extends Fragment {
         LinearLayout.LayoutParams params;
         TextView tv, tv_attach; // todo attach
         item = inflater.inflate(R.layout.chat_item, container, false);
+        tv = item.findViewById(R.id.chat_tv_sender);
+        if(!group) {
+            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+            params1.setMargins(0, 0, 0, 0);
+            tv.setLayoutParams(params1);
+            tv.setHeight(0);
+        } else {
+            tv.setText(sender_fio);
+        }
         tv = item.findViewById(R.id.tv_text);
         if(Html.fromHtml(text).toString().equals("")) {
             ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
@@ -242,13 +251,21 @@ public class ChatFragment extends Fragment {
                                     TextView tv, tv_attach;
                                     Calendar cal = getInstance(), cal1 = getInstance();
                                     int i = 0;
+                                    ConstraintLayout.LayoutParams params1;
                                     for (Msg msg : messages) {
                                         item = inflater.inflate(R.layout.chat_item, container, false);
                                         tv = item.findViewById(R.id.chat_tv_sender);
-
+                                        if(!group) {
+                                            params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                                            params1.setMargins(0, 0, 0, 0);
+                                            tv.setLayoutParams(params1);
+                                            tv.setHeight(0);
+                                        } else {
+                                            tv.setText(msg.sender);
+                                        }
                                         tv = item.findViewById(R.id.tv_text);
                                         if (Html.fromHtml(msg.text).toString().equals("")) {
-                                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                                            params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
                                             params1.setMargins(0, 0, 0, 0);
                                             tv.setLayoutParams(params1);
                                         }
@@ -357,6 +374,7 @@ public class ChatFragment extends Fragment {
                                             }
                                             msg.user_id = tmp.getInt("senderId");
                                             msg.msg_id = tmp.getInt("msgNum");
+                                            msg.sender = tmp.getString("senderFio");
                                             if (i == array.length() - 1) {
                                                 last_msg = tmp.getInt("msgNum");
                                             }
@@ -402,6 +420,15 @@ public class ChatFragment extends Fragment {
                                             }
                                         }
                                         item = inflater.inflate(R.layout.chat_item, container, false);
+                                        tv = item.findViewById(R.id.chat_tv_sender);
+                                        if(!group) {
+                                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                                            params1.setMargins(0, 0, 0, 0);
+                                            tv.setLayoutParams(params1);
+                                            tv.setHeight(0);
+                                        } else {
+                                            tv.setText(msg.sender);
+                                        }
                                         tv = item.findViewById(R.id.tv_text);
                                         if (Html.fromHtml(msg.text).toString().equals("")) {
                                             ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
@@ -503,6 +530,7 @@ public class ChatFragment extends Fragment {
                                             }
                                             msg.user_id = tmp.getInt("senderId");
                                             msg.msg_id = tmp.getInt("msgNum");
+                                            msg.sender = tmp.getString("senderFio");
                                             if (!tmp.has("msg")) {
                                                 // todo
                                                 loge(tmp.toString());
@@ -549,6 +577,15 @@ public class ChatFragment extends Fragment {
                         }
                     }
                     item = inflater.inflate(R.layout.chat_item, container, false);
+                    tv = item.findViewById(R.id.chat_tv_sender);
+                    if(!group) {
+                        ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                        params1.setMargins(0, 0, 0, 0);
+                        tv.setLayoutParams(params1);
+                        tv.setHeight(0);
+                    } else {
+                        tv.setText(msg.sender);
+                    }
                     tv = item.findViewById(R.id.tv_text);
                     if(Html.fromHtml(msg.text).toString().equals("")) {
                         ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
@@ -637,7 +674,16 @@ public class ChatFragment extends Fragment {
                         try {
                             String text = (String) msg.obj;
                             View item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
-                            TextView tv = item.findViewById(R.id.tv_text);
+                            TextView tv = item.findViewById(R.id.chat_tv_sender);
+                            if(!group) {
+                                ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                                params1.setMargins(0, 0, 0, 0);
+                                tv.setLayoutParams(params1);
+                                tv.setHeight(0);
+                            } /*else {
+                                tv.setText(msg.sender);
+                            }*/
+                            tv = item.findViewById(R.id.tv_text);
                             if (Html.fromHtml(text).toString().equals("")) {
                                 ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
                                 params1.setMargins(0, 0, 0, 0);
@@ -780,6 +826,7 @@ public class ChatFragment extends Fragment {
                 }
                 msg.user_id = tmp.getInt("senderId");
                 msg.msg_id = tmp.getInt("msgNum");
+                msg.sender = tmp.getString("senderFio");
                 if (i == array.length() - 1)
                     last_msg = tmp.getInt("msgNum");
                 else if (i == 0)
@@ -943,7 +990,7 @@ public class ChatFragment extends Fragment {
         RequestBody requestBody = RequestBody.create(MediaType.parse("*/*"), file);
         MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
         RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
-        RetrofitInterface interf = retrofit.create(RetrofitInterface.class);
+        /*RetrofitInterface interf = retrofit.create(RetrofitInterface.class);
         Call<Model> call = interf.getData("multipart/form-data; boundary=----WebKitFormBoundarymBTAnQQ5kHFE0Vyx",
                 TheSingleton.getInstance().getCOOKIE() + "vc; site_ver=app; routef=" +
                 TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.",
@@ -965,7 +1012,7 @@ public class ChatFragment extends Fragment {
             public void onFailure(Call call, Throwable t) {
                 loge("failure sending file: " + t.toString());
             }
-        });
+        });*/
     }
 
 
