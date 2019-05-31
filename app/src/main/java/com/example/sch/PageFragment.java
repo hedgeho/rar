@@ -67,7 +67,6 @@ public class PageFragment extends Fragment {
             refreshL.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                 @Override
                 public void onRefresh() {
-                    tv1.setText("ты пидр");
                     refreshL.setRefreshing(false);
                 }
             });

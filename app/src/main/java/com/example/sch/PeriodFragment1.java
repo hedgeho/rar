@@ -61,7 +61,7 @@ public class PeriodFragment1 extends Fragment {
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
                     view.findViewById(R.id.progress).setVisibility(View.VISIBLE);
-                    view.findViewById(R.id.scrollView2).setVisibility(View.INVISIBLE);
+                    view.findViewById(R.id.scrollView3).setVisibility(View.INVISIBLE);
                 } else {
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
@@ -78,7 +78,7 @@ public class PeriodFragment1 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         first_time = false;
         if(view == null)
-            view = inflater.inflate(R.layout.diary, container, false);
+            view = inflater.inflate(R.layout.fragment_period_fragment1, container, false);
         if(period==null)
             return view;
 
@@ -166,10 +166,9 @@ public class PeriodFragment1 extends Fragment {
                 ((ViewGroup) periods[pernum].lins.get(j).getParent()).removeView(periods[pernum].lins.get(j));
             layout3.addView(periods[pernum].lins.get(j));
         }
-        setHasOptionsMenu(true);
 
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
-        view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.scrollView3).setVisibility(View.VISIBLE);
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<PeriodFragment.Cell> cells, String name, String rating, String totalmark) {
