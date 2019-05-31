@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
             Toolbar toolbar = findViewById(R.id.toolbar);
             switch (item.getItemId()) {
                 case R.id.navigation_period:
-                    toolbar.setTitle("Оценки за период");
                     toolbar.setClickable(true);
                     if(mode0)
                         loadFragment(periodFragment);
@@ -353,28 +352,18 @@ public class MainActivity extends AppCompatActivity {
         Log.v("sasha", s);
     }
 
-    void set(ScheduleFragment.Period[] periods, int pernum) {
+    void set(ScheduleFragment.Period[] periods, int pernum, int t) {
         sasha(" PeriodFragment1");
-//        periodFragment1 = new PeriodFragment1();
         period = scheduleFragment.period;
-        periodFragment1.period = period;
-        periodFragment1.pernum = pernum;
-        periodFragment1.periods = periods;
-        if(!periodFragment1.first_time&&!periodFragment1.shown) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    periodFragment1.show();
-                }
-            });
+        if (t == 1) {
+            periodFragment1.period = period;
+            periodFragment1.pernum = pernum;
+            periodFragment1.periods = periods;
+        } else {
+            periodFragment.period = period;
+            periodFragment.pernum = pernum;
+            periodFragment.periods = periods;
         }
-        runOnUiThread(new Runnable() {
-
-            @Override
-            public void run() {
-                bottomnav.setVisibility(View.VISIBLE);
-            }
-        });
         TheSingleton.getInstance().setSubjects(subjects);
         TheSingleton.getInstance().setDays(days);
     }

@@ -1,5 +1,8 @@
 package com.example.sch;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,18 +13,13 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.crashlytics.android.Crashlytics;
 
 import java.util.ArrayList;
-
-import static com.example.sch.LoginActivity.loge;
 
 public class PeriodFragment extends Fragment {
 
@@ -55,6 +53,16 @@ public class PeriodFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            ListView lv = ((AlertDialog) dialog).getListView();
+            if (which == Dialog.BUTTON_POSITIVE) {
+
+            } else {
+            }
+        }
+    };
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if(first_time) {
@@ -78,7 +86,10 @@ public class PeriodFragment extends Fragment {
                 txt2.setLayoutParams(lp);
                 txt2.setTextColor(getResources().getColor(R.color.two));
                 txt1.setText(periods[pernum].subjects.get(i).shortname);
-                txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+
+                if (periods[pernum].subjects.get(i).avg != 0) {
+                    txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                }
                 final int finalI1 = i;
                 txt2.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -166,19 +177,24 @@ public class PeriodFragment extends Fragment {
 
             Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
             String periodname = period[pernum];
+            final AlertDialog.Builder alr = new AlertDialog.Builder(getContext());
+            alr.create();
+            alr.setSingleChoiceItems(period, pernum, myClickListener);
+            alr.setTitle("Выберите период");
+            alr.setPositiveButton("ok", myClickListener);
             toolbar.setTitle(periodname);
             toolbar.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(getContext(), "Toolbar title clicked", Toast.LENGTH_SHORT).show();
+                    alr.show();
                 }
             });
             setHasOptionsMenu(true);
             ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         }
+        sasha("dfghjk");
         return view;
     }
-
     void show() {
 
     }
