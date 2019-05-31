@@ -59,6 +59,9 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     }
                 }
                 ArrayList<PeriodFragment.Subject> subjects = TheSingleton.getInstance().getSubjects();
+                if(subjects == null) {
+                    return;
+                }
                 PeriodFragment.Subject s;
                 for (int i = 0; i < subjects.size(); i++) {
                     s = subjects.get(i);
@@ -71,6 +74,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                                 .setSmallIcon(R.drawable.attach);
                         Notification notif = builder.build();
                         compat.notify(TheSingleton.getInstance().notification_id++, notif);
+                        TheSingleton.getInstance().setHasNotifications(true);
                         break;
                     }
                 }

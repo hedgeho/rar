@@ -241,7 +241,7 @@ public class MessagesFragment extends Fragment {
                                                          @Override
                                                          public void run() {
                                                              try {
-                                                                 loadChat(threads.getInt(prsId + ""), fio, -1);
+                                                                 loadChat(threads.getInt(prsId + ""), fio, -1, false);
                                                              } catch (JSONException e) {loge(e.toString());}
                                                          }
                                                      });
@@ -253,7 +253,7 @@ public class MessagesFragment extends Fragment {
                                                      getActivity().runOnUiThread(new Runnable() {
                                                          @Override
                                                          public void run() {
-                                                             loadChat(threadId, fio, -1);
+                                                             loadChat(threadId, fio, -1, false);
                                                          }
                                                      });
                                                  }
@@ -303,7 +303,8 @@ public class MessagesFragment extends Fragment {
                         item.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j));
+                                // todo group search
+                                loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j), false);
                             }
                         });
                         container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -503,7 +504,7 @@ public class MessagesFragment extends Fragment {
 
     @Override
     public void onViewCreated(@Nonnull final View view, @Nullable final Bundle savedInstanceState) {
-        if (READY && !shown)
+        if(READY && !shown)
             show();
         if(READY)
             if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
@@ -536,7 +537,8 @@ public class MessagesFragment extends Fragment {
 
         if(fromNotification) {
             log("fromNotif");
-            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1);
+            // todo group from notifications
+            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1, false);
         }
     }
 
@@ -605,11 +607,12 @@ public class MessagesFragment extends Fragment {
                         loge("new msg: " + f_senders.get(i));
                     }
                     c += f_newCounts.get(i);
+                    final int users = f_users.get(i);
                     //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
                     item.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            loadChat(f_threadIds.get(j), f_senders.get(j), -1);
+                            loadChat(f_threadIds.get(j), f_senders.get(j), -1, users > 2);
                         }
                     });
                     fitems[i] = item;
@@ -684,6 +687,7 @@ public class MessagesFragment extends Fragment {
                                                 tv.setText(topics[i]);
                                                 tv = item.findViewById(R.id.tv_users);
                                                 img = item.findViewById(R.id.img);
+                                                final int u = users[i];
                                                 if (users[i] == 0 || users[i] == 2) {
                                                     img.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
                                                     tv.setText("");
@@ -700,10 +704,10 @@ public class MessagesFragment extends Fragment {
                                                     public void onClick(View v) {
                                                         if (f_count != -1) {
                                                             loadChat(f_threadIds.get(f_count + 25 - (l - j)),
-                                                                    f_senders.get(f_count + 25 - (l - j)), -1);
+                                                                    f_senders.get(f_count + 25 - (l - j)), -1, u > 2);
                                                         } else {
                                                             loadChat(f_threadIds.get(f_threadIds.size() - (l - j)),
-                                                                    f_senders.get(f_threadIds.size() - (l - j)), -1);
+                                                                    f_senders.get(f_threadIds.size() - (l - j)), -1, u > 2);
                                                         }
                                                     }
                                                 });
@@ -751,7 +755,8 @@ public class MessagesFragment extends Fragment {
                                                 item.setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
-                                                        loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j));
+                                                        //  todo
+                                                        loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j), false);
                                                     }
                                                 });
                                                 container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -1054,11 +1059,12 @@ public class MessagesFragment extends Fragment {
                             c+=f_newCounts.get(i);
                             final int j = i;
                             item.setTag(f_threadIds.get(j));
+                            final int users = f_users.get(i);
                             //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
                             item.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    loadChat(f_threadIds.get(j), f_senders.get(j), -1);
+                                    loadChat(f_threadIds.get(j), f_senders.get(j), -1, users > 2);
                                 }
                             });
                             items[i] = item;
@@ -1080,13 +1086,7 @@ public class MessagesFragment extends Fragment {
         }.start();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-         //refresh();
-    }
-
-    void loadChat(int threadId, String threadName, int searchId) {
+    void loadChat(int threadId, String threadName, int searchId, boolean group) {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         ChatFragment fragment = new ChatFragment();
         fragment.threadId = threadId;//f_threadIds.get(j);

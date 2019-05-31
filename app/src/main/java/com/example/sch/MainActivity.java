@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     String[] period;
     int pernum = 6;
     static LayoutInflater layoutInflater;
-    BroadcastReceiver receiver, internet_receiver;
+    BroadcastReceiver receiver, internet_receiver, auth_receiver;
     BottomNavigationView bottomnav;
     boolean LOAD_READY = false;
     BottomNavigationItemView itemView;
@@ -70,11 +70,11 @@ public class MainActivity extends AppCompatActivity {
     // to.do fix period1: загрузка
     // to.do исчезание чата
     // todo адресат в нокноке и чатах
-    // todo смена ника, пролистывание, нормальный фидбек settings
+    // to.do смена ника, пролистывание, нормальный фидбек settings
 
     // завтра
     // todo переключение периодов
-    // todo pageAdapter при переключении во время загрузки
+    // to.do pageAdapter при переключении во время загрузки
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -196,6 +196,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
+        auth_receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                MainActivity.this.setResult(239, new Intent().putExtra("auth", "true"));
+                finish();
+            }
+        };
 
         int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
         log("permission check: " + permissionCheck);
@@ -205,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         main = findViewById(R.id.main_container);
         chat = findViewById(R.id.chat_container);
 
-        snackbar = Snackbar.make(main, "N  o internet connection", Snackbar.LENGTH_INDEFINITE);
+        snackbar = Snackbar.make(main, "No internet connection", Snackbar.LENGTH_INDEFINITE);
 
         layoutInflater = getLayoutInflater();
 
@@ -364,8 +371,8 @@ public class MainActivity extends AppCompatActivity {
             periodFragment.pernum = pernum;
             periodFragment.periods = periods;
         }
-        TheSingleton.getInstance().setSubjects(subjects);
-        TheSingleton.getInstance().setDays(days);
+        TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
+       // TheSingleton.getInstance().setDays(days);
     }
 
     void loadFragment(Fragment fragment) {
@@ -421,6 +428,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
             registerReceiver(internet_receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+            registerReceiver(auth_receiver, new IntentFilter("com.example.sch.auth"));
         } catch (Exception e) {
             loge(e.toString());
         }
@@ -434,6 +442,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             unregisterReceiver(receiver);
             unregisterReceiver(internet_receiver);
+            unregisterReceiver(auth_receiver);
         } catch (Exception e) {
             loge(e.toString());
         }

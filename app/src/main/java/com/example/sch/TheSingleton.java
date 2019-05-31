@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 class TheSingleton {
     private static final TheSingleton ourInstance = new TheSingleton();
-    private String COOKIE, ROUTE, fb_id, login;
+    private String COOKIE, ROUTE, fb_id;
     private int USER_ID, PERSON_ID;
     private ArrayList<PeriodFragment.Subject> subjects;
-    private ArrayList<PeriodFragment.Day> days;
+    private boolean hasNotifications = false;
     int notification_id = 0;
 
     static TheSingleton getInstance() {
@@ -64,19 +64,12 @@ class TheSingleton {
         this.subjects = subjects;
     }
 
-    ArrayList<PeriodFragment.Day> getDays() {
-        return days;
+
+    public boolean isHasNotifications() {
+        return hasNotifications;
     }
 
-    void setDays(ArrayList<PeriodFragment.Day> days) {
-        this.days = days;
-    }
-
-    String getLogin() {
-        return login;
-    }
-
-    void setLogin(String login) {
-        this.login = login;
+    public void setHasNotifications(boolean hasNotifications) {
+        this.hasNotifications = hasNotifications;
     }
 }
