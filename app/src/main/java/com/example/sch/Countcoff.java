@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
@@ -27,6 +28,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
@@ -57,7 +59,7 @@ public class Countcoff extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
-    Button btn1;
+    ImageView img;
     LinearLayout layout, cont;
 
     public Countcoff() {
@@ -73,7 +75,7 @@ public class Countcoff extends Fragment {
             if (which == Dialog.BUTTON_POSITIVE) {
                 subname = periods[pernum].subjects.get(lv.getCheckedItemPosition()).name;
                 txt2.setText(subname);
-                cells = periods[pernum].subjects.get(lv.getCheckedItemPosition()).cells;
+                cells = new ArrayList<>(periods[pernum].subjects.get(lv.getCheckedItemPosition()).cells);
                 txt1.setText(String.valueOf(periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg));
                 j = lv.getCheckedItemPosition();
                 makeMarks();
@@ -94,8 +96,8 @@ public class Countcoff extends Fragment {
         spans.setSpan(new RelativeSizeSpan(2f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
         spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         txt1.setText(s);
-        btn1 = v.findViewById(R.id.button1);
-        btn1.setOnClickListener(new View.OnClickListener() {
+        img = v.findViewById(R.id.imageView);
+        img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 TextView tv = new TextView(getContext());
@@ -178,9 +180,9 @@ public class Countcoff extends Fragment {
         });
 
         layout = v.findViewById(R.id.linear2);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(0, 0, 30, 30);
-        layout.setLayoutParams(lp);
+        //ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+        //lp.setMargins(30, 30, 30, 0);
+        //layout.setLayoutParams(lp);
         int y = 0;
         strings = new String[periods[pernum].subjects.size()];
 
@@ -192,7 +194,7 @@ public class Countcoff extends Fragment {
             }
             sasha(i.name);
         }
-        cells = periods[pernum].subjects.get(j).cells;
+        cells = new ArrayList<>(periods[pernum].subjects.get(j).cells);
 
         makeMarks();
 
@@ -229,8 +231,8 @@ public class Countcoff extends Fragment {
                 lin.setGravity(Gravity.CENTER);
             }
             final TextView tv1 = new TextView(getActivity().getApplicationContext());
-            tv1.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            tv1.setLayoutParams(new ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT));
             final String[] s1 = new String[1];
             if (cells.get(i).markvalue == null) {
                 s1[0] = "  ";
@@ -265,8 +267,14 @@ public class Countcoff extends Fragment {
                     spinner.setGravity(Gravity.CENTER);
                     spinner.setAdapter(adapter);
                     spinner.setPrompt(s1[0]);
-                    spinner.setSelection(4);
-                    newMark[0] = "5";
+                    try {
+                        int y = Integer.valueOf(s1[0]);
+                        spinner.setSelection(y - 1);
+                        newMark[0] = s1[0];
+                    } catch (Exception e) {
+                        spinner.setSelection(0);
+                        newMark[0] = "1";
+                    }
                     f[0] = d[0];
                     spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
@@ -333,6 +341,7 @@ public class Countcoff extends Fragment {
                             d[0] = f[0];
                             cells.get(finalI1).markvalue = newMark[0];
                             cells.get(finalI1).mktWt = f[0];
+                            makeMarks();
                             show.dismiss();
                         }
                     });
@@ -355,7 +364,7 @@ public class Countcoff extends Fragment {
                 tv1.setBackgroundColor(getResources().getColor(R.color.coff7));
             else
                 tv1.setBackgroundColor(getResources().getColor(R.color.coff8));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
             lp.setMargins(10, 10, 10, 10);
             tv1.setLayoutParams(lp);
             lin.addView(tv1);
@@ -395,7 +404,6 @@ public class Countcoff extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Выход");
         menu.add(0, 2, 0, "Сброс");
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -407,6 +415,7 @@ public class Countcoff extends Fragment {
                 ((MainActivity) getActivity()).quit();
                 break;
             case 2:
+                cells = new ArrayList<>(periods[pernum].subjects.get(j).cells);
                 makeMarks();
                 sasha("rar");
                 break;
