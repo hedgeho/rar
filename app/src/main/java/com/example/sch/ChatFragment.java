@@ -83,7 +83,6 @@ import static java.util.Calendar.getInstance;
 //import org.apache.http.entity.mime.MultipartEntity;
 //import org.apache.http.client.methods.HttpPost;
 
-
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -107,6 +106,7 @@ public class ChatFragment extends Fragment {
     int threadId = 0;
     String threadName = "";
     int searchMsgId = -1;
+    boolean group = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -244,6 +244,8 @@ public class ChatFragment extends Fragment {
                                     int i = 0;
                                     for (Msg msg : messages) {
                                         item = inflater.inflate(R.layout.chat_item, container, false);
+                                        tv = item.findViewById(R.id.chat_tv_sender);
+
                                         tv = item.findViewById(R.id.tv_text);
                                         if (Html.fromHtml(msg.text).toString().equals("")) {
                                             ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
@@ -1025,7 +1027,7 @@ public class ChatFragment extends Fragment {
         Date time;
         Attach[] files;
         int user_id, msg_id;
-        String text;
+        String text, sender;
     }
 
     private class Attach {
