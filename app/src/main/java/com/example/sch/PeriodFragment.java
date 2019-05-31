@@ -191,12 +191,12 @@ public class PeriodFragment extends Fragment {
             });
             setHasOptionsMenu(true);
             ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+            view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
+            view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
         }
         sasha("dfghjk");
-        return view;
-    }
-    void show() {
 
+        return view;
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<Cell> cells, String name, String rating, String totalmark) {

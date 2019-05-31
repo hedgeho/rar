@@ -1,4 +1,4 @@
-package com.example.sch;
+package com.example.sch.test;
 
 import java.io.File;
 

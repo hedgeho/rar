@@ -302,7 +302,14 @@ public class KnockFragment extends Fragment {
                     try {
                         ViewGroup container = view.findViewById(R.id.main_container);
                         View item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
-                        TextView tv = item.findViewById(R.id.tv_text);
+                        TextView tv = item.findViewById(R.id.chat_tv_sender);
+//                        if(!group) {
+                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
+                            params1.setMargins(0, 0, 0, 0);
+                            tv.setLayoutParams(params1);
+                            tv.setHeight(0);
+//                        }
+                        tv = item.findViewById(R.id.tv_text);
                         tv.setText(object.getString("text"));
                         tv.setTextColor(Color.WHITE);
                         tv.setMaxWidth(view.getMeasuredWidth()-300);

@@ -1,4 +1,4 @@
-package com.example.sch;
+package com.example.sch.test;
 
 import android.content.Context;
 import android.net.Uri;
@@ -64,7 +64,8 @@ public class ScheduleFragment1 extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_schedule_fragment1, container, false);
+//        return inflater.inflate(R.layout.fragment_schedule_fragment1, container, false);
+        return null;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

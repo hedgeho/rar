@@ -1,4 +1,4 @@
-package com.example.sch;
+package com.example.sch.test;
 
 import android.support.annotation.NonNull;
 
