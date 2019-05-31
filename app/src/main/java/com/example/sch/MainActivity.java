@@ -206,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
         main = findViewById(R.id.main_container);
         chat = findViewById(R.id.chat_container);
 
-        snackbar = Snackbar.make(main, "No internet connection", Snackbar.LENGTH_INDEFINITE);
+        snackbar = Snackbar.make(main, "N  o internet connection", Snackbar.LENGTH_INDEFINITE);
 
         layoutInflater = getLayoutInflater();
 
