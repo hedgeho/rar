@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class PeriodFragment extends Fragment {
 
@@ -128,14 +129,41 @@ public class PeriodFragment extends Fragment {
             lp.setMargins(0, 0, 40, 10);
             txt1.setLayoutParams(lp);
             txt1.setGravity(Gravity.CENTER);
-            txt1.setTextSize(20);
-            txt2.setTextSize(20);
+            txt1.setTextSize(9 * getResources().getDisplayMetrics().density);
+            txt2.setTextSize(9 * getResources().getDisplayMetrics().density);
             txt2.setLayoutParams(lp);
             txt2.setTextColor(getResources().getColor(R.color.two));
             txt1.setText(periods[pernum].subjects.get(i).shortname);
 
-            if (periods[pernum].subjects.get(i).avg != 0) {
+            if (periods[pernum].subjects.get(i).avg > 0) {
                 txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+            } else {
+                sasha(periods[pernum].subjects.get(i).shortname + " " + periods[pernum].subjects.get(i).cells.size());
+                periods[pernum].subjects.get(i).avg = 0;
+                Double d = 0.;
+                Double f = 0.;
+                int c = 0;
+                for (int g = 0; g < periods[pernum].subjects.get(i).cells.size(); g++) {
+                    if (periods[pernum].subjects.get(i).cells.get(g).markvalue != null)
+                        if (periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("1") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("2") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("3")
+                                || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("4") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("5")) {
+                            d += Double.valueOf(periods[pernum].subjects.get(i).cells.get(g).markvalue) * periods[pernum].subjects.get(i).cells.get(g).mktWt;
+                            f += periods[pernum].subjects.get(i).cells.get(g).mktWt;
+                            c++;
+                        }
+                }
+                sasha("here1 " + c);
+                if (c > 0) {
+                    sasha("here2");
+                    String s = String.valueOf(d / f);
+                    if (s.length() > 4) {
+                        s = String.format(Locale.UK, "%.2f", d / f);
+                    }
+                    periods[pernum].subjects.get(i).avg = Double.valueOf(s);
+                    sasha("here3");
+                    txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                } else
+                    txt2.setText(" ");
             }
             final int finalI1 = i;
             txt2.setOnClickListener(new View.OnClickListener() {
@@ -188,7 +216,7 @@ public class PeriodFragment extends Fragment {
                         });
                     } catch (Exception e) {
                     }
-                    txts.get(txts.size() - 1).setTextSize(20);
+                    txts.get(txts.size() - 1).setTextSize(9 * getResources().getDisplayMetrics().density);
                     txts.get(txts.size() - 1).setTextColor(Color.WHITE);
                     txts.get(txts.size() - 1).setBackground(getResources().getDrawable(R.drawable.gradient_list));
                     txts.get(txts.size() - 1).setPadding(15, 0, 15, 0);

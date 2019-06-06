@@ -226,7 +226,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     datePickerDialog = new DatePickerDialog(getContext(), ScheduleFragment.this, startYear, starthMonth, startDay);
                     Calendar c = Calendar.getInstance();
                     c.setTime(datenow);
-                    c.set(Calendar.MONTH, 9);
+                    c.set(Calendar.MONTH, 8);
                     c.set(Calendar.DAY_OF_MONTH, 1);
                     c.set(Calendar.HOUR_OF_DAY, 0);
                     c.set(Calendar.MINUTE, 0);
@@ -235,7 +235,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     c.add(Calendar.YEAR, -1);
                     long minDate = c.getTime().getTime();
                     c.setTime(datenow);
-                    c.set(Calendar.MONTH, 9);
+                    c.set(Calendar.MONTH, 7);
                     c.set(Calendar.DAY_OF_MONTH, 0);
                     c.set(Calendar.HOUR_OF_DAY, 0);
                     c.set(Calendar.MINUTE, 0);
@@ -306,6 +306,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 tv[i].setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
                         pager.setCurrentItem(pager.getCurrentItem() - (day - finalI - 1));
+                        day = finalI + 1;
                     }
                 });
                 linear1.addView(tv[i]);
@@ -363,7 +364,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             @Override
             public void run() {
                 try {
-                    sasha("here if fuck");
                     JSONArray array3 = new JSONArray(
                             connect("https://app.eschool.center/ec-server/dict/periods2?year=" + yearname,
                             null, getContext()));
@@ -649,9 +649,15 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             lin.setOrientation(LinearLayout.VERTICAL);
                             lin.setGravity(Gravity.CENTER);
                             if (i + 1 - periods[pernum].days.size() != 0) {
-                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
+                                if (i == 0) {
+                                    lin.setBackground(getResources().getDrawable(R.drawable.cell_phone6));
+                                } else {
+                                    lin.setBackground(getResources().getDrawable(R.drawable.cell_phone4));
+                                }
+                            } else {
+                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone5));
                             }
-                            lin.setPadding(10, 0, 10, 0);
+                            lin.setPadding(30, 0, 30, 0);
 
                             LinearLayout lin2 = new LinearLayout(getContext());
                             lin2.setOrientation(LinearLayout.HORIZONTAL);
@@ -661,7 +667,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             txt.setTextSize(20);
                             String s = "";
                             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                            lp.setMargins(0, 0, 10, 10);
+                            lp.setMargins(0, 0, 0, 10);
                             txt.setLayoutParams(lp);
                             try {
                                 Date date = new Date();
@@ -676,9 +682,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             txt.setTextColor(Color.LTGRAY);
                             lin2.addView(txt);
                             lin.addView(lin2);
-                            LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                            lp2.setMargins(10, 0, 10, 0);
-                            lin.setLayoutParams(lp2);
                             for (int j = 0; j < periods[pernum].subjects.size() - 1; j++) {
                                 LinearLayout lin1 = new LinearLayout(getContext());
                                 lin1.setOrientation(LinearLayout.HORIZONTAL);
@@ -825,7 +828,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         Long s = (c1.getTimeInMillis() - c2.getTimeInMillis()) / 86400000;
         sasha("this: " + s);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            pager.setCurrentItem(pageCount / 2 + 1 + Integer.valueOf(Math.toIntExact(s)));
+            pager.setCurrentItem(pageCount / 2 + 1 + Math.toIntExact(s));
         }
     }
 
