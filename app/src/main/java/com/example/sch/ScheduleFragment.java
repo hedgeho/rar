@@ -189,6 +189,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     int w;
                     if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {
                         w = 7;
+
                     } else
                         w = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1;
                     sasha("hshs " + pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_MONTH) + " " + w);
@@ -446,7 +447,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         periods[pernum].cells = new ArrayList<>();
         new Thread() {
             @SuppressLint("SimpleDateFormat")
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 try {
@@ -720,7 +720,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
                                                         @Override
                                                         public void onClick(View v) {
-
                                                             FragmentTransaction transaction = getFragmentManager().beginTransaction();
                                                             MarkFragment fragment = new MarkFragment();
                                                             transaction.replace(R.id.frame, fragment);
@@ -780,7 +779,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     sasha("set subjects: " + periods[pernum].subjects.size() + " and days: " + periods[pernum].days.size());
                     if (isone)
                         ((MainActivity) getActivity()).set(periods, pernum, 1);
-                    if (istwo)
+                    else
                         ((MainActivity) getActivity()).set(periods, pernum, 2);
                     READY = true;
                     if(getActivity()!=null) {
@@ -800,7 +799,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     periods[pernum].lins = new ArrayList<>();
                     periods[pernum].cells = new ArrayList<>();
                     Download2(id, h, isone, istwo);
-
                 }
             }
         }.start();

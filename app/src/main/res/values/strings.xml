@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">RAR</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_home">Оценки за период</string>
+    <string name="title_home"> </string>
     <string name="title_dashboard">Дневник</string>
     <string name="title_notifications">Сообщения</string>
     <item name="TAG_POSITION" type="id" />

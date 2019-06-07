@@ -1,5 +1,7 @@
 package com.example.sch;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
@@ -10,6 +12,7 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -22,9 +25,9 @@ import static com.example.sch.LoginActivity.loge;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    EditText et;
+    EditText et, et_nickname;
     Button send;
-    String s = "";
+    boolean kk_enabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +70,7 @@ public class SettingsActivity extends AppCompatActivity {
                         try {
                             connect("https://still-cove-90434.herokuapp.com/new_event",
                                     "firebase_id=" + TheSingleton.getInstance().getFb_id() + "&event=feedback" +
-                                            "&msg=" + text + "&time=" + System.nanoTime());
+                                            "&msg=" + text + "&time=" + System.currentTimeMillis());
                         } catch (Exception e) {loge(e.toString());}
                     }
                 }.start();
@@ -104,6 +107,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+
         Switch chat = findViewById(R.id.switch_chat);
         chat.setChecked(pref.getBoolean("show_chat", true));
         chat.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -113,46 +117,40 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
-        EditText et_nickname = findViewById(R.id.et_nickname);
-        if(pref.getString("knock_name", "").equals(""))
+        et_nickname = findViewById(R.id.et_nickname);
+        kk_enabled = !pref.getString("knock_name", "").equals("");
+        if(!kk_enabled) {
             et_nickname.setEnabled(false);
-        else {
+            et_nickname.setText("");
+        } else {
             et_nickname.setEnabled(true);
             et_nickname.setText(pref.getString("knock_name", ""));
-            final Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(1000);
-                        connect("https://warm-bayou-37022.herokuapp.com/update",
-                                "column=name&id=" + pref.getString("knock_id", "") + "&value=" + s);
-                    } catch (Exception e) {loge(e.toString());}
-                }
-            };
-            et_nickname.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-                }
-
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                }
-
-                @Override
-                public void afterTextChanged(Editable e) {
-                    // todo кнопка
-                    if(thread.isAlive())
-                        thread.stop();
-                    s = e.toString();
-                    //thread.start();
-                }
-            });
         }
 
+        findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(kk_enabled) {
+                    final String text = et_nickname.getText().toString();
+                    if(text.replaceAll(" ", "").equals(""))
+                        return;
+                    et_nickname.clearFocus();
+                    hideKeyboard(SettingsActivity.this, et_nickname);
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                connect("https://warm-bayou-37022.herokuapp.com/update",
+                                        "column=name&id=" + pref.getString("knock_id", "") + "&value=" + text);
+                            } catch (Exception e) {loge(e.toString());}
+                        }
+                    }.start();
+                }
+            }
+        });
+
         Toolbar toolbar = findViewById(R.id.toolbar2);
-        toolbar.setTitle("Settings");
+        toolbar.setTitle("Настройки");
         setSupportActionBar(toolbar);
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -161,7 +159,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu.add(0, 1, 0, "Quit");
+        menu.clear();
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -188,5 +186,10 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public static void hideKeyboard(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }

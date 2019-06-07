@@ -29,6 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="?android:attr/windowBackground"
+            android:elevation="2dp"
             app:itemIconTint="@color/bottomnav_colors"
             app:itemTextColor="@color/bottomnav_colors"
             app:layout_constraintBottom_toBottomOf="parent"

@@ -1,5 +1,6 @@
 package com.example.sch;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -55,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
     MessagesFragment messagesFragment;
     ConstraintLayout main, chat;
     ScheduleFragment scheduleFragment;
-    ArrayList<PeriodFragment.Subject> subjects;
-    ArrayList<PeriodFragment.Day> days;
     Snackbar snackbar;
     String[] period;
     int pernum = 6;
@@ -69,20 +68,15 @@ public class MainActivity extends AppCompatActivity {
     boolean isfirst = false;
     boolean mode0 = false;
 
-    // to.do fix period1: загрузка
-    // to.do исчезание чата
-    // todo адресат в нокноке и чатах
-    // to.do смена ника, пролистывание, нормальный фидбек settings
-
-    // завтра
-    // todo переключение периодов
-    // to.do pageAdapter при переключении во время загрузки
-
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             Toolbar toolbar = findViewById(R.id.toolbar);
+            if(getSupportActionBar() == null)
+                setSupportActionBar(toolbar);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            getSupportActionBar().setHomeButtonEnabled(false);
             switch (item.getItemId()) {
                 case R.id.navigation_period:
                     toolbar.setClickable(true);
@@ -90,14 +84,12 @@ public class MainActivity extends AppCompatActivity {
                         loadFragment(periodFragment);
                     else
                         loadFragment(periodFragment1);
-                    state = 1;
-                    return true;
+                    break;
                 case R.id.navigation_diary:
                     toolbar.setTitle("Дневник");
                     toolbar.setClickable(false);
                     loadFragment(scheduleFragment);
-                    state = 2;
-                    return true;
+                    break;
                 case R.id.navigation_messages:
                     toolbar.setTitle("Сообщения");
                     toolbar.setClickable(false);
@@ -106,9 +98,13 @@ public class MainActivity extends AppCompatActivity {
                     else
                         loadFragment(messagesFragment);
                     state = 3;
-                    return true;
+                    break;
+                    default:
+                        state = 0;
+                        return false;
             }
-            return false;
+            setSupportActionBar(toolbar);
+            return true;
         }
     };
 
@@ -176,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (getStackTop() instanceof ChatFragment) {
                     ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
                             intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
-                            intent.getStringExtra("sender_fio"));
+                            intent.getStringExtra("sender_fio"), intent.getStringExtra("attach"));
                 } else {
                     BottomNavigationMenuView bottomNavigationMenuView =
                             (BottomNavigationMenuView) bottomnav.getChildAt(0);
@@ -234,8 +230,6 @@ public class MainActivity extends AppCompatActivity {
             if(getIntent().getStringExtra("type").equals("msg")) {
                 log("type - msg");
                 bottomnav.setSelectedItemId(R.id.navigation_messages);
-                messagesFragment.fromNotification = true;
-                messagesFragment.notifThreadId = getIntent().getIntExtra("threadId", -1);
                 Toolbar toolbar = findViewById(R.id.toolbar);
                 toolbar.setTitle("Сообщения");
                 setSupportActionBar(toolbar);
@@ -250,11 +244,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("HandlerLeak")
     final Handler h = new Handler() {
         @Override
-        public void handleMessage(Message msg) {
+        public void handleMessage(final Message msg) {
             if(getStackTop() instanceof MessagesFragment)
                 messagesFragment.show();
+            else
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                            TextView tv = itemView.findViewById(R.id.tv_badge);
+                            if(msg.arg1 == 0)
+                                tv.setVisibility(View.INVISIBLE);
+                            else
+                                tv.setText(msg.arg1 + "");
+                    }
+                });
         }
     };
 
@@ -303,29 +309,24 @@ public class MainActivity extends AppCompatActivity {
         TheSingleton.getInstance().setUSER_ID(userId);
         TheSingleton.getInstance().setPERSON_ID(prsId);
         LOAD_READY = true;
-        scheduleFragment.start();
-        messagesFragment.start(h);
         new Thread() {
             @Override
             public void run() {
                 try {
-                    final String s = connect("https://app.eschool.center/ec-server/chat/count?prsId=" + TheSingleton.getInstance().getPERSON_ID(),
-                            null, getApplicationContext());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            TextView tv = itemView.findViewById(R.id.tv_badge);
-                            if(s.equals("0"))
-                                tv.setVisibility(View.INVISIBLE);
-                            else
-                                tv.setText(s);
-                        }
-                    });
+                    scheduleFragment.start();
                 } catch (Exception e) {
                     loge(e.toString());
                 }
             }
         }.start();
+        if(getIntent().getBooleanExtra("notif", false)) {
+            if(getIntent().getStringExtra("type").equals("msg")) {
+                messagesFragment.fromNotification = true;
+                messagesFragment.notifThreadId = getIntent().getIntExtra("threadId", -1);
+                messagesFragment.notifCount = getIntent().getIntExtra("count", -1);
+            }
+        }
+        messagesFragment.start(h);
         FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
         Bundle bundle = new Bundle();
         switch (getIntent().getIntExtra("mode", -1)) {
@@ -373,6 +374,9 @@ public class MainActivity extends AppCompatActivity {
             periodFragment1.periods = periods;
             if (state == 1)
                 loadFragment(periodFragment1);
+            /* todo фикси!
+            if (getStackTop() instanceof PeriodFragment1)
+                periodFragment1.show();*/
         } else {
             periodFragment = new PeriodFragment();
             periodFragment.period = period;
@@ -417,9 +421,11 @@ public class MainActivity extends AppCompatActivity {
             log(a.get(i).toString());
         }
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
-                getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment) {
+                getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
-            getSupportActionBar().setTitle("Сообщения");
+            if (getStackTop() instanceof ChatFragment) {
+                getSupportActionBar().setTitle("Сообщения");
+            }
             getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
@@ -481,7 +487,8 @@ public class MainActivity extends AppCompatActivity {
         TheSingleton.getInstance().setPERSON_ID(-1);
         TheSingleton.getInstance().setUSER_ID(-1);
         SharedPreferences pref = getSharedPreferences("pref", 0);
-        pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "").apply();
+        pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "")
+                .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "").apply();
         finish();
     }
 

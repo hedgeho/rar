@@ -17,10 +17,14 @@ import android.support.v4.app.NotificationManagerCompat;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.sch.LoginActivity.log;
+import static com.example.sch.LoginActivity.loge;
 
 
 public class MyFirebaseService extends FirebaseMessagingService {
@@ -29,13 +33,16 @@ public class MyFirebaseService extends FirebaseMessagingService {
         super();
     }
 
+    final static String MESSAGES_GROUP = "1.RAArArrrAAAArr";
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         log("message received");
 //        log("from: " + remoteMessage.getFrom());
 //        log("msg id: " + remoteMessage.getMessageId());
         Intent data = remoteMessage.toIntent();
-        long time = 15551882447791L;
+
+//        long time = System.currentTimeMillis();
         switch (data.getStringExtra("type")) {
             case "mark":
                 log("new mark");
@@ -71,7 +78,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
                         builder.setContentText(s.name + ": " + val + " с коэф. " + coef)
                                 .setContentTitle("Новая оценка")
-                                .setSmallIcon(R.drawable.attach);
+                                .setSmallIcon(R.drawable.alternative);
                         Notification notif = builder.build();
                         compat.notify(TheSingleton.getInstance().notification_id++, notif);
                         TheSingleton.getInstance().setHasNotifications(true);
@@ -80,23 +87,40 @@ public class MyFirebaseService extends FirebaseMessagingService {
                 }
                 break;
             case "msg":
+                final int thread_id = Integer.parseInt(remoteMessage.toIntent().getStringExtra("threadId"));
                 log("new message");
                 log("sender: " + remoteMessage.toIntent().getStringExtra("senderFio"));
                 log("text: " + remoteMessage.toIntent().getStringExtra("text"));
+                log("threadId: " + thread_id);
+
+                int attachCount = 0;
+                String attach_s = "";
+                if(remoteMessage.toIntent().hasExtra("attachInfo")) {
+                    attach_s = remoteMessage.toIntent().getStringExtra("attachInfo");
+                    log("attach: " + attach_s);
+                    try {
+                        attachCount = new JSONArray(attach_s).length();
+                    } catch (JSONException e) {
+                        loge(e.toString());
+                    }
+                }
+                int addrCnt = 0;
+                if(remoteMessage.toIntent().hasExtra("addrCnt")) {
+                    addrCnt = Integer.parseInt(remoteMessage.toIntent().getStringExtra("addrCnt"));
+                }
+                long time = Long.parseLong(data.getStringExtra("date"));
                 String text = remoteMessage.toIntent().getStringExtra("text");
                 String sender_fio = remoteMessage.toIntent().getStringExtra("senderFio");
                 int sender = Integer.parseInt(remoteMessage.toIntent().getStringExtra("senderId"));
-                int thread_id = Integer.parseInt(remoteMessage.toIntent().getStringExtra("threadId"));
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
                     notificationManager = getSystemService(NotificationManager.class);
                     if (notificationManager.getNotificationChannel("1") == null) {
                         CharSequence ch_name = "New messages & marks";
                         String description = "CHANNEL_DESCRIPTION";
 
-                        int importance = NotificationManager.IMPORTANCE_HIGH;
+                        int importance = NotificationManager.IMPORTANCE_DEFAULT;
                         NotificationChannel channel = new NotificationChannel("1", ch_name, importance);
                         channel.setDescription(description);
-                        // Register the channel with the system
 
                         notificationManager.createNotificationChannel(channel);
                     }
@@ -104,31 +128,53 @@ public class MyFirebaseService extends FirebaseMessagingService {
                 if (isBackground()) {
                     // background/not running
                     // Create an Intent for the activity you want to start
-                    Intent resultIntent = new Intent(this, LoginActivity.class);
-                    resultIntent.putExtra("notif", true);
-                    resultIntent.putExtra("type", "msg");
-                    resultIntent.putExtra("threadId", thread_id);
+                    Intent resultIntent = new Intent(this, LoginActivity.class).putExtra("notif", true)
+                            .putExtra("type", "msg").putExtra("threadId", thread_id).putExtra("count", addrCnt);
 // Create the TaskStackBuilder and add the intent, which inflates the back stack
                     TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
                     stackBuilder.addNextIntentWithParentStack(resultIntent);
 // Get the PendingIntent containing the entire back stack
                     PendingIntent resultPendingIntent =
                             stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-                    stackBuilder.editIntentAt(0).putExtra("notif", true);
-                    stackBuilder.editIntentAt(0).putExtra("type", "msg");
-                    stackBuilder.editIntentAt(0).putExtra("threadId", thread_id);
+                    stackBuilder.editIntentAt(0).putExtra("notif", true)
+                            .putExtra("type", "msg").putExtra("threadId", thread_id);
+
+                    PendingIntent actionIntent = PendingIntent.getBroadcast(this, thread_id,
+                            new Intent(this, MyBroadcastReceiver.class)
+                                    .putExtra("threadId", thread_id), 0);
+
+//                    log("groupId: " + groupId);
+                    if(TheSingleton.getInstance().summary == null) {
+                        Notification notification = new NotificationCompat.Builder(this, "1")
+                                .setContentTitle("rar").setContentText("RAR").setSmallIcon(R.drawable.alternative)
+                                .setGroup(MESSAGES_GROUP)
+                                .setGroupSummary(true).build();
+                        log("creating summary");
+                        TheSingleton.getInstance().summary = notification;
+                    }
+                    NotificationManagerCompat.from(this).notify(0, TheSingleton.getInstance().summary);
+
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-                    builder.setContentTitle(remoteMessage.toIntent().getStringExtra("senderFio"))
-                            .setContentText(remoteMessage.toIntent().getStringExtra("text"))
-                            .setSmallIcon(R.drawable.attach)
-                            .setContentIntent(resultPendingIntent);
+                    builder.setContentTitle(sender_fio)
+                            .setContentText(text)
+                            .setSmallIcon(R.drawable.alternative)
+                            .setContentIntent(resultPendingIntent)
+                            .setWhen(time)
+                            .setStyle(new NotificationCompat.BigTextStyle()
+                                    .bigText(text + (attachCount>0?"\nВложений: " + attachCount:"")))
+                            .setGroup(MESSAGES_GROUP)
+                            .addAction(R.drawable.alternative, "Прочитано", actionIntent);
                     Notification notif = builder.build();
-                    NotificationManagerCompat.from(this).notify(TheSingleton.getInstance().notification_id++, notif);
+                    int nId = TheSingleton.getInstance().notification_id;
+                    NotificationManagerCompat.from(this).notify(nId, notif);
+                    TheSingleton.getInstance().getNotifications().add(
+                            new TheSingleton.Notification(thread_id, TheSingleton.getInstance().notification_id++));
                 } else {
                     // application is in foreground
                     log("sending to broadcast");
                     sendBroadcast(new Intent("com.example.sch.action").putExtra("text", text).putExtra("sender_fio", sender_fio)
-                            .putExtra("time", time).putExtra("sender_id", sender).putExtra("thread_id", thread_id));
+                            .putExtra("time", time).putExtra("sender_id", sender).putExtra("thread_id", thread_id)
+                            .putExtra("attach", attach_s));
                 }
                 if (remoteMessage.getNotification() != null) {
                     log(remoteMessage.getNotification().getTitle() + "");
@@ -138,7 +184,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
             case "lesson":
                 log("new lesson");
                 String subject = data.getStringExtra("subject"),
-                    event = data.getStringExtra("event");
+                        event = data.getStringExtra("event");
                 coef = Integer.parseInt(data.getStringExtra("coef"));
                 unitId = Integer.parseInt(data.getStringExtra("unitId"));
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -164,7 +210,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
                         builder.setContentTitle("Новая клетка")
                                 .setContentText(subject + "/" + s.name + ": коэф " + coef)
-                                .setSmallIcon(R.drawable.attach);
+                                .setSmallIcon(R.drawable.alternative);
                         Notification notif = builder.build();
                         compat.notify(TheSingleton.getInstance().notification_id++, notif);
                         break;
