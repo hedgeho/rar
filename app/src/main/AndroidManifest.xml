@@ -45,6 +45,8 @@
             </intent-filter>
         </service>
 
+        <receiver android:name=".MyBroadcastReceiver"/>
+
         <uses-library android:name ="org.apache.http.legacy" android:required ="false"/>
     </application>
 

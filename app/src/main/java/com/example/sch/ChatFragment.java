@@ -19,6 +19,7 @@ import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
@@ -62,6 +63,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import static android.view.View.GONE;
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
 import static com.example.sch.LoginActivity.loge;
@@ -91,6 +93,7 @@ public class ChatFragment extends Fragment {
     private View view;
     private String COOKIE, ROUTE;
     private int PERSON_ID;
+    private LayoutInflater inflater;
 
     private Msg[] messages;
     private Handler h;
@@ -114,6 +117,8 @@ public class ChatFragment extends Fragment {
         COOKIE = TheSingleton.getInstance().getCOOKIE();
         ROUTE = TheSingleton.getInstance().getROUTE();
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
+
+        this.inflater = inflater;
 
         first_msgs = new ArrayList<>();
         View view = inflater.inflate(R.layout.chat, container, false);
@@ -150,73 +155,110 @@ public class ChatFragment extends Fragment {
             log("refreshing chat");
             item.setEnabled(false);
             itemToEnable = item;
-            onViewCreated(getView(), null);
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        download(h);
+                    } catch (Exception e) {
+                        loge(e.toString());
+                    }
+                }
+            }.start();
         }
         return super.onOptionsItemSelected(item);
     }
 
-    void newMessage(String text, long time, int sender_id, int thread_id, String sender_fio) {
+    void newMessage(String text, long time, int sender_id, int thread_id, String sender_fio, String attach) {
         log("new message in ChatFragment");
         log("notif thread: " + thread_id + ", this thread id: " + this.threadId);
         if(thread_id != this.threadId) {
             log("wrong thread, sorry");
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), "1");
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "1");
             builder.setContentTitle(sender_fio)
                     .setContentText(text)
-                    .setSmallIcon(R.drawable.attach);
+                    .setSmallIcon(R.drawable.alternative);
             Notification notif = builder.build();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                //  todo early versions
-                getActivity().getSystemService(NotificationManager.class).notify(1, notif);
-            }
+            NotificationManagerCompat manager = NotificationManagerCompat.from(context);
+            manager.notify(TheSingleton.getInstance().notification_id++, notif);
             return;
         }
-        final LinearLayout container = view.findViewById(R.id.container);
-        LayoutInflater inflater = getLayoutInflater();
+        final LinearLayout container = view.findViewById(R.id.main_container);
         View item;
-        LinearLayout.LayoutParams params;
-        TextView tv, tv_attach; // todo attach
-        item = inflater.inflate(R.layout.chat_item, container, false);
-        tv = item.findViewById(R.id.chat_tv_sender);
-        if(!group) {
-            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-            params1.setMargins(0, 0, 0, 0);
-            tv.setLayoutParams(params1);
-            tv.setHeight(0);
+        TextView tv, tv_attach;
+        if(PERSON_ID == sender_id) {
+            item = inflater.inflate(R.layout.chat_item, container, false);
         } else {
+            item = inflater.inflate(R.layout.chat_item_left, container, false);
+        }
+        tv = item.findViewById(R.id.chat_tv_sender);
+        if(!group && tv != null) {
+            tv.setVisibility(GONE);
+        } else if (tv != null){
             tv.setText(sender_fio);
         }
         tv = item.findViewById(R.id.tv_text);
         if(Html.fromHtml(text).toString().equals("")) {
-            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-            params1.setMargins(0,0,0,0);
-            tv.setLayoutParams(params1);
+            tv.setVisibility(GONE);
         }
         tv.setText(Html.fromHtml(text));
         tv.setMovementMethod(LinkMovementMethod.getInstance());
-        tv.setTextColor(Color.WHITE);
-        tv.setMaxWidth(view.getMeasuredWidth()-300);
+        JSONArray array;
+        try {
+            array = new JSONArray(attach);
+            for (int i = 0; i < array.length(); i++) {
+                final JSONObject a = array.getJSONObject(i);
+                tv_attach = new TextView(getContext());
+                float size = a.getInt("fileSize");
+                String s = "B";
+                if (size > 900) {
+                    s = "KB";
+                    size /= 1024;
+                }
+                if (size > 900) {
+                    s = "MB";
+                    size /= 1024;
+                }
+                tv_attach.setText(String.format(Locale.getDefault(), a.getString("fileName") + " (%.2f " + s + ")", size));
+                tv_attach.setTextColor(getResources().getColor(R.color.two));
+                tv_attach.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
+                            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+                            request.setDescription("Some description");
+                            request.setTitle(a.getString("fileName"));
+                            request.addRequestHeader("Cookie", COOKIE + "; site_ver=app; route=" + ROUTE + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                            request.allowScanningByMediaScanner();
+                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, a.getString("fileName"));
+
+                            // get download service and enqueue file
+                            DownloadManager manager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
+                            manager.enqueue(request);
+                        } catch (JSONException e) {loge(e.toString());}
+                    }
+                });
+                tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
+                ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+            }
+        } catch (JSONException e) {
+            loge(e.toString());
+        }
         Date date = new Date(time);
 
         tv = item.findViewById(R.id.tv_time);
         tv.setText(date.getHours() + ":" + date.getMinutes());
-        //tv.setText(time);
-        item.setPadding(0, 16, 4, 0);
-        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         log("person_id: " + PERSON_ID + ", sender: " + sender_id);
-        ConstraintLayout l = item.findViewById(R.id.item_main);
-        if(PERSON_ID != sender_id) {
-            l.setBackground(getResources().getDrawable(R.drawable.chat_border));
-            params.gravity = Gravity.END;
-        } else {
-            l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
-            params.gravity = Gravity.START;
-        }
-        params.topMargin = 20;
-        params.bottomMargin = 20;
 
-        container.addView(item, params);
-        scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
+        container.addView(item);
+        scroll.post(new Runnable() {
+            @Override
+            public void run() {
+                scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
+            }
+        });
     }
 
     @SuppressLint("HandlerLeak")
@@ -238,54 +280,49 @@ public class ChatFragment extends Fragment {
                                 else
                                     l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border));
                         }
-                        if (scroll.getScrollY() == 0 && !uploading) {
+                        if (scroll.getScrollY() == 0 && !uploading && last_msg != 0) {
                             log("top!!");
                             uploading = true;
                             final Handler h = new Handler() {
                                 @Override
                                 public void handleMessage(Message yoyyoyoy) {
                                     final LinearLayout container = view.findViewById(R.id.main_container);
-                                    LayoutInflater inflater = getLayoutInflater();
                                     View item;
-                                    LinearLayout.LayoutParams params;
                                     TextView tv, tv_attach;
                                     Calendar cal = getInstance(), cal1 = getInstance();
                                     int i = 0;
-                                    ConstraintLayout.LayoutParams params1;
                                     for (Msg msg : messages) {
-                                        item = inflater.inflate(R.layout.chat_item, container, false);
-                                        tv = item.findViewById(R.id.chat_tv_sender);
-                                        if(!group) {
-                                            params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                                            params1.setMargins(0, 0, 0, 0);
-                                            tv.setLayoutParams(params1);
-                                            tv.setHeight(0);
+                                        if(i != 0) {
+                                            cal1.setTime(msg.time);
+                                            cal.setTime(messages[i-1].time);
+                                            //log("comparing day " + сal1.get(Calendar.DAY_OF_MONTH) + " and " + cal.get(Calendar.DAY_OF_MONTH));
+                                            if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
+                                                item = inflater.inflate(R.layout.date_divider, container, false);
+                                                tv = item.findViewById(R.id.tv_date);
+                                                tv.setText(getDate(cal));
+                                                container.addView(item, 0);
+                                            }
+                                        }
+                                        if(PERSON_ID == msg.user_id) {
+                                            item = inflater.inflate(R.layout.chat_item, container, false);
                                         } else {
+                                            item = inflater.inflate(R.layout.chat_item_left, container, false);
+                                        }
+                                        tv = item.findViewById(R.id.chat_tv_sender);
+                                        if(!group && tv != null) {
+                                            tv.setVisibility(GONE);
+                                        } else if(tv != null) {
                                             tv.setText(msg.sender);
                                         }
                                         tv = item.findViewById(R.id.tv_text);
                                         if (Html.fromHtml(msg.text).toString().equals("")) {
-                                            params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                                            params1.setMargins(0, 0, 0, 0);
-                                            tv.setLayoutParams(params1);
+                                            tv.setVisibility(GONE);
                                         }
                                         tv.setText(Html.fromHtml(msg.text));
                                         tv.setMovementMethod(LinkMovementMethod.getInstance());
-                                        tv.setTextColor(Color.WHITE);
-                                        tv.setMaxWidth(view.getMeasuredWidth() - 300);
                                         tv = item.findViewById(R.id.tv_time);
 
                                         tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-                                        item.setPadding(0, 16, 4, 0);
-                                        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                                        params.gravity = Gravity.END;
-                                        if (PERSON_ID != msg.user_id) {
-                                            ConstraintLayout l = item.findViewById(R.id.item_main);
-                                            l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
-                                            params.gravity = Gravity.START;
-                                        }
-                                        params.topMargin = 20;
-                                        params.bottomMargin = 20;
                                         if (msg.files != null) {
                                             for (final Attach a : msg.files) {
                                                 tv_attach = new TextView(getContext());
@@ -321,19 +358,9 @@ public class ChatFragment extends Fragment {
                                                 tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                             }
-                                        }
-                                        container.addView(item, 0, params);
-                                        if(i != messages.length-1) {
-                                            cal1.setTime(msg.time);
-                                            cal.setTime(messages[i+1].time);
-                                            //log("comparing day " + сal1.get(Calendar.DAY_OF_MONTH) + " and " + cal.get(Calendar.DAY_OF_MONTH));
-                                            if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
-                                                item = inflater.inflate(R.layout.date_divider, container, false);
-                                                tv = item.findViewById(R.id.tv_date);
-                                                tv.setText(getDate(cal));
-                                                container.addView(item, 0);
-                                            }
-                                        }
+                                        } else
+                                            item.findViewById(R.id.attach).setVisibility(GONE);
+                                        container.addView(item, 0);
                                         i++;
                                     }
                                     scroll.post(new Runnable() {
@@ -351,7 +378,11 @@ public class ChatFragment extends Fragment {
                                 public void run() {
                                     try {
                                         JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                                "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, getContext()));
+                                                "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, context));
+
+                                        if(array.length() == 0) {
+                                            last_msg = 0;
+                                        }
                                         messages = new Msg[array.length()];
                                         for (int i = 0; i < messages.length; i++) {
                                             messages[i] = new Msg();
@@ -366,6 +397,7 @@ public class ChatFragment extends Fragment {
                                                 msg.files = null;
                                             } else {
                                                 msg.files = new Attach[tmp.getInt("attachCount")];
+                                                log(tmp.getString("attecInfo"));
                                                 for (int j = 0; j < msg.files.length; j++) {
                                                     tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
                                                     msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
@@ -379,8 +411,7 @@ public class ChatFragment extends Fragment {
                                                 last_msg = tmp.getInt("msgNum");
                                             }
                                             if (!tmp.has("msg")) {
-                                                // todo
-                                                loge(tmp.toString());
+                                                loge("no msg tag: " + tmp.toString());
                                                 msg.text = "";
                                                 continue;
                                             }
@@ -394,16 +425,14 @@ public class ChatFragment extends Fragment {
                             }.start();
                         } else if (scroll.getChildAt(0).getBottom()
                                 <= (scroll.getHeight() + scroll.getScrollY()) && !uploading) {
-                            log("bottom");
                             if (first_msgs.size() == 0) return;
+                            log("bottom");
                             uploading = true;
                             final Handler h = new Handler() {
                                 @Override
                                 public void handleMessage(Message yoyoy) {
                                     final LinearLayout container = view.findViewById(R.id.container);
-                                    LayoutInflater inflater = getLayoutInflater();
                                     View item;
-                                    LinearLayout.LayoutParams params;
                                     TextView tv, tv_attach;
                                     Calendar cal = getInstance(), cal1 = getInstance();
                                     Msg msg;
@@ -419,39 +448,26 @@ public class ChatFragment extends Fragment {
                                                 container.addView(item);
                                             }
                                         }
-                                        item = inflater.inflate(R.layout.chat_item, container, false);
-                                        tv = item.findViewById(R.id.chat_tv_sender);
-                                        if(!group) {
-                                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                                            params1.setMargins(0, 0, 0, 0);
-                                            tv.setLayoutParams(params1);
-                                            tv.setHeight(0);
+                                        if(PERSON_ID == msg.user_id) {
+                                            item = inflater.inflate(R.layout.chat_item, container, false);
                                         } else {
+                                            item = inflater.inflate(R.layout.chat_item_left, container, false);
+                                        }
+                                        tv = item.findViewById(R.id.chat_tv_sender);
+                                        if(!group && tv != null) {
+                                            tv.setVisibility(GONE);
+                                        } else if(tv != null) {
                                             tv.setText(msg.sender);
                                         }
                                         tv = item.findViewById(R.id.tv_text);
                                         if (Html.fromHtml(msg.text).toString().equals("")) {
-                                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                                            params1.setMargins(0, 0, 0, 0);
-                                            tv.setLayoutParams(params1);
+                                            tv.setVisibility(GONE);
                                         }
                                         tv.setText(Html.fromHtml(msg.text));
                                         tv.setMovementMethod(LinkMovementMethod.getInstance());
-                                        tv.setTextColor(Color.WHITE);
-                                        tv.setMaxWidth(view.getMeasuredWidth() - 300);
                                         tv = item.findViewById(R.id.tv_time);
                                         tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-//todo
-                                        item.setPadding(0, 16, 4, 0);
-                                        params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                                        params.gravity = Gravity.END;
-                                        if (PERSON_ID != msg.user_id) {
-                                            ConstraintLayout l = item.findViewById(R.id.item_main);
-                                            l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
-                                            params.gravity = Gravity.START;
-                                        }
-                                        params.topMargin = 20;
-                                        params.bottomMargin = 20;
+
                                         if (msg.files != null) {
                                             for (final Attach a : msg.files) {
                                                 tv_attach = new TextView(getContext());
@@ -487,8 +503,9 @@ public class ChatFragment extends Fragment {
                                                 tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                             }
-                                        }
-                                        container.addView(item, params);
+                                        } else
+                                            item.findViewById(R.id.attach).setVisibility(GONE);
+                                        container.addView(item);
                                     }
                                     scroll.post(new Runnable() {
                                         @Override
@@ -506,7 +523,7 @@ public class ChatFragment extends Fragment {
                                 public void run() {
                                     try {
                                         JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                                "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1), null, getContext()));
+                                                "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1), null, context));
 
                                         messages = new Msg[array.length()];
                                         for (int i = 0; i < messages.length; i++) {
@@ -532,8 +549,7 @@ public class ChatFragment extends Fragment {
                                             msg.msg_id = tmp.getInt("msgNum");
                                             msg.sender = tmp.getString("senderFio");
                                             if (!tmp.has("msg")) {
-                                                // todo
-                                                loge(tmp.toString());
+                                                loge("no msg tag: " + tmp.toString());
                                                 msg.text = "";
                                                 continue;
                                             }
@@ -548,7 +564,6 @@ public class ChatFragment extends Fragment {
 
                         }
                     }
-                    // todo подгрузка
                 }
             };
             scroll.getViewTreeObserver().addOnScrollChangedListener(listener);
@@ -557,9 +572,7 @@ public class ChatFragment extends Fragment {
             public void handleMessage(Message yoy) {
                 final LinearLayout container = view.findViewById(R.id.main_container);
                 container.removeAllViews();
-                LayoutInflater inflater = getLayoutInflater();
                 View item;
-                LinearLayout.LayoutParams params;
                 TextView tv, tv_attach;
                 Calendar cal = Calendar.getInstance(), cal1 = Calendar.getInstance();
                 log(messages.length + "");
@@ -576,43 +589,33 @@ public class ChatFragment extends Fragment {
                             container.addView(item);
                         }
                     }
-                    item = inflater.inflate(R.layout.chat_item, container, false);
-                    tv = item.findViewById(R.id.chat_tv_sender);
-                    if(!group) {
-                        ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                        params1.setMargins(0, 0, 0, 0);
-                        tv.setLayoutParams(params1);
-                        tv.setHeight(0);
+                    if(PERSON_ID == msg.user_id) {
+                        item = inflater.inflate(R.layout.chat_item, container, false);
                     } else {
+                        item = inflater.inflate(R.layout.chat_item_left, container, false);
+                    }
+                    tv = item.findViewById(R.id.chat_tv_sender);
+                    if(!group && tv != null) {
+                        tv.setVisibility(GONE);
+                    } else if(tv != null) {
                         tv.setText(msg.sender);
                     }
                     tv = item.findViewById(R.id.tv_text);
                     if(Html.fromHtml(msg.text).toString().equals("")) {
-                        ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                        params1.setMargins(0,0,0,0);
-                        tv.setLayoutParams(params1);
+                        tv.setVisibility(GONE);
                     }
                     tv.setText(Html.fromHtml(msg.text));
                     tv.setMovementMethod(LinkMovementMethod.getInstance());
-                    tv.setTextColor(Color.WHITE);
-                    tv.setMaxWidth(view.getMeasuredWidth()-300);
                     tv = item.findViewById(R.id.tv_time);
                     tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-                    item.setPadding(0, 16, 4, 0);
-                    params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                    params.gravity = Gravity.END;
+//                    item.setPadding(0, 16, 4, 0);
                     if(PERSON_ID != msg.user_id) {
-                        ConstraintLayout l = item.findViewById(R.id.item_main);
-                        l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
-                        params.gravity = Gravity.START;
                         item.setTag(R.id.TAG_POSITION, "left");
                     } else
                         item.setTag(R.id.TAG_POSITION, "right");
-                    params.topMargin = 20;
-                    params.bottomMargin = 20;
                     if(msg.files != null) {
                         for (final Attach a: msg.files) {
-                            tv_attach = new TextView(getContext());
+                            tv_attach = new TextView(context);
                             float size = a.size;
                             String s = "B";
                             if  (size > 900) {
@@ -645,12 +648,13 @@ public class ChatFragment extends Fragment {
                             tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
                             ((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
                         }
-                    }
+                    }  else
+                        item.findViewById(R.id.attach).setVisibility(GONE);
                     if(msg.msg_id == searchMsgId) {
                         log("result found");
                         item.setTag("result");
                     }
-                    container.addView(item, params);
+                    container.addView(item);
                 }
                 view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
 
@@ -668,49 +672,6 @@ public class ChatFragment extends Fragment {
                 });
 
                 final EditText et = view.findViewById(R.id.et);
-                final Handler hand = new Handler() {
-                    @Override
-                    public void handleMessage(Message msg) {
-                        try {
-                            String text = (String) msg.obj;
-                            View item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
-                            TextView tv = item.findViewById(R.id.chat_tv_sender);
-                            if(!group) {
-                                ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                                params1.setMargins(0, 0, 0, 0);
-                                tv.setLayoutParams(params1);
-                                tv.setHeight(0);
-                            } /*else {
-                                tv.setText(msg.sender);
-                            }*/
-                            tv = item.findViewById(R.id.tv_text);
-                            if (Html.fromHtml(text).toString().equals("")) {
-                                ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                                params1.setMargins(0, 0, 0, 0);
-                                tv.setLayoutParams(params1);
-                            }
-                            tv.setText(Html.fromHtml(text));
-                            tv.setTextColor(Color.WHITE);
-                            tv.setMaxWidth(view.getMeasuredWidth() - 300);
-                            tv = item.findViewById(R.id.tv_time);
-                            tv.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
-                            item.setPadding(0, 16, 4, 0);
-                            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                            params.gravity = Gravity.END;
-                            params.topMargin = 20;
-                            params.bottomMargin = 20;
-                            container.addView(item, params);
-                            scroll.post(new Runnable() {
-                                @Override
-                                public void run() {
-                                    scroll.fullScroll(ScrollView.FOCUS_DOWN);
-                                }
-                            });
-                        } catch (Exception e) {
-                            loge("hand: " + e.toString());
-                        }
-                    }
-                };
                 scroll = view.findViewById(R.id.scroll);
 
                 view.findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {
@@ -725,7 +686,26 @@ public class ChatFragment extends Fragment {
                             public void run() {
                                 try {
                                     log("rar");
-                                    hand.sendMessage(hand.obtainMessage(0, text));
+                                    getActivity().runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            View item = inflater.inflate(R.layout.chat_item, container, false);
+                                            TextView tv = item.findViewById(R.id.tv_text);
+                                            if (Html.fromHtml(text).toString().equals("")) {
+                                                tv.setVisibility(GONE);
+                                            }
+                                            tv.setText(Html.fromHtml(text));
+                                            tv = item.findViewById(R.id.tv_time);
+                                            tv.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
+                                            container.addView(item);
+                                            scroll.post(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    scroll.fullScroll(ScrollView.FOCUS_DOWN);
+                                                }
+                                            });
+                                        }
+                                    });
                                     if(files != null) {
                                         try {
 //                                            sendFile(files.get(0), threadId, text);
@@ -796,7 +776,7 @@ public class ChatFragment extends Fragment {
     }
 
     void download(Handler h) throws IOException, JSONException {
-        connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, getContext());
+        connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, context);
         boolean found = false;
         if(searchMsgId == -1)
             found = true;
@@ -834,8 +814,7 @@ public class ChatFragment extends Fragment {
                 if(tmp.getInt("msgNum") == searchMsgId)
                     found = true;
                 if (!tmp.has("msg")) {
-                    // todo
-                    loge(tmp.toString());
+                    loge("no msg tag: " + tmp.toString());
                     msg.text = "";
                     continue;
                 }
@@ -1088,4 +1067,6 @@ public class ChatFragment extends Fragment {
             this.type = type;
         }
     }
+
+    public Context getContext() {return context;}
 }

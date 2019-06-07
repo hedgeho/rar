@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
@@ -54,14 +55,17 @@ public class MessagesFragment extends Fragment {
     int[] users = null;
     ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
     ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds;
+    ArrayList<Boolean> s_group;
     String s_query = "";
     int count = 25, s_count = 0;
     boolean first_time = true;
     LinearLayout container;
     ViewTreeObserver.OnScrollChangedListener scrollListener;
     MenuItem searchView = null;
+
     boolean fromNotification = false;
-    int notifThreadId;
+    int notifThreadId, notifCount;
+
     View savedView = null, view;
     int search_mode = -1;
     Person[] olist;
@@ -69,6 +73,7 @@ public class MessagesFragment extends Fragment {
     boolean READY = false, shown = false;
     View[] fitems;
     SwipeRefreshLayout refreshL;
+    boolean refreshing = false;
 
     public MessagesFragment() {}
 
@@ -83,6 +88,11 @@ public class MessagesFragment extends Fragment {
             public void run() {
                 try {
                     download(null);
+                    int count = 0;
+                    for (int i = 0; i < f_newCounts.size(); i++) {
+                        count+=f_newCounts.get(i);
+                    }
+                    h.sendMessage(h.obtainMessage(123, count, count));
                     JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/usr/olist", null, context));
                     JSONObject obj;
                     String fio, info = "";
@@ -137,8 +147,8 @@ public class MessagesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup contain,
                              Bundle savedInstanceState) {
-        if(getActivity().getApplicationContext() != null)
-            context = getActivity().getApplicationContext();
+        if(getActivity() != null)
+            context = getActivity();
         log("messages onCreateView");
         if(savedView != null)
             return savedView;
@@ -303,8 +313,7 @@ public class MessagesFragment extends Fragment {
                         item.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                // todo group search
-                                loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j), false);
+                                loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j), s_group.get(j));
                             }
                         });
                         container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -346,6 +355,7 @@ public class MessagesFragment extends Fragment {
                                 s_threadIds = new ArrayList<>();
                                 s_time = new ArrayList<>();
                                 s_msgIds = new ArrayList<>();
+                                s_group = new ArrayList<>();
 
                                 String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=15&text=" + query, null, context);
                                 log("search result: " + result);
@@ -381,6 +391,7 @@ public class MessagesFragment extends Fragment {
                                         s_msgIds.add(a.optInt(j));
                                         Date date = new Date(c.getLong("createDate"));
                                         s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
+                                        s_group.add(c.getInt("addrCnt") > 2);
                                     }
                                 }
                                 if (array.length() < 15)
@@ -537,8 +548,7 @@ public class MessagesFragment extends Fragment {
 
         if(fromNotification) {
             log("fromNotif");
-            // todo group from notifications
-            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1, false);
+            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1, notifCount > 2);
         }
     }
 
@@ -642,7 +652,7 @@ public class MessagesFragment extends Fragment {
                         refreshL.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
                             @Override
                             public void onRefresh() {
-                                log("refreshing");
+                                log("refreshing rar");
                                 refresh();
                             }
                         });
@@ -755,8 +765,7 @@ public class MessagesFragment extends Fragment {
                                                 item.setOnClickListener(new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
-                                                        //  todo
-                                                        loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j), false);
+                                                        loadChat(s_threadIds.get(j), s_senders.get(j), s_msgIds.get(j), s_group.get(j));
                                                     }
                                                 });
                                                 container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -798,7 +807,7 @@ public class MessagesFragment extends Fragment {
                                                     } else
                                                         c = obj.getString("senderFio").split(" ")[2];
                                                     senders[i] = a + " " + b.charAt(0) + ". " + c.charAt(0) + ".";
-                                                    if (obj.getString("subject").equals(" "))
+                                                    if (obj.getString("subject").replaceAll(" ", "").equals(""))
                                                         if (obj.has("msgPreview"))
                                                             topics[i] = obj.getString("msgPreview");
                                                         else
@@ -843,6 +852,7 @@ public class MessagesFragment extends Fragment {
                                                         s_messages.add(c.getString("msg"));
                                                         s_threadIds.add(c.getInt("threadId"));
                                                         s_msgIds.add(a.optInt(j));
+                                                        s_group.add(c.getInt("addrCnt") > 2);
                                                         Date date = new Date(c.getLong("createDate"));
                                                         s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
                                                     }
@@ -890,6 +900,10 @@ public class MessagesFragment extends Fragment {
 
         view.findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.l_refresh).setVisibility(View.VISIBLE);
+        if(fromNotification) {
+            log("fromNotif");
+            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), -1, notifCount > 2);
+        }
         shown = true;
     }
 
@@ -924,7 +938,7 @@ public class MessagesFragment extends Fragment {
         scroll.scrollTo(0, container.getBottom());
     }
 
-    void download(Handler handler) throws Exception {
+    void download(Handler handler) throws JSONException, IOException {
         JSONArray array = new JSONArray(
                 connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row=1&rowsCount=25",
                         null, context));
@@ -968,16 +982,14 @@ public class MessagesFragment extends Fragment {
             f_topics.add(topics[i]);
             f_newCounts.add(newCounts[i]);
         }
-//                    all_senders = senders;
-//                    all_topics = topics;
-//                    all_threadIds = threadIds;
-//                    all_users = users;
         log("first thread: " + senders[0]);
         if(handler != null)
             handler.sendEmptyMessage(0);
     }
 
     void refresh() {
+        if(refreshing)
+            return;
         refreshL.setRefreshing(true);
 
         @SuppressLint("HandlerLeak") final Handler h = new Handler() {
@@ -1024,6 +1036,7 @@ public class MessagesFragment extends Fragment {
                             tv.setText(msg.what + "");
                         }
                         refreshL.setRefreshing(false);
+                        refreshing = false;
                     }
                 };
                 new Thread() {
@@ -1041,6 +1054,7 @@ public class MessagesFragment extends Fragment {
                             tv.setText(Html.fromHtml(f_topics.get(i)));
                             tv = item.findViewById(R.id.tv_users);
                             img = item.findViewById(R.id.img);
+
                             if(f_users.get(i) == 0 || f_users.get(i) == 2) {
                                 img.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
                                 tv.setText("");
@@ -1087,8 +1101,10 @@ public class MessagesFragment extends Fragment {
     }
 
     void loadChat(int threadId, String threadName, int searchId, boolean group) {
+        fromNotification = false;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         ChatFragment fragment = new ChatFragment();
+        log("chat thread " + threadId);
         fragment.threadId = threadId;//f_threadIds.get(j);
         fragment.threadName = threadName;//f_senders.get(j);
         fragment.context = context;

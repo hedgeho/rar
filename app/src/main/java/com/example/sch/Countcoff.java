@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
@@ -54,6 +55,8 @@ public class Countcoff extends Fragment {
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     String[] marks = {"1", "2", "3", "4", "5"};
 
+    Context context;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +89,9 @@ public class Countcoff extends Fragment {
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
+        if(getActivity() != null)
+            context = getActivity();
+
         View v = inflater.inflate(R.layout.fragment_countcoff, container, false);
         periodname = period[pernum];
         txt1 = v.findViewById(R.id.txt1);
@@ -421,5 +427,10 @@ public class Countcoff extends Fragment {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public Context getContext() {
+        return context;
     }
 }

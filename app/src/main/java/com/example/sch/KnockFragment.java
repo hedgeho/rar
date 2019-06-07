@@ -1,5 +1,6 @@
 package com.example.sch;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -34,7 +35,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
@@ -48,6 +53,8 @@ public class KnockFragment extends Fragment {
     String id, token, auth_token, name, icon;
     WebSocket socket_read, socket_write;
     private boolean sending;
+    private JSONObject last_msg;
+    Context context;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -57,6 +64,8 @@ public class KnockFragment extends Fragment {
         setHasOptionsMenu(true);
         // todo toolbar subtitle
         // toolbar.setSubtitle("subtitle");
+        if(getActivity() != null)
+            context = getActivity();
 
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
         // Inflate the layout for this fragment``
@@ -78,21 +87,14 @@ public class KnockFragment extends Fragment {
                             //String message = "{\"system\":\"false\",\"uuid\":\"170.51287793191963\",\"text\":\"" + text + "\"," +
                             //        "\"name\":\"спамер\",\"icon\":\"3\",\n" +
                             //        "\t\"time\":\"October 26th 2018, 3:58:49 pm\",\"type\":\"text\"}\n";
-
-                            SimpleDateFormat format = new SimpleDateFormat("MMMM d", Locale.UK);
-                            SimpleDateFormat format1 = new SimpleDateFormat(" YYYY, h:mm:ss a", Locale.UK);
-
-                            String date = format.format(new Date()) + "th" + format1.format(new Date());
-
                             JSONObject object = new JSONObject();
                             object.put("icon", "3")// + icon)
                                     .put("name", name)
                                     .put("system", "false")
                                     .put("text", text)
-                                    .put("time", date)
+                                    .put("time", getDateString())
                                     .put("type", "text")
                                     .put("token", token)
-                                    // todo admin auth
                                     .put("admin", "true")
                                     .put("uuid", id);
                             socket_write.sendText(object.toString());
@@ -225,8 +227,9 @@ public class KnockFragment extends Fragment {
 //                                    }
                                     JSONObject object = new JSONObject();
                                     object.put("system", "true")
-                                            .put("uuid", id) // todo
+                                            .put("uuid", id)
                                             //.put("key", "key")
+                                            .put("name", "name")
                                             .put("token", token)
                                             .put("event", "ping");
                                     socket_write.sendText(object.toString());
@@ -242,7 +245,6 @@ public class KnockFragment extends Fragment {
                     log("key " + id + ", token " + token);
                     sending = true;
                     socket_read.sendText(object.toString());
-
 
                 } catch (Exception e) {
                     loge(e.toString());
@@ -293,7 +295,8 @@ public class KnockFragment extends Fragment {
     }
 
     void newMessage(String text) throws JSONException {
-        final JSONObject object = new JSONObject(text);
+        final JSONObject object = new JSONObject(text), last = last_msg;
+        last_msg = object;
         if (object.has("system") && object.has("uuid")
                 && object.has("type") && getActivity() != null) {
             getActivity().runOnUiThread(new Runnable() {
@@ -301,29 +304,30 @@ public class KnockFragment extends Fragment {
                 public void run() {
                     try {
                         ViewGroup container = view.findViewById(R.id.main_container);
-                        View item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
+                        View item;
+                        if (!object.getString("uuid").equals(id))
+                            item = getLayoutInflater().inflate(R.layout.chat_item_left, container, false);
+                        else
+                            item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
                         TextView tv = item.findViewById(R.id.chat_tv_sender);
-//                        if(!group) {
-                            ConstraintLayout.LayoutParams params1 = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-                            params1.setMargins(0, 0, 0, 0);
-                            tv.setLayoutParams(params1);
-                            tv.setHeight(0);
-//                        }
+
+                        if(tv != null) {
+                            if (last != null) {
+                                if (last.getString("uuid").equals(object.getString("uuid"))) {
+                                    tv.setVisibility(View.GONE);
+                                } else {
+                                    tv.setText(object.getString("name"));
+                                }
+                            } else {
+                                tv.setText(object.getString("name"));
+                            }
+                        }
                         tv = item.findViewById(R.id.tv_text);
                         tv.setText(object.getString("text"));
-                        tv.setTextColor(Color.WHITE);
-                        tv.setMaxWidth(view.getMeasuredWidth()-300);
-                        item.setPadding(0, 16, 4, 0);
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        params.gravity = Gravity.END;
-                        if (!object.getString("uuid").equals(id)) {
-                            ConstraintLayout l = item.findViewById(R.id.item_main);
-                            l.setBackground(getResources().getDrawable(R.drawable.chat_border_left));
-                            params.gravity = Gravity.START;
-                        }
-                        params.topMargin = 20;
-                        params.bottomMargin = 20;
-                        container.addView(item, params);
+                        tv = item.findViewById(R.id.tv_time);
+                        Calendar c = toCalendar(object.getString("time"));
+                        tv.setText(String.format(Locale.getDefault(), "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
+                        container.addView(item);
                         final ScrollView scroll = view.findViewById(R.id.scroll);
                         scroll.post(new Runnable() {
                             @Override
@@ -395,6 +399,11 @@ public class KnockFragment extends Fragment {
             return "";
     }
 
+    @Override
+    public Context getContext() {
+        return context;
+    }
+
     static String randomize(String s) {
         long a = s.length()*System.currentTimeMillis();
         StringBuilder response = new StringBuilder();
@@ -403,5 +412,34 @@ public class KnockFragment extends Fragment {
             response.append((char)((a + random.nextInt())% (i<s.length()?s.charAt(i):100000) % ('Z'-'a') + 'a'));
         }
         return response.toString();
+    }
+
+    static final SimpleDateFormat format = new SimpleDateFormat("MMMM d", Locale.UK);
+    static final SimpleDateFormat format1 = new SimpleDateFormat(" YYYY, h:mm:ss a", Locale.UK);
+
+    static String getDateString() {
+        return format.format(new Date()) + "th" + format1.format(new Date());
+    }
+
+    static Calendar toCalendar(String s) throws ParseException {
+        Calendar calendar = Calendar.getInstance();
+        // June 3th 2019, 1:10:58 pm
+
+        String[] spl = s.split("th");
+        if(spl.length<2) {
+            spl = s.split("nd");
+        }
+        if(spl.length<2) {
+            spl = s.split("st");
+        }
+        if(spl.length<2) {
+            spl = s.split("rd");
+        }
+        if (spl.length >= 2) {
+            Date date1 = format.parse(spl[0]);
+            Date date2 = format1.parse(spl[1]);
+            calendar.set(date2.getYear(), date1.getMonth(), date1.getDay(), date2.getHours(), date2.getMinutes(), date2.getSeconds());
+        }
+        return calendar;
     }
 }

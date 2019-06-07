@@ -1,5 +1,6 @@
 package com.example.sch;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -33,6 +34,7 @@ public class DayFragment extends Fragment {
     String topic = "";
     String teachername = "";
     ArrayList<PeriodFragment.Subject> subjects;
+    Context context;
 
     public DayFragment() {
     }
@@ -45,12 +47,15 @@ public class DayFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if(getActivity() != null)
+            context = getActivity();
+
         View view = inflater.inflate(R.layout.fragment_day, container, false);
 
         LinearLayout linearLayout = view.findViewById(R.id.container);
         linearLayout.setBaselineAligned(false);
         if (homework != " " && homework != "") {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append("Домашнее задание:").append("\n").append(homework).toString();
@@ -78,7 +83,7 @@ public class DayFragment extends Fragment {
                 }
             }
             if (g > 0) {
-                TextView tv2 = new TextView(getActivity().getApplicationContext());
+                TextView tv2 = new TextView(getContext());
                 tv2.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 String s2;
@@ -95,7 +100,7 @@ public class DayFragment extends Fragment {
                 linearLayout.addView(tv2);
                 for (int i = 0; i < marks.size(); i++) {
                     if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
-                        TextView tv1 = new TextView(getActivity().getApplicationContext());
+                        TextView tv1 = new TextView(getContext());
                         String s1 = new StringBuilder().append(marks.get(i).value).append("   ").append(marks.get(i).coefficient).toString();
                         Spannable spans1 = new SpannableString(s1);
                         spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -140,7 +145,7 @@ public class DayFragment extends Fragment {
             }
         }
         if (topic != " " && topic != "") {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append("Тема:").append("\n").append(topic).toString();
@@ -155,7 +160,7 @@ public class DayFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (teachername != " " && teachername != "") {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = new StringBuilder().append(teachername).toString();
@@ -176,18 +181,16 @@ public class DayFragment extends Fragment {
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         return view;
     }
+
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Выход");
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == 1)
-            ((MainActivity) getActivity()).quit();
-        return super.onOptionsItemSelected(item);
+    public Context getContext() {
+        return context;
     }
 }
 

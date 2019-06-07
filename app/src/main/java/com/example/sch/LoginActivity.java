@@ -322,7 +322,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 startActivity(new Intent(getApplicationContext(), MainActivity.class)
                         .putExtra("type", "msg").putExtra("notif", true)
                         .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
-                        .putExtra("mode", mode));
+                        .putExtra("mode", mode).putExtra("count", getIntent().getIntExtra("count", -1)));
             else
                 startActivity(new Intent(getApplicationContext(), MainActivity.class)
                         .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));

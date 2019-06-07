@@ -98,7 +98,8 @@
                 android:id="@+id/main_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:paddingBottom="8dp" />
         </ScrollView>
 
     </LinearLayout>
@@ -121,7 +122,7 @@
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
             android:ems="10"
-            android:hint="Message"
+            android:hint="Сообщение"
             android:inputType="textMultiLine|textCapSentences"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_send"

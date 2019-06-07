@@ -14,8 +14,11 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TableLayout;
@@ -24,6 +27,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import static com.example.sch.LoginActivity.log;
 
 public class PageFragment extends Fragment {
 
