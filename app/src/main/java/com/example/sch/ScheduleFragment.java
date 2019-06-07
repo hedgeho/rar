@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -370,8 +369,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     void Download1() {
         new Thread() {
-            @SuppressLint("SimpleDateFormat")
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 try {
@@ -443,7 +440,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     void Download3() {
         new Thread() {
-            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
             public void run() {
                 try {

@@ -131,15 +131,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (Exception e) {loge("login: " + e.toString());}
             }
         }.start();
-        /*Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
-            @Override
-            public void uncaughtException(Thread t, Throwable e) {
-                loge("caught");
-                SharedPreferences pref = getSharedPreferences("pref", 0);
-                pref.edit().putString("error", t.toString() + ": " + e.toString()).apply();
-                throw new RuntimeException(e);
-            }
-        });*/
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.gr1));
@@ -201,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
         auth_receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
+                log("auth received");
                 MainActivity.this.setResult(239, new Intent().putExtra("auth", "true"));
                 finish();
             }
