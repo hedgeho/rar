@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
@@ -50,7 +49,7 @@ public class Countcoff extends Fragment {
     Double avg;
     boolean newm = false;
     String[] strings;
-    TextView txt1, txt2;
+    TextView txt1, txt0, txt, txt2;
     AlertDialog.Builder alr, alr1;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     String[] marks = {"1", "2", "3", "4", "5"};
@@ -63,7 +62,7 @@ public class Countcoff extends Fragment {
     }
 
     ImageView img;
-    LinearLayout layout, cont;
+    LinearLayout layout, cont, linearLayout;
 
     public Countcoff() {
     }
@@ -76,12 +75,14 @@ public class Countcoff extends Fragment {
         public void onClick(DialogInterface dialog, int which) {
             ListView lv = ((AlertDialog) dialog).getListView();
             if (which == Dialog.BUTTON_POSITIVE) {
+                j = lv.getCheckedItemPosition();
                 subname = periods[pernum].subjects.get(lv.getCheckedItemPosition()).name;
                 txt2.setText(subname);
+                alr.setSingleChoiceItems(strings, j, myClickListener);
                 cells = new ArrayList<>(periods[pernum].subjects.get(lv.getCheckedItemPosition()).cells);
-                txt1.setText(String.valueOf(periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg));
-                j = lv.getCheckedItemPosition();
+                avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
                 makeMarks();
+                countNewCoff();
             } else {
             }
         }
@@ -94,9 +95,13 @@ public class Countcoff extends Fragment {
 
         View v = inflater.inflate(R.layout.fragment_countcoff, container, false);
         periodname = period[pernum];
-        txt1 = v.findViewById(R.id.txt1);
+        linearLayout = v.findViewById(R.id.linearLayout2);
         cont = v.findViewById(R.id.cont);
         txt2 = v.findViewById(R.id.txt2);
+        txt1 = new TextView(getContext());
+        txt1.setPadding(30, 0, 30, 0);
+        linearLayout.setGravity(Gravity.CENTER);
+        linearLayout.addView(txt1);
         String s = String.valueOf(avg);
         Spannable spans = new SpannableString(s);
         spans.setSpan(new RelativeSizeSpan(2f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -186,9 +191,6 @@ public class Countcoff extends Fragment {
         });
 
         layout = v.findViewById(R.id.linear2);
-        //ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
-        //lp.setMargins(30, 30, 30, 0);
-        //layout.setLayoutParams(lp);
         int y = 0;
         strings = new String[periods[pernum].subjects.size()];
 
@@ -375,11 +377,11 @@ public class Countcoff extends Fragment {
             tv1.setLayoutParams(lp);
             lin.addView(tv1);
         }
-        txt1.setText(countNewCoff());
+        countNewCoff();
         layout.addView(lin);
     }
 
-    String countNewCoff() {
+    void countNewCoff() {
         Double d = 0.;
         Double f = 0.;
         for (int i = 0; i < cells.size(); i++) {
@@ -394,7 +396,28 @@ public class Countcoff extends Fragment {
         if (s.length() > 4) {
             s = String.format(Locale.UK, "%.2f", d / f);
         }
-        return s;
+        linearLayout.removeAllViews();
+        txt = new TextView(getContext());
+        txt0 = new TextView(getContext());
+        txt.setText(String.format(Locale.UK, "%.2f", Double.valueOf(s) - avg));
+        txt0.setText(s);
+        txt1.setText(String.valueOf(avg));
+        txt.setPadding(30, 0, 30, 0);
+        txt0.setTextSize(9 * getResources().getDisplayMetrics().density);
+        txt.setTextSize(9 * getResources().getDisplayMetrics().density);
+        txt1.setTextSize(9 * getResources().getDisplayMetrics().density);
+        txt0.setPadding(30, 0, 30, 0);
+        linearLayout.addView(txt1);
+        if (Double.valueOf(s) - avg > 0) {
+            txt.setText("+" + txt.getText());
+            txt.setTextColor(getResources().getColor(R.color.plus));
+            linearLayout.addView(txt);
+        } else if (Double.valueOf(s) - avg < 0) {
+            txt.setTextColor(getResources().getColor(R.color.mn));
+            linearLayout.addView(txt);
+        }
+        if (Double.valueOf(s) - avg != 0)
+            linearLayout.addView(txt0);
     }
 
     @Override
@@ -423,6 +446,7 @@ public class Countcoff extends Fragment {
             case 2:
                 cells = new ArrayList<>(periods[pernum].subjects.get(j).cells);
                 makeMarks();
+                countNewCoff();
                 sasha("rar");
                 break;
         }

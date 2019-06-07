@@ -42,7 +42,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.sch.LoginActivity.connect;
@@ -80,12 +79,14 @@ public class MainActivity extends AppCompatActivity {
             switch (item.getItemId()) {
                 case R.id.navigation_period:
                     toolbar.setClickable(true);
+                    state = 1;
                     if(mode0)
                         loadFragment(periodFragment);
                     else
                         loadFragment(periodFragment1);
                     break;
                 case R.id.navigation_diary:
+                    state = 2;
                     toolbar.setTitle("Дневник");
                     toolbar.setClickable(false);
                     loadFragment(scheduleFragment);
@@ -99,9 +100,9 @@ public class MainActivity extends AppCompatActivity {
                         loadFragment(messagesFragment);
                     state = 3;
                     break;
-                    default:
-                        state = 0;
-                        return false;
+                default:
+                    state = 0;
+                    return false;
             }
             setSupportActionBar(toolbar);
             return true;
@@ -374,9 +375,6 @@ public class MainActivity extends AppCompatActivity {
             periodFragment1.periods = periods;
             if (state == 1)
                 loadFragment(periodFragment1);
-            /* todo фикси!
-            if (getStackTop() instanceof PeriodFragment1)
-                periodFragment1.show();*/
         } else {
             periodFragment = new PeriodFragment();
             periodFragment.period = period;

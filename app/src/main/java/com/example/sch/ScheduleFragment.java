@@ -71,12 +71,22 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     DatePickerDialog datePickerDialog;
     int[] week;
     int yearname = 2018;
+    ArrayList<String>[] s = new ArrayList[11];
+    String[] name = {"1 четверть", "2 четверть", "1 полугодие", "3 четверть", "4 четверть",
+            "2 полугодие", "Годовая оценка", "Экзамен", "Оценка за ОГЭ", "Оценка в аттестат"};
     Period[] periods = new Period[7];
     private int startYear = 2019;
     private int starthMonth = 1;
     private int startDay = 1;
+    int yeatid;
 
     public ScheduleFragment () {
+        s[0] = new ArrayList<>();
+        s[0].add("");
+        for (int i = 1; i < s.length; i++) {
+            s[i] = new ArrayList<>();
+            s[i].add(name[i - 1]);
+        }
         datenow = new Date();
         period = new String[7];
         Calendar c = Calendar.getInstance();
@@ -423,6 +433,57 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             }
                         }
                     }
+                    Download3();
+                } catch (Exception e) {
+                    sasha(String.valueOf(e));
+                }
+            }
+        }.start();
+    }
+
+    void Download3() {
+        new Thread() {
+            @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+            @Override
+            public void run() {
+                try {
+                    JSONArray array1 = new JSONArray(
+                            connect("https://app.eschool.center/ec-server/yearplan/academyears",
+                                    null, getContext()));
+                    JSONObject object1;
+                    for (int i = 0; i < array1.length(); i++) {
+                        object1 = array1.getJSONObject(i);
+                        if (object1.getInt("y1") == yearname) {
+                            yeatid = object1.getInt("yearId");
+                            break;
+                        }
+                    }
+                    sasha("1-----------------------1");
+                    JSONObject object = new JSONObject(
+                            connect("https://app.eschool.center/ec-server/student/getTotalMarks?yearid=" + yeatid + "&userid=" + USER_ID + "&json=true",
+                                    null, getContext()));
+                    object = object.getJSONObject("RegisterOfClass");
+                    object = object.getJSONObject("User");
+                    JSONArray array = object.getJSONArray("Result");
+                    String lastname = " ";
+                    for (int i = 0; i < array.length(); i++) {
+                        object = array.getJSONObject(i);
+                        if (!object.getString("UnitName").equals(lastname)) {
+                            s[0].add(object.getString("UnitName"));
+                            lastname = object.getString("UnitName");
+                            for (int j = 1; j < s.length; j++) {
+                                s[j].add("");
+                            }
+                        } else {
+                            for (int j = 1; j < s.length; j++) {
+                                if (s[j].get(0).equals(object.getString("PeriodName"))) {
+                                    s[j].set(s[j].size() - 1, String.valueOf(object.getInt("Value5")));
+                                    sasha(object.getString("UnitName") + " " + object.getString("PeriodName") + " " + object.getInt("Value5"));
+                                }
+                            }
+                        }
+                    }
+
                     if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
                         Download2(periods[3].id, 3, true, true);
                     } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
@@ -433,12 +494,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         Download2(periods[6].id, 6, true, true);
                     }
                 } catch (Exception e) {
-                    sasha(String.valueOf(e));
+                    sasha("3333  " + e);
                 }
             }
         }.start();
     }
-
     void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
         pernum = h;
         periods[pernum].days = new ArrayList<>();

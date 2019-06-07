@@ -3,6 +3,7 @@ package com.example.sch;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -13,6 +14,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -104,6 +106,7 @@ public class PeriodFragment extends Fragment {
                 alr.show();
             }
         });
+        setHasOptionsMenu(true);
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         sasha("sasa");
         if (periods[pernum] != null && !shown)
@@ -336,6 +339,33 @@ public class PeriodFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
+        MenuItem item = menu.add(0, 2, 0, "Total");
+        item.setIcon(R.drawable.results);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item = menu.add(0, 3, 0, "Settings");
+        item.setIcon(R.drawable.settings);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case 1:
+                ((MainActivity) getActivity()).quit();
+                break;
+            case 2:
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                TotalMarks fragment = new TotalMarks();
+                transaction.replace(R.id.frame, fragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                break;
+            case 3:
+                Intent intent = new Intent(getContext(), SettingsActivity.class);
+                startActivityForResult(intent, 0);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }
