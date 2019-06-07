@@ -21,19 +21,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class PeriodFragment1 extends Fragment {
 
 
     ArrayList<TextView> txts;
     String[] period;
-    ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
+    ScheduleFragment.Period[] periods;
     int pernum = 6;
     LinearLayout layout, layout1, layout2, layout3;
     View view;
     String periodname;
     Toolbar toolbar;
     AlertDialog.Builder alr;
+    int f = 0;
     boolean shown = false;
     boolean first_time = true;
 
@@ -64,6 +66,7 @@ public class PeriodFragment1 extends Fragment {
                     view.findViewById(R.id.scrollView3).setVisibility(View.INVISIBLE);
                 } else {
                     periodname = periods[pernum].name;
+                    ((MainActivity) getActivity()).set(periods, pernum, 1);
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
                     show();
@@ -121,7 +124,7 @@ public class PeriodFragment1 extends Fragment {
         layout2.setOrientation(LinearLayout.VERTICAL);
         layout3.setOrientation(LinearLayout.HORIZONTAL);
         sasha("subjects: " + periods[pernum].subjects.size());
-        for (int i = -1; i < periods[pernum].subjects.size(); i++) {
+        for (int i = -1; i < periods[pernum].subjects.size() - 1; i++) {
             TextView txt1 = new TextView(getActivity().getApplicationContext());
             TextView txt2 = new TextView(getActivity().getApplicationContext());
             txt1.setTextColor(Color.WHITE);
@@ -135,8 +138,36 @@ public class PeriodFragment1 extends Fragment {
             txt2.setTextColor(getResources().getColor(R.color.two));
             if (i + 1 > 0) {
                 txt1.setText(periods[pernum].subjects.get(i).shortname);
-                if (periods[pernum].subjects.get(i).avg > 0)
+                if (periods[pernum].subjects.get(i).avg > 0) {
                     txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                } else {
+                    sasha(periods[pernum].subjects.get(i).shortname + " " + periods[pernum].subjects.get(i).cells.size());
+                    periods[pernum].subjects.get(i).avg = 0;
+                    Double d = 0.;
+                    Double f = 0.;
+                    int c = 0;
+                    for (int g = 0; g < periods[pernum].subjects.get(i).cells.size(); g++) {
+                        if (periods[pernum].subjects.get(i).cells.get(g).markvalue != null)
+                            if (periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("1") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("2") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("3")
+                                    || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("4") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("5")) {
+                                d += Double.valueOf(periods[pernum].subjects.get(i).cells.get(g).markvalue) * periods[pernum].subjects.get(i).cells.get(g).mktWt;
+                                f += periods[pernum].subjects.get(i).cells.get(g).mktWt;
+                                c++;
+                            }
+                    }
+                    sasha("here1 " + c);
+                    if (c > 0) {
+                        sasha("here2");
+                        String s = String.valueOf(d / f);
+                        if (s.length() > 4) {
+                            s = String.format(Locale.UK, "%.2f", d / f);
+                        }
+                        periods[pernum].subjects.get(i).avg = Double.valueOf(s);
+                        sasha("here3");
+                        txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                    } else
+                        txt2.setText(" ");
+                }
                 final int finalI1 = i;
                 try {
                     txt2.setOnClickListener(new View.OnClickListener() {
@@ -169,6 +200,7 @@ public class PeriodFragment1 extends Fragment {
 
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView3).setVisibility(View.VISIBLE);
+        f = 1;
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<PeriodFragment.Cell> cells, String name, String rating, String totalmark) {
@@ -189,7 +221,22 @@ public class PeriodFragment1 extends Fragment {
         transaction.commit();
     }
 
-    void set() {}
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    void F() {
+        if (pernum != 4) {
+            ((MainActivity) getActivity()).scheduleFragment.Download2(periods[4].id, 4, false, false);
+            sasha("per down" + 4);
+        }
+        if (pernum != 5) {
+            ((MainActivity) getActivity()).scheduleFragment.Download2(periods[5].id, 5, false, false);
+            sasha("per down" + 5);
+        }
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

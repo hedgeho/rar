@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     Snackbar snackbar;
     String[] period;
     int pernum = 6;
+    int state = 2;
     static LayoutInflater layoutInflater;
     BroadcastReceiver receiver, internet_receiver, auth_receiver;
     BottomNavigationView bottomnav;
@@ -89,11 +90,13 @@ public class MainActivity extends AppCompatActivity {
                         loadFragment(periodFragment);
                     else
                         loadFragment(periodFragment1);
+                    state = 1;
                     return true;
                 case R.id.navigation_diary:
                     toolbar.setTitle("Дневник");
                     toolbar.setClickable(false);
                     loadFragment(scheduleFragment);
+                    state = 2;
                     return true;
                 case R.id.navigation_messages:
                     toolbar.setTitle("Сообщения");
@@ -102,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
                         ((MessagesFragment) getStackTop()).refresh();
                     else
                         loadFragment(messagesFragment);
+                    state = 3;
                     return true;
             }
             return false;
@@ -367,16 +371,15 @@ public class MainActivity extends AppCompatActivity {
             periodFragment1.period = period;
             periodFragment1.pernum = pernum;
             periodFragment1.periods = periods;
-            if (isfirst)
+            if (state == 1)
                 loadFragment(periodFragment1);
         } else {
             periodFragment = new PeriodFragment();
             periodFragment.period = period;
             periodFragment.pernum = pernum;
             periodFragment.periods = periods;
-            if (isfirst)
+            if (state == 1)
                 loadFragment(periodFragment);
-            isfirst = true;
         }
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
        // TheSingleton.getInstance().setDays(days);
