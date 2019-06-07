@@ -21,4 +21,6 @@
     <color name="gr1">#303030</color>
     <color name="gr2">#313030</color>
     <color name="text_gray">#AAAAAA</color>
+    <color name="plus">#5C7C50</color>
+    <color name="mn">#996060</color>
 </resources>
