@@ -37,7 +37,11 @@ public class TotalMarks extends Fragment {
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_total_marks, container, false);
         tableLayout = v.findViewById(R.id.table);
-        s = ((MainActivity) getActivity()).scheduleFragment.s;
+        if (((MainActivity) getActivity()).scheduleFragment.s != null && ((MainActivity) getActivity()).scheduleFragment.s[0].size() > 1) {
+            s = ((MainActivity) getActivity()).scheduleFragment.s;
+        } else {
+            ((MainActivity) getActivity()).scheduleFragment.Download3();
+        }
 
         for (int i = 0; i < s[0].size(); i++) {
             TableRow tableRow = new TableRow(getContext());

@@ -74,6 +74,7 @@ public class PeriodFragment extends Fragment {
                     view.findViewById(R.id.scrollView2).setVisibility(View.INVISIBLE);
                 } else {
                     periodname = periods[pernum].name;
+                    ((MainActivity) getActivity()).set(periods, pernum, 2);
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
                     show();
@@ -91,7 +92,6 @@ public class PeriodFragment extends Fragment {
             view = inflater.inflate(R.layout.diary, container, false);
         if (period == null)
             return view;
-
         toolbar = getActivity().findViewById(R.id.toolbar);
         periodname = period[pernum];
         alr = new AlertDialog.Builder(getContext());
@@ -274,15 +274,15 @@ public class PeriodFragment extends Fragment {
         transaction.addToBackStack(null);
         transaction.commit();
     }
-    static class Cell {
-        String lptname, markvalue, date;
-        double mktWt = 0;
-        Long lessonid;
-        String markdate, teachFio;
-        int unitid;
 
-        Cell() {
-        }
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        menu.clear();
+        MenuItem item;
+        item = menu.add(0, 3, 0, "Settings");
+        item.setIcon(R.drawable.settings);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        super.onCreateOptionsMenu(menu, inflater);
     }
 
     static class Day {
@@ -336,16 +336,21 @@ public class PeriodFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-        MenuItem item = menu.add(0, 2, 0, "Total");
-        item.setIcon(R.drawable.results);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        item = menu.add(0, 3, 0, "Settings");
-        item.setIcon(R.drawable.settings);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-        super.onCreateOptionsMenu(menu, inflater);
+    static class Cell {
+        String lptname, markvalue, date;
+        double mktWt = 0;
+        Long lessonid;
+        String markdate, teachFio;
+        int unitid;
+
+        Cell() {
+        }
+
+        Cell(Cell cell) {
+            if (cell.markvalue != null)
+                markvalue = cell.markvalue;
+            mktWt = new Double(cell.mktWt);
+        }
     }
 
     @Override

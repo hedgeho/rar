@@ -365,14 +365,15 @@ public class MainActivity extends AppCompatActivity {
             periodFragment1.period = period;
             periodFragment1.pernum = pernum;
             periodFragment1.periods = periods;
-            if (state == 1)
+            if (state == 1 && !mode0)
                 loadFragment(periodFragment1);
         } else {
+            sasha("hhhhhhh");
             periodFragment = new PeriodFragment();
             periodFragment.period = period;
             periodFragment.pernum = pernum;
             periodFragment.periods = periods;
-            if (state == 1)
+            if (state == 1 && mode0)
                 loadFragment(periodFragment);
         }
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
@@ -439,6 +440,12 @@ public class MainActivity extends AppCompatActivity {
             loge(e.toString());
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
+        if (state == 1) {
+            if (mode0)
+                loadFragment(periodFragment);
+            else
+                loadFragment(periodFragment1);
+        }
     }
 
     @Override
