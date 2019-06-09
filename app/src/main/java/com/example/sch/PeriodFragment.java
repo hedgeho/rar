@@ -80,8 +80,8 @@ public class PeriodFragment extends Fragment {
                     show();
                 }
                 sasha("------------------------");
-            } else {
-            }
+            } /*else {
+            }*/
         }
     };
 
@@ -124,9 +124,9 @@ public class PeriodFragment extends Fragment {
         layout3.removeAllViews();
         sasha("subjects: " + periods[pernum].subjects.size());
         for (int i = 0; i < periods[pernum].subjects.size() - 1; i++) {
-            TextView txt1 = new TextView(getActivity().getApplicationContext());
-            TextView txt2 = new TextView(getActivity().getApplicationContext());
-            LinearLayout linearLayout = new LinearLayout(getActivity().getApplicationContext());
+            TextView txt1 = new TextView(getActivity());
+            TextView txt2 = new TextView(getActivity());
+            LinearLayout linearLayout = new LinearLayout(getActivity());
             txt1.setTextColor(Color.WHITE);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             lp.setMargins(0, 0, 40, 10);
@@ -187,8 +187,8 @@ public class PeriodFragment extends Fragment {
                 continue;
             for (int j = 0; j < periods[pernum].subjects.get(i).cells.size(); j++) {
                 if (periods[pernum].subjects.get(i).cells.get(j).markvalue != null && periods[pernum].subjects.get(i).cells.get(j).markvalue != "") {
-                    Double d = periods[pernum].subjects.get(i).cells.get(j).mktWt;
-                    txts.add(new TextView(getActivity().getApplicationContext()));
+                    double d = periods[pernum].subjects.get(i).cells.get(j).mktWt;
+                    txts.add(new TextView(getActivity()));
                     LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     lp1.setMargins(0, 0, 10, 10);
                     txts.get(txts.size() - 1).setLayoutParams(lp1);
@@ -211,13 +211,13 @@ public class PeriodFragment extends Fragment {
                                     fragment.topic = periods[pernum].subjects.get(finalI).cells.get(finalJ).lptname;
                                     fragment.value = periods[pernum].subjects.get(finalI).cells.get(finalJ).markvalue;
                                     fragment.subject = periods[pernum].subjects.get(finalI).name;
-                                } catch (Exception e) {
+                                } catch (Exception ignore) {
                                 }
                                 transaction.addToBackStack(null);
                                 transaction.commit();
                             }
                         });
-                    } catch (Exception e) {
+                    } catch (Exception ignore) {
                     }
                     txts.get(txts.size() - 1).setTextSize(9 * getResources().getDisplayMetrics().density);
                     txts.get(txts.size() - 1).setTextColor(Color.WHITE);
@@ -269,7 +269,7 @@ public class PeriodFragment extends Fragment {
             fragment.period = period;
             fragment.pernum = pernum;
             fragment.periods = periods;
-        } catch (Exception e) {
+        } catch (Exception ignore) {
         }
         transaction.addToBackStack(null);
         transaction.commit();
@@ -316,7 +316,7 @@ public class PeriodFragment extends Fragment {
     }
 
     static class Mark {
-        public int unitid;
+        int unitid;
         String value, teachFio, date, topic, markdate;
         double coefficient;
         Long idlesson;
@@ -349,16 +349,14 @@ public class PeriodFragment extends Fragment {
         Cell(Cell cell) {
             if (cell.markvalue != null)
                 markvalue = cell.markvalue;
-            mktWt = new Double(cell.mktWt);
+            mktWt = cell.mktWt;
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case 1:
-                ((MainActivity) getActivity()).quit();
-                break;
+            // under construction (disabled)
             case 2:
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 TotalMarks fragment = new TotalMarks();

@@ -57,14 +57,12 @@ public class MainActivity extends AppCompatActivity {
     ScheduleFragment scheduleFragment;
     Snackbar snackbar;
     String[] period;
-    int pernum = 6;
     int state = 2;
     static LayoutInflater layoutInflater;
     BroadcastReceiver receiver, internet_receiver, auth_receiver;
     BottomNavigationView bottomnav;
     boolean LOAD_READY = false;
     BottomNavigationItemView itemView;
-    boolean isfirst = false;
     boolean mode0 = false;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {

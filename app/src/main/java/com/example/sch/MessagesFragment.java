@@ -514,7 +514,7 @@ public class MessagesFragment extends Fragment {
     boolean uploading = false;
 
     @Override
-    public void onViewCreated(@Nonnull final View view, @Nullable final Bundle savedInstanceState) {
+    public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
         if(READY && !shown)
             show();
         if(READY)
@@ -1121,7 +1121,7 @@ public class MessagesFragment extends Fragment {
         View view = super.getView();
         if(view == null) {
             loge("null view!!");
-            return new View(getActivity().getApplicationContext());
+            return new View(getActivity());
         } else
             return view;
     }

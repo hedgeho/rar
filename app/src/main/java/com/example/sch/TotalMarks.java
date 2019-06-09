@@ -18,6 +18,7 @@ import android.widget.Toolbar;
 
 import java.util.ArrayList;
 
+/** under construction - screen showing total marks of the user*/
 public class TotalMarks extends Fragment {
 
     ArrayList<String>[] s;

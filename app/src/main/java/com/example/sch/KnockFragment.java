@@ -62,13 +62,13 @@ public class KnockFragment extends Fragment {
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle("Общий чат");
         setHasOptionsMenu(true);
-        // todo toolbar subtitle
+        // todo toolbar subtitle - users online
         // toolbar.setSubtitle("subtitle");
         if(getActivity() != null)
             context = getActivity();
 
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
-        // Inflate the layout for this fragment``
+        // Inflate the layout for this fragment
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         this.view = view;
 
@@ -219,20 +219,22 @@ public class KnockFragment extends Fragment {
                             while(true) {
                                 try {
                                     Thread.sleep(1000);
-                                    //log(socket_write.getState().name());
+                                    if(isVisible()) {
+                                        //log(socket_write.getState().name());
 //                                    if(socket_write.getState().name().equals("CLOSED")) {
 //                                        socket_write.sendClose();
 //                                        socket_write = socket_write.recreate();
 //                                        socket_write.connect();
 //                                    }
-                                    JSONObject object = new JSONObject();
-                                    object.put("system", "true")
-                                            .put("uuid", id)
-                                            //.put("key", "key")
-                                            .put("name", "name")
-                                            .put("token", token)
-                                            .put("event", "ping");
-                                    socket_write.sendText(object.toString());
+                                        JSONObject object = new JSONObject();
+                                        object.put("system", "true")
+                                                .put("uuid", id)
+                                                //.put("key", "key")
+                                                .put("name", "name")
+                                                .put("token", token)
+                                                .put("event", "ping");
+                                        socket_write.sendText(object.toString());
+                                    }
                                 } catch (Exception e) {log( e.toString());}}
                         }
                     }.start();

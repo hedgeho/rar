@@ -74,8 +74,8 @@ public class PeriodFragment1 extends Fragment {
                     show();
                 }
                 sasha("------------------------");
-            } else {
-            }
+            } /*else {
+            }*/
         }
     };
 
@@ -111,7 +111,7 @@ public class PeriodFragment1 extends Fragment {
     }
 
     void show() {
-        sasha("asdfghjkl");
+        sasha("show()");
         shown = true;
         StringBuilder y = new StringBuilder();
         if (getActivity().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
@@ -180,7 +180,7 @@ public class PeriodFragment1 extends Fragment {
                             SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark);
                         }
                     });
-                } catch (Exception e) {
+                } catch (Exception ignore) {
                 }
                 try {
                     txt1.setOnClickListener(new View.OnClickListener() {
@@ -189,7 +189,7 @@ public class PeriodFragment1 extends Fragment {
                             SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark);
                         }
                     });
-                } catch (Exception e) {
+                } catch (Exception ignore) {
                 }
             }
             layout2.addView(txt2);
@@ -219,7 +219,7 @@ public class PeriodFragment1 extends Fragment {
             fragment.periods = periods;
             fragment.period = period;
             fragment.pernum = pernum;
-        } catch (Exception e) {
+        } catch (Exception ignore) {
         }
         transaction.addToBackStack(null);
         transaction.commit();
@@ -255,9 +255,7 @@ public class PeriodFragment1 extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case 1:
-                ((MainActivity) getActivity()).quit();
-                break;
+            // under construction - screen showing total marks of the user (disabled)
             case 2:
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 TotalMarks fragment = new TotalMarks();

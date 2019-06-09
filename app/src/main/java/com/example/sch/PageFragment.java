@@ -14,11 +14,8 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.view.ActionMode;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TableLayout;
@@ -27,8 +24,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import static com.example.sch.LoginActivity.log;
 
 public class PageFragment extends Fragment {
 
@@ -91,7 +86,7 @@ public class PageFragment extends Fragment {
     public void CreateTable() {
         for (int i = 0; i < day.lessons.size(); i++) {
             final PeriodFragment.Lesson lesson = day.lessons.get(i);
-            TableRow tbrow = new TableRow(getActivity().getApplicationContext());
+            TableRow tbrow = new TableRow(getActivity());
             tbrow.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
 
@@ -133,13 +128,13 @@ public class PageFragment extends Fragment {
                             fragment.topic = lesson.topic;
                             fragment.marks = lesson.marks;
                             fragment.subjects = subjects;
-                        } catch (Exception e) {
+                        } catch (Exception ignore) {
                         }
                         transaction.addToBackStack(null);
                         transaction.commit();
                     }
                 });
-            } catch (Exception e) {
+            } catch (Exception ignore) {
             }
             if (i - day.lessons.size() + 1 == 0) {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
@@ -152,13 +147,13 @@ public class PageFragment extends Fragment {
             System.out.println(lesson.numInDay);
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
-                String s = new StringBuilder().append(lesson.name).append("\n").append(lesson.homeWork.stringwork).toString();
+                String s = lesson.name + "\n" + lesson.homeWork.stringwork;
                 Spannable spans = new SpannableString(s);
                 spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                 spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv2.setText(spans);
-            } catch (Exception e) {
+            } catch (Exception ignore) {
             }
             tv1.setPadding(15, 0, 30, 0);
             tv2.setPadding(30, 30, 30, 30);

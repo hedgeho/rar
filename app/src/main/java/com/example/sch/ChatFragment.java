@@ -685,7 +685,6 @@ public class ChatFragment extends Fragment {
                             @Override
                             public void run() {
                                 try {
-                                    log("rar");
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -827,6 +826,7 @@ public class ChatFragment extends Fragment {
             h.sendEmptyMessage(1);
     }
 
+    // testing, trying to send a file (not working)
     public void uploadFile(Uri uri) throws IOException {
         HttpURLConnection conn = null;
         DataOutputStream dos = null;

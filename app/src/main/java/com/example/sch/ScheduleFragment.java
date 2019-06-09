@@ -53,7 +53,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     boolean ready = false;
     String[] period;
     boolean first = true;
-    private String COOKIE, ROUTE;
     private int USER_ID;
 
     TextView []tv = new TextView[7];
@@ -122,8 +121,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     void start() {
-        COOKIE = TheSingleton.getInstance().getCOOKIE();
-        ROUTE = TheSingleton.getInstance().getROUTE();
         USER_ID = TheSingleton.getInstance().getUSER_ID();
         Download1();
     }
@@ -380,52 +377,56 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             JSONArray array4 = array3.getJSONObject(i).getJSONArray("items");
                             for (int j = 0; j < array4.length(); j++) {
                                 JSONObject ob = array4.getJSONObject(j);
-                                if (ob.getString("typeCode").equals("Y")) {
-                                    periods[0].datefinish = ob.getLong("date2");
-                                    periods[0].datestart = ob.getLong("date1");
-                                    periods[0].name = ob.getString("name");
-                                    periods[0].id = ob.getInt("id");
-                                    period[0] = periods[0].name;
-                                } else if (ob.getString("typeCode").equals("HY")) {
-                                    if (ob.getInt("num") - 1 == 0) {
-                                        periods[1].datefinish = ob.getLong("date2");
-                                        periods[1].datestart = ob.getLong("date1");
-                                        periods[1].name = ob.getString("name");
-                                        periods[1].id = ob.getInt("id");
-                                        period[1] = periods[1].name;
-                                    } else {
-                                        periods[2].datefinish = ob.getLong("date2");
-                                        periods[2].datestart = ob.getLong("date1");
-                                        periods[2].name = ob.getString("name");
-                                        periods[2].id = ob.getInt("id");
-                                        period[2] = periods[2].name;
-                                    }
-                                } else if (ob.getString("typeCode").equals("Q")) {
-                                    if (ob.getInt("num") - 1 == 0) {
-                                        periods[3].datefinish = ob.getLong("date2");
-                                        periods[3].datestart = ob.getLong("date1");
-                                        periods[3].name = ob.getString("name");
-                                        periods[3].id = ob.getInt("id");
-                                        period[3] = periods[3].name;
-                                    } else if (ob.getInt("num") - 2 == 0) {
-                                        periods[4].datefinish = ob.getLong("date2");
-                                        periods[4].datestart = ob.getLong("date1");
-                                        periods[4].name = ob.getString("name");
-                                        periods[4].id = ob.getInt("id");
-                                        period[4] = periods[4].name;
-                                    } else if (ob.getInt("num") - 3 == 0) {
-                                        periods[5].datefinish = ob.getLong("date2");
-                                        periods[5].datestart = ob.getLong("date1");
-                                        periods[5].name = ob.getString("name");
-                                        periods[5].id = ob.getInt("id");
-                                        period[5] = periods[5].name;
-                                    } else {
-                                        periods[6].datefinish = ob.getLong("date2");
-                                        periods[6].datestart = ob.getLong("date1");
-                                        periods[6].name = ob.getString("name");
-                                        periods[6].id = ob.getInt("id");
-                                        period[6] = periods[6].name;
-                                    }
+                                switch (ob.getString("typeCode")) {
+                                    case "Y":
+                                        periods[0].datefinish = ob.getLong("date2");
+                                        periods[0].datestart = ob.getLong("date1");
+                                        periods[0].name = ob.getString("name");
+                                        periods[0].id = ob.getInt("id");
+                                        period[0] = periods[0].name;
+                                        break;
+                                    case "HY":
+                                        if (ob.getInt("num") - 1 == 0) {
+                                            periods[1].datefinish = ob.getLong("date2");
+                                            periods[1].datestart = ob.getLong("date1");
+                                            periods[1].name = ob.getString("name");
+                                            periods[1].id = ob.getInt("id");
+                                            period[1] = periods[1].name;
+                                        } else {
+                                            periods[2].datefinish = ob.getLong("date2");
+                                            periods[2].datestart = ob.getLong("date1");
+                                            periods[2].name = ob.getString("name");
+                                            periods[2].id = ob.getInt("id");
+                                            period[2] = periods[2].name;
+                                        }
+                                        break;
+                                    case "Q":
+                                        if (ob.getInt("num") - 1 == 0) {
+                                            periods[3].datefinish = ob.getLong("date2");
+                                            periods[3].datestart = ob.getLong("date1");
+                                            periods[3].name = ob.getString("name");
+                                            periods[3].id = ob.getInt("id");
+                                            period[3] = periods[3].name;
+                                        } else if (ob.getInt("num") - 2 == 0) {
+                                            periods[4].datefinish = ob.getLong("date2");
+                                            periods[4].datestart = ob.getLong("date1");
+                                            periods[4].name = ob.getString("name");
+                                            periods[4].id = ob.getInt("id");
+                                            period[4] = periods[4].name;
+                                        } else if (ob.getInt("num") - 3 == 0) {
+                                            periods[5].datefinish = ob.getLong("date2");
+                                            periods[5].datestart = ob.getLong("date1");
+                                            periods[5].name = ob.getString("name");
+                                            periods[5].id = ob.getInt("id");
+                                            period[5] = periods[5].name;
+                                        } else {
+                                            periods[6].datefinish = ob.getLong("date2");
+                                            periods[6].datestart = ob.getLong("date1");
+                                            periods[6].name = ob.getString("name");
+                                            periods[6].id = ob.getInt("id");
+                                            period[6] = periods[6].name;
+                                        }
+                                        break;
                                 }
                             }
                         }
@@ -567,7 +568,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2, null, getContext()));
                     JSONArray array2 = object2.getJSONArray("lesson");
 
-                    Long day1 = 0l;
+                    Long day1 = 0L;
                     Long date1;
                     int isODOD;
                     int index = -1;
@@ -639,9 +640,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                             }
                                             if (ar1.getJSONObject(k).has("file")) {
                                                 JSONArray ar2 = ar1.getJSONObject(k).getJSONArray("file");
-                                                for (int l = 0; l < ar2.length(); l++) {
+                                                /*for (int l = 0; l < ar2.length(); l++) {
                                                     //
-                                                }
+                                                }*/
                                             }
                                         }
                                     }
@@ -717,7 +718,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             LinearLayout lin2 = new LinearLayout(getContext());
                             lin2.setOrientation(LinearLayout.HORIZONTAL);
                             lin2.setGravity(Gravity.CENTER);
-                            TextView txt = new TextView(getActivity().getApplicationContext());
+                            TextView txt = new TextView(getActivity());
                             txt.setGravity(Gravity.CENTER);
                             txt.setTextSize(20);
                             String s = "";
@@ -786,13 +787,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                                 fragment.topic = less.marks.get(finalL).topic;
                                                                 fragment.value = less.marks.get(finalL).value;
                                                                 fragment.subject = periods[pernum].subjects.get(finalJ).name;
-                                                            } catch (Exception e) {
+                                                            } catch (Exception ignore) {
                                                             }
                                                             transaction.addToBackStack(null);
                                                             transaction.commit();
                                                         }
                                                     });
-                                                } catch (Exception e) {
+                                                } catch (Exception ignore) {
                                                 }
                                                 ask = false;
                                                 LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -812,7 +813,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     lin1 = new LinearLayout(getContext());
                                     lin1.setOrientation(LinearLayout.HORIZONTAL);
                                     lin1.setGravity(Gravity.CENTER);
-                                    TextView txt1 = new TextView(getActivity().getApplicationContext());
+                                    TextView txt1 = new TextView(getActivity());
                                     txt1.setGravity(Gravity.CENTER);
                                     txt1.setTextSize(20);
                                     LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -878,7 +879,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         c2.set(Calendar.MILLISECOND, 0);
         sasha(c1.getTime() + " " + c2.getTime());
 
-        Long s = (c1.getTimeInMillis() - c2.getTimeInMillis()) / 86400000;
+        long s = (c1.getTimeInMillis() - c2.getTimeInMillis()) / 86400000;
         sasha("this: " + s);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             pager.setCurrentItem(pageCount / 2 + 1 + Math.toIntExact(s));
@@ -900,9 +901,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case 1:
-                ((MainActivity) getActivity()).quit();
-                break;
             case 2:
                 datePickerDialog.show();
                 break;
