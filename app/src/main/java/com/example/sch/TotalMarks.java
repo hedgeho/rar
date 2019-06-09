@@ -59,8 +59,6 @@ public class TotalMarks extends Fragment {
             }
             tableLayout.addView(tableRow);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        }
         return v;
     }
 
