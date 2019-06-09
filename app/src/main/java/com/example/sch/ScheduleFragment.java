@@ -879,11 +879,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         c2.set(Calendar.MILLISECOND, 0);
         sasha(c1.getTime() + " " + c2.getTime());
 
-        long s = (c1.getTimeInMillis() - c2.getTimeInMillis()) / 86400000;
+        int s = (int)((c1.getTimeInMillis() - c2.getTimeInMillis()) / 86400000);
         sasha("this: " + s);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            pager.setCurrentItem(pageCount / 2 + 1 + Math.toIntExact(s));
-        }
+        pager.setCurrentItem(pageCount / 2 + 1 + s);
     }
 
     @Override
