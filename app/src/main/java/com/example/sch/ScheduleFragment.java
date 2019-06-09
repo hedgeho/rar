@@ -430,7 +430,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             }
                         }
                     }
-                    Download3();
+
+                    if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
+                        Download2(periods[3].id, 3, true, true);
+                    } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
+                        Download2(periods[4].id, 4, true, true);
+                    } else if (datenow.getTime() >= periods[5].datestart && datenow.getTime() <= periods[5].datefinish) {
+                        Download2(periods[5].id, 5, true, true);
+                    } else {
+                        Download2(periods[6].id, 6, true, true);
+                    }
                 } catch (Exception e) {
                     sasha(String.valueOf(e));
                 }
@@ -478,16 +487,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 }
                             }
                         }
-                    }
-
-                    if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
-                        Download2(periods[3].id, 3, true, true);
-                    } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
-                        Download2(periods[4].id, 4, true, true);
-                    } else if (datenow.getTime() >= periods[5].datestart && datenow.getTime() <= periods[5].datefinish) {
-                        Download2(periods[5].id, 5, true, true);
-                    } else {
-                        Download2(periods[6].id, 6, true, true);
                     }
                 } catch (Exception e) {
                     sasha("3333  " + e);
@@ -835,7 +834,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     sasha("set subjects: " + periods[pernum].subjects.size() + " and days: " + periods[pernum].days.size());
                     if (isone)
                         ((MainActivity) getActivity()).set(periods, pernum, 1);
-                    else
+                    if (istwo)
                         ((MainActivity) getActivity()).set(periods, pernum, 2);
                     READY = true;
                     if(getActivity()!=null) {

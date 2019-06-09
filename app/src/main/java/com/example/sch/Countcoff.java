@@ -79,8 +79,11 @@ public class Countcoff extends Fragment {
                 subname = periods[pernum].subjects.get(lv.getCheckedItemPosition()).name;
                 txt2.setText(subname);
                 alr.setSingleChoiceItems(strings, j, myClickListener);
-                cells = new ArrayList<>(periods[pernum].subjects.get(lv.getCheckedItemPosition()).cells);
-                avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
+                cells = new ArrayList<>();
+                for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                }
+                avg = new Double(periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg);
                 makeMarks();
                 countNewCoff();
             } else {
@@ -123,8 +126,6 @@ public class Countcoff extends Fragment {
                 Button btn2 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(1));
                 btn2.setClickable(false);
                 final Button btn3 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(2));
-                final TextView txt1 = ((TextView) ((ViewGroup) item).getChildAt(0));
-                TextView txt2 = ((TextView) ((ViewGroup) item).getChildAt(1));
                 Spinner spinner = ((Spinner) ((ViewGroup) item).getChildAt(2));
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, marks);
                 spinner.setGravity(Gravity.CENTER);
@@ -202,7 +203,10 @@ public class Countcoff extends Fragment {
             }
             sasha(i.name);
         }
-        cells = new ArrayList<>(periods[pernum].subjects.get(j).cells);
+        cells = new ArrayList<>();
+        for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+            cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+        }
 
         makeMarks();
 
@@ -323,11 +327,6 @@ public class Countcoff extends Fragment {
                     btn1.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            newMark[0] = "--";
-                            Spannable spans1 = new SpannableString(newMark[0]);
-                            spans1.setSpan(new RelativeSizeSpan(1.7f), 0, newMark[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            tv1.setText(spans1);
                             cells.remove(finalI);
                             makeMarks();
                             show.dismiss();
@@ -444,7 +443,10 @@ public class Countcoff extends Fragment {
                 ((MainActivity) getActivity()).quit();
                 break;
             case 2:
-                cells = new ArrayList<>(periods[pernum].subjects.get(j).cells);
+                cells = new ArrayList<>();
+                for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                }
                 makeMarks();
                 countNewCoff();
                 sasha("rar");

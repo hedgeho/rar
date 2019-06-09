@@ -81,6 +81,7 @@ public class PeriodFragment1 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         first_time = false;
         if(view == null)
             view = inflater.inflate(R.layout.fragment_period_fragment1, container, false);
@@ -244,9 +245,7 @@ public class PeriodFragment1 extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        MenuItem item = menu.add(0, 2, 0, "Total");
-        item.setIcon(R.drawable.results);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        MenuItem item;
         item = menu.add(0, 3, 0, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
