@@ -2,21 +2,18 @@ package com.example.sch;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -37,8 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -52,21 +48,23 @@ public class KnockFragment extends Fragment {
     View view;
     String id, token, auth_token, name, icon;
     WebSocket socket_read, socket_write;
-    private boolean sending;
-    private JSONObject last_msg;
+    private JSONObject last_msg, first_msg;
     Context context;
+    boolean first_time = true, uploading = false;
+    ArrayList<Ping> pings;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.chat, container, false);
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        final Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle("Общий чат");
         setHasOptionsMenu(true);
         // todo toolbar subtitle - users online
-        // toolbar.setSubtitle("subtitle");
+        toolbar.setSubtitle("Загрузка...");
         if(getActivity() != null)
             context = getActivity();
-
+        if(pings == null)
+            pings = new ArrayList<>();
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
         // Inflate the layout for this fragment
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
@@ -119,21 +117,8 @@ public class KnockFragment extends Fragment {
                         icon = spl[5];
                         token = spl[7];
                     }
-                    /*s = connect("https://warm-bayou-37022.herokuapp.com/login?type=lp&login=123" +
-                            "&password=321&save=true", null);
-                    String[] spl = s.split("\"");
-                    if(spl.length > 10) {
-                        id = spl[1];
-                        auth_token = spl[3];
-                        name = spl[5];
-                        icon = spl[7];
-                        token = spl[9];
-//                        if(spl[13].equals("false"))
-//                            admin = "false";
-//                        else
-//                            admin = "true";
-                    }
-                    loge(s);*/
+
+                    log("read: " + socket_read);
 
                     socket_read = new WebSocketFactory().createSocket("wss://warm-bayou-37022.herokuapp.com/receive");
                     socket_write = new WebSocketFactory().createSocket("wss://warm-bayou-37022.herokuapp.com/submit");
@@ -245,9 +230,8 @@ public class KnockFragment extends Fragment {
                             .put("msg", "true")
                             .put("name", name);
                     log("key " + id + ", token " + token);
-                    sending = true;
+//                    sending = true;
                     socket_read.sendText(object.toString());
-
                 } catch (Exception e) {
                     loge(e.toString());
                 }
@@ -293,14 +277,94 @@ public class KnockFragment extends Fragment {
             });
         } else
             thread.start();
+        new Thread() {
+            @Override
+            public void run() {
+                while(true) {
+                    try {
+                        if(isVisible()) {
+                            ArrayList<Integer> delete = new ArrayList<>();
+                            for (int i = 0; i < pings.size(); i++) {
+                                if(System.currentTimeMillis() - pings.get(i).time > 11000)
+                                    delete.add(i);
+                            }
+                            for (int i = delete.size()-1; i >= 0; i--) {
+                                pings.remove((int) delete.get(i));
+                            }
+                            if(delete.size() != 0)
+                                log(delete.size() + " users are not more online");
+                            if(pings.size() == 0)
+                                continue;
+                            final int count = pings.size()-1;
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    String end;
+                                    if(count < 10 || count > 19)
+                                        switch (count % 10) {
+                                            case 1:
+                                                end = "ь";
+                                                break;
+                                            case 2:
+                                            case 3:
+                                            case 4:
+                                                end = "я";
+                                                break;
+                                            default:
+                                                end = "ей";
+                                        }
+                                    else
+                                        end = "ей";
+                                    toolbar.setSubtitle(count + " пользовател" + end + " онлайн");
+                                }
+                            });
+                        }
+                        Thread.sleep(1000);
+                    } catch (Exception e) {loge(e.toString());}
+                }
+            }
+        }.start();
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        ScrollView scroll = view.findViewById(R.id.scroll);
+        ViewTreeObserver.OnScrollChangedListener listener = new ViewTreeObserver.OnScrollChangedListener() {
+            @Override
+            public void onScrollChanged() {
+                // todo подгрузка
+                /*if (scroll.getScrollY() == 0 && !uploading && last_msg != 0) {
+                    log("top!!");
+                    uploading = true;
+                    try {
+                        JSONObject obj = new JSONObject();
+                        obj.put("lim", 25);
+                        obj.put("start", 25);
+                        obj.put("msg", "false");
+                        obj.put("key", "8");
+                        obj.put("token", token);
+                        socket_read.sendText(obj.toString());
+                    } catch (Exception e) {
+                        loge(e.toString());
+                    }
+                }*/
+            }
+        };
+        scroll.getViewTreeObserver().addOnScrollChangedListener(listener);
     }
 
     void newMessage(String text) throws JSONException {
         final JSONObject object = new JSONObject(text), last = last_msg;
-        last_msg = object;
-        if (object.has("system") && object.has("uuid")
-                && object.has("type") && getActivity() != null) {
+        if(!object.has("system")) {
+            loge(object.toString());
+            return;
+        }
+        // case usual message
+        if (object.has("uuid") && object.has("type") && getActivity() != null) {
+            if(first_msg == null)
+                first_msg = object;
+            last_msg = object;
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -312,18 +376,14 @@ public class KnockFragment extends Fragment {
                         else
                             item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
                         TextView tv = item.findViewById(R.id.chat_tv_sender);
-
                         if(tv != null) {
-                            if (last != null) {
-                                if (last.getString("uuid").equals(object.getString("uuid"))) {
-                                    tv.setVisibility(View.GONE);
-                                } else {
-                                    tv.setText(object.getString("name"));
-                                }
+                            if (last.getString("uuid").equals(object.getString("uuid")) && last != null) {
+                                tv.setVisibility(View.GONE);
                             } else {
                                 tv.setText(object.getString("name"));
                             }
                         }
+//                        if()
                         tv = item.findViewById(R.id.tv_text);
                         tv.setText(object.getString("text"));
                         tv = item.findViewById(R.id.tv_time);
@@ -337,9 +397,26 @@ public class KnockFragment extends Fragment {
                                 scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
                             }
                         });
-                    } catch (Exception e) {loge(e.toString());}
+                    } catch (Exception e) {loge("m: " + e.toString());}
                 }
             });
+        }
+        // case ping
+        else if(object.getString("system").equals("true") && object.has("event")) {
+            if(object.getString("event").equals("ping")) {
+                String uuid = object.getString("uuid");
+                int index = -1;
+                for (int i = 0; i < pings.size(); i++) {
+                    if(pings.get(i).uuid.equals(uuid)) {
+                        index = i;
+                        break;
+                    }
+                }
+                if(index == -1)
+                    pings.add(new Ping(uuid, System.currentTimeMillis()));
+                else
+                    pings.get(index).time = System.currentTimeMillis();
+            }
         }
     }
 
@@ -372,6 +449,7 @@ public class KnockFragment extends Fragment {
     }
 
     static String connect(String url, String query) throws IOException {
+        log("connect w/o cookies: " + url);
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         if(query == null) {
             con.setRequestMethod("GET");
@@ -443,5 +521,21 @@ public class KnockFragment extends Fragment {
             calendar.set(date2.getYear(), date1.getMonth(), date1.getDay(), date2.getHours(), date2.getMinutes(), date2.getSeconds());
         }
         return calendar;
+    }
+
+    private class Ping {
+        String uuid;
+        long time;
+        Ping(String uuid, long time) {
+            this.uuid = uuid;
+            this.time = time;
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        socket_read.sendClose();
+        socket_write.sendClose();
     }
 }

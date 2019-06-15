@@ -373,7 +373,7 @@ public class MessagesFragment extends Fragment {
                                     for (int j = 0; j < a.length(); j++) {
                                         result = connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&rowStart=0&rowsCount=1" +
                                                 "&threadId=" + obj.getInt("threadId") + "&msgStart=" + (a.optInt(j) + 1), null, context);
-
+                                        log("result: " + result);
                                         b = new JSONArray(result);
                                         c = b.getJSONObject(0);
                                         obj = array.getJSONObject(i);
@@ -391,6 +391,7 @@ public class MessagesFragment extends Fragment {
                                         s_msgIds.add(a.optInt(j));
                                         Date date = new Date(c.getLong("createDate"));
                                         s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
+
                                         s_group.add(c.getInt("addrCnt") > 2);
                                     }
                                 }
@@ -502,6 +503,7 @@ public class MessagesFragment extends Fragment {
             case R.id.new_dialog:
                 search_mode = 1;
                 searchView.expandActionView();
+                view.findViewById(R.id.knock_l).setVisibility(View.GONE);
                 break;
             case R.id.action_search:
                 search_mode = 0;
@@ -884,7 +886,7 @@ public class MessagesFragment extends Fragment {
                     log("click on toolbar");
                     if(!(((MainActivity) getActivity()).getStackTop() instanceof MessagesFragment))
                         return;
-                    final ScrollView scroll = getView().findViewById(R.id.scroll);
+                    final ScrollView scroll = view.findViewById(R.id.scroll);
                     scroll.post(new Runnable() {
                         @Override
                         public void run() {
@@ -909,7 +911,7 @@ public class MessagesFragment extends Fragment {
 
     void newMessage(String text, long time, int sender_id, int thread_id) {
         log("new message in MessagesFragment");
-        LinearLayout container = getView().findViewById(R.id.container);
+        LinearLayout container = view.findViewById(R.id.container);
         View thread = container.findViewWithTag(thread_id);
         if(thread == null) {
             loge("this thread was not found");
@@ -934,7 +936,7 @@ public class MessagesFragment extends Fragment {
             tv.setText("1");
         } else
             tv.setText(Integer.parseInt(tv.getText().toString()) + 1 + "");
-        ScrollView scroll = getView().findViewById(R.id.scroll);
+        ScrollView scroll = view.findViewById(R.id.scroll);
         scroll.scrollTo(0, container.getBottom());
     }
 
@@ -1000,7 +1002,7 @@ public class MessagesFragment extends Fragment {
             public void handleMessage(Message msg) {
                 log("handling");
                 items = new View[f_senders.size()];
-                final LinearLayout container1 = getView().findViewById(R.id.container);
+                final LinearLayout container1 = view.findViewById(R.id.container);
                 // container1 null
                 if(container1 == null)
                     return;
@@ -1009,20 +1011,36 @@ public class MessagesFragment extends Fragment {
                 if(searchView != null) {
                     if(searchView.isActionViewExpanded()) {
                         searchView.collapseActionView();
+
+                        if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+                            view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
+                            view.findViewById(R.id.knock_l).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                    KnockFragment fragment = new KnockFragment();
+                                    ((MainActivity) getActivity()).set_visible(false);
+                                    transaction.replace(R.id.chat_container, fragment);
+                                    transaction.addToBackStack(null);
+                                    transaction.commit();
+                                }
+                            });
+                        } else
+                            view.findViewById(R.id.knock_l).setVisibility(View.GONE);
                     }
                 }
 
                 final Handler h = new Handler() {
                     @Override
                     public void handleMessage(Message msg) {
-                        TextView tv = getView().findViewById(R.id.tv_error);
+                        TextView tv = view.findViewById(R.id.tv_error);
                         tv.setText("");
                         tv.setVisibility(View.INVISIBLE);
                         for (int i = 0; i < f_senders.size(); i++) {
                             container1.addView(items[i], ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                             container1.addView(getLayoutInflater().inflate(R.layout.divider, container1, false));
                         }
-                        final ScrollView scroll = getView().findViewById(R.id.scroll);
+                        final ScrollView scroll = view.findViewById(R.id.scroll);
                         scroll.scrollTo(0, 0);
                         BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
                         BottomNavigationMenuView bottomNavigationMenuView =
@@ -1046,7 +1064,7 @@ public class MessagesFragment extends Fragment {
                         TextView tv;
                         ImageView img;
                         int c = 0;
-                        for (int i = 0; i < f_senders.size(); i++) {
+                        for (int i = 0; i < items.length; i++) {
                             item = getLayoutInflater().inflate(R.layout.thread_item, container1, false);
                             tv = item.findViewById(R.id.tv_sender);
                             tv.setText(f_senders.get(i));
@@ -1118,10 +1136,12 @@ public class MessagesFragment extends Fragment {
     }
 
     public View getView() {
-        View view = super.getView();
         if(view == null) {
             loge("null view!!");
-            return new View(getActivity());
+            if(super.getView() != null)
+                return super.getView();
+            else
+                return new View(getActivity());
         } else
             return view;
     }

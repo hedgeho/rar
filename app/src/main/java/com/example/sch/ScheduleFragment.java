@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -69,7 +68,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     DatePickerDialog datePickerDialog;
     int[] week;
     int yearname = 2018;
-    ArrayList<String>[] s = new ArrayList[11];
+    KindaList[] s = new KindaList[11];
     String[] name = {"1 четверть", "2 четверть", "1 полугодие", "3 четверть", "4 четверть",
             "2 полугодие", "Годовая оценка", "Экзамен", "Оценка за ОГЭ", "Оценка в аттестат"};
     Period[] periods = new Period[7];
@@ -79,10 +78,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     int yeatid;
 
     public ScheduleFragment () {
-        s[0] = new ArrayList<>();
+        s[0] = new KindaList();
         s[0].add("");
         for (int i = 1; i < s.length; i++) {
-            s[i] = new ArrayList<>();
+            s[i] = new KindaList();
             s[i].add(name[i - 1]);
         }
         datenow = new Date();
@@ -952,4 +951,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         Period() {
         }
     }
+
+    class KindaList extends ArrayList<String> {}
 }
