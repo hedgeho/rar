@@ -535,7 +535,9 @@ public class KnockFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        socket_read.sendClose();
-        socket_write.sendClose();
+        if(socket_read != null) {
+            socket_read.sendClose();
+            socket_write.sendClose();
+        }
     }
 }
