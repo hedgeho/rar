@@ -83,11 +83,11 @@ public class Countcoff extends Fragment {
                 for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
                     cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
                 }
-                avg = new Double(periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg);
+                avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
                 makeMarks();
                 countNewCoff();
-            } else {
-            }
+            } /*else {
+            }*/
         }
     };
 
@@ -242,7 +242,7 @@ public class Countcoff extends Fragment {
                 lin.setOrientation(LinearLayout.HORIZONTAL);
                 lin.setGravity(Gravity.CENTER);
             }
-            final TextView tv1 = new TextView(getActivity().getApplicationContext());
+            final TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new ConstraintLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT));
             final String[] s1 = new String[1];
@@ -438,19 +438,14 @@ public class Countcoff extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case 1:
-                ((MainActivity) getActivity()).quit();
-                break;
-            case 2:
-                cells = new ArrayList<>();
-                for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
-                }
-                makeMarks();
-                countNewCoff();
-                sasha("rar");
-                break;
+        if (item.getItemId() == 2) {
+            cells = new ArrayList<>();
+            for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+            }
+            makeMarks();
+            countNewCoff();
+            sasha("rar");
         }
         return super.onOptionsItemSelected(item);
     }

@@ -6,11 +6,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
@@ -183,8 +180,8 @@ public class MyFirebaseService extends FirebaseMessagingService {
                 break;
             case "lesson":
                 log("new lesson");
-                String subject = data.getStringExtra("subject"),
-                        event = data.getStringExtra("event");
+                String subject = data.getStringExtra("subject");
+                        //event = data.getStringExtra("event");
                 coef = Integer.parseInt(data.getStringExtra("coef"));
                 unitId = Integer.parseInt(data.getStringExtra("unitId"));
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {

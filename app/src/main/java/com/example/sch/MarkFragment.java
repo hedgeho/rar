@@ -67,10 +67,10 @@ public class MarkFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_mark, container, false);
         LinearLayout linearLayout = v.findViewById(R.id.container);
         if (topic != null && !topic.equals("") && !topic.equals(" ")) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            String s1 = new StringBuilder().append(topic).append(":").toString();
+            String s1 = topic + ":";
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -80,7 +80,7 @@ public class MarkFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (value != null && !value.equals("") && !value.equals(" ")) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = value;
@@ -93,7 +93,7 @@ public class MarkFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (coff != null && coff != 0) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = String.valueOf(coff);
@@ -106,7 +106,7 @@ public class MarkFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (data != null && !data.equals("") && !data.equals(" ")) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = data;
@@ -129,7 +129,7 @@ public class MarkFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (markdata != null && !markdata.equals("") && !markdata.equals(" ")) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = markdata;
@@ -151,7 +151,7 @@ public class MarkFragment extends Fragment {
             linearLayout.addView(tv1);
         }
         if (teachname != null && !teachname.equals("") && !teachname.equals(" ")) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = teachname;
@@ -175,15 +175,6 @@ public class MarkFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Выход");
         super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == 1) {
-            ((MainActivity) getActivity()).quit();
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

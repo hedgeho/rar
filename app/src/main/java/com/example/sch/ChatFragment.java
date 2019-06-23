@@ -85,9 +85,6 @@ import static java.util.Calendar.getInstance;
 //import org.apache.http.entity.mime.MultipartEntity;
 //import org.apache.http.client.methods.HttpPost;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class ChatFragment extends Fragment {
 
     private View view;
@@ -139,11 +136,13 @@ public class ChatFragment extends Fragment {
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        menu.clear();
-        menu.add(0, 1, 0, "Quit");
-        MenuItem ref = menu.add(0, 2, 0, "Refresh");
-        ref.setIcon(getResources().getDrawable(R.drawable.refresh));
-        ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        if(getContext() != null) {
+            menu.clear();
+            menu.add(0, 1, 0, "Quit");
+            MenuItem ref = menu.add(0, 2, 0, "Refresh");
+            ref.setIcon(getResources().getDrawable(R.drawable.refresh));
+            ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        }
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -266,6 +265,7 @@ public class ChatFragment extends Fragment {
     public void onViewCreated(@NonNull final View view, @Nullable Bundle savedInstanceState) {
         if(first_time) {
             scroll = view.findViewById(R.id.scroll);
+
             ViewTreeObserver.OnScrollChangedListener listener = new ViewTreeObserver.OnScrollChangedListener() {
                 @Override
                 public void onScrollChanged() {
@@ -379,7 +379,6 @@ public class ChatFragment extends Fragment {
                                     try {
                                         JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
                                                 "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, context));
-
                                         if(array.length() == 0) {
                                             last_msg = 0;
                                         }
@@ -423,7 +422,8 @@ public class ChatFragment extends Fragment {
                                     }
                                 }
                             }.start();
-                        } else if (scroll.getChildAt(0).getBottom()
+                        }
+                        else if (scroll.getChildAt(0).getBottom()
                                 <= (scroll.getHeight() + scroll.getScrollY()) && !uploading) {
                             if (first_msgs.size() == 0) return;
                             log("bottom");
@@ -658,6 +658,10 @@ public class ChatFragment extends Fragment {
                 }
                 view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
 
+                if(scroll == null)
+                    scroll = view.findViewById(R.id.scroll);
+                if(scroll == null)
+                    scroll = ChatFragment.this.view.findViewById(R.id.scroll);
                 scroll.post(new Runnable() {
                     @Override
                     public void run() {
@@ -685,7 +689,6 @@ public class ChatFragment extends Fragment {
                             @Override
                             public void run() {
                                 try {
-                                    log("rar");
                                     getActivity().runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -827,6 +830,7 @@ public class ChatFragment extends Fragment {
             h.sendEmptyMessage(1);
     }
 
+    // testing, trying to send a file (not working)
     public void uploadFile(Uri uri) throws IOException {
         HttpURLConnection conn = null;
         DataOutputStream dos = null;

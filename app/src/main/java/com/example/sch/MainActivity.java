@@ -57,14 +57,12 @@ public class MainActivity extends AppCompatActivity {
     ScheduleFragment scheduleFragment;
     Snackbar snackbar;
     String[] period;
-    int pernum = 6;
     int state = 2;
     static LayoutInflater layoutInflater;
     BroadcastReceiver receiver, internet_receiver, auth_receiver;
     BottomNavigationView bottomnav;
     boolean LOAD_READY = false;
     BottomNavigationItemView itemView;
-    boolean isfirst = false;
     boolean mode0 = false;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -388,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setSupActionBar(android.support.v7.widget.Toolbar toolbar) {
-        if(getSupportActionBar() == null)
+        //if(getSupportActionBar() == null)
             setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -411,11 +409,13 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < a.size(); i++) {
             log(a.get(i).toString());
         }
+        //log("top: " + getStackTop());
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
-            if (getStackTop() instanceof ChatFragment) {
+            if (getStackTop() instanceof ChatFragment || getStackTop() instanceof KnockFragment) {
                 getSupportActionBar().setTitle("Сообщения");
+                getSupportActionBar().setSubtitle("");
             }
             getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);

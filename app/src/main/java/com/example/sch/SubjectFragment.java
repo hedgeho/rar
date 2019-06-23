@@ -15,15 +15,12 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.DateFormatSymbols;
-import java.util.ArrayList;
 
 import static com.example.sch.LoginActivity.loge;
 
@@ -52,7 +49,6 @@ public class SubjectFragment extends Fragment {
     String rating;
     String totalmark;
 
-
     public SubjectFragment() {
     }
 
@@ -60,8 +56,6 @@ public class SubjectFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-
-    Button btn;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -74,7 +68,7 @@ public class SubjectFragment extends Fragment {
             subname = "strange subname";
         }
         if (subname != " " && subname != "") {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = subname;
@@ -86,7 +80,7 @@ public class SubjectFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             linearLayout.addView(tv1);
         }
-        LinearLayout ln1 = new LinearLayout(getActivity().getApplicationContext());
+        LinearLayout ln1 = new LinearLayout(getActivity());
         ln1.setOrientation(LinearLayout.HORIZONTAL);
         ln1.setWeightSum(1);
         int sum = 0;
@@ -100,11 +94,11 @@ public class SubjectFragment extends Fragment {
             sum++;
         }
         if (avg != null && avg != 0) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
             tv1.setLayoutParams(p);
-            String s1 = new StringBuilder().append("Средний\nбалл:").append("\n").append(avg).toString();
+            String s1 = "Средний\nбалл:" + "\n" + avg;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.lastIndexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -127,8 +121,7 @@ public class SubjectFragment extends Fragment {
                         fragment.avg = avg;
                         fragment.period = period;
                         fragment.pernum = pernum;
-                    } catch (Exception e) {
-                    }
+                    } catch (Exception ignore) {}
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
@@ -136,11 +129,11 @@ public class SubjectFragment extends Fragment {
             ln1.addView(tv1);
         }
         if (totalmark != " " && totalmark != "" && totalmark != null) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
             tv1.setLayoutParams(p);
-            String s1 = new StringBuilder().append("Оценка за\nпериод:").append("\n").append(totalmark).toString();
+            String s1 = "Оценка за\nпериод:" + "\n" + totalmark;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.lastIndexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -152,11 +145,11 @@ public class SubjectFragment extends Fragment {
             ln1.addView(tv1);
         }
         if (rating != " " && rating != "" && rating != null) {
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
             tv1.setLayoutParams(p);
-            String s1 = new StringBuilder().append("Рейтинг\nв классе:").append("\n").append(rating).toString();
+            String s1 = "Рейтинг\nв классе:" + "\n" + rating;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.lastIndexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -189,15 +182,6 @@ public class SubjectFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        menu.add(0, 1, 0, "Выход");
         super.onCreateOptionsMenu(menu, inflater);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == 1) {
-            ((MainActivity) getActivity()).quit();
-        }
-        return super.onOptionsItemSelected(item);
     }
 }

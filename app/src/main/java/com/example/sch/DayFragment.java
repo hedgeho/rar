@@ -57,7 +57,7 @@ public class DayFragment extends Fragment {
             TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            String s1 = new StringBuilder().append("Домашнее задание:").append("\n").append(homework).toString();
+            String s1 = "Домашнее задание:" + "\n" + homework;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -68,14 +68,14 @@ public class DayFragment extends Fragment {
                 Linkify.addLinks(tv1, Linkify.WEB_URLS);
                 tv1.setLinksClickable(true);
             } catch (Exception e) {
-                System.out.println(e);
+                System.out.println(e.toString());
             }
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {
-            int g = 0; // та самая мусорная переменная (количество непустых оценок)
+            int g = 0;
             for (int i = 0; i < marks.size(); i++) {
                 if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
                     g++;
@@ -87,9 +87,9 @@ public class DayFragment extends Fragment {
                         LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 String s2;
                 if (g > 1) {
-                    s2 = new StringBuilder().append("Оценки:").toString();
+                    s2 = "Оценки:";
                 } else {
-                    s2 = new StringBuilder().append("Оценкa:").toString();
+                    s2 = "Оценкa:";
                 }
                 Spannable spans2 = new SpannableString(s2);
                 spans2.setSpan(new RelativeSizeSpan(1.7f), 0, s2.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -100,7 +100,7 @@ public class DayFragment extends Fragment {
                 for (int i = 0; i < marks.size(); i++) {
                     if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
                         TextView tv1 = new TextView(getContext());
-                        String s1 = new StringBuilder().append(marks.get(i).value).append("   ").append(marks.get(i).coefficient).toString();
+                        String s1 = marks.get(i).value + "   " + marks.get(i).coefficient;
                         Spannable spans1 = new SpannableString(s1);
                         spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                         spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -132,7 +132,7 @@ public class DayFragment extends Fragment {
                                             break;
                                         }
                                     }
-                                } catch (Exception e) {
+                                } catch (Exception ignore) {
                                 }
                                 transaction.addToBackStack(null);
                                 transaction.commit();
@@ -147,7 +147,7 @@ public class DayFragment extends Fragment {
             TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            String s1 = new StringBuilder().append("Тема:").append("\n").append(topic).toString();
+            String s1 = "Тема:" + "\n" + topic;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -162,7 +162,7 @@ public class DayFragment extends Fragment {
             TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            String s1 = new StringBuilder().append(teachername).toString();
+            String s1 = teachername;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

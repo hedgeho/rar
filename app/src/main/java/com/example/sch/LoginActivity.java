@@ -45,13 +45,9 @@ import java.util.Map;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     FloatingActionButton fab;
-    Button btn_hash, btn_test;
     EditText et_login;
     EditText et_password;
-    String fb_id;
     int threadId = -1;
-    boolean hash = false;
-    Drawable btn_default;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,22 +72,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         NotificationManagerCompat.from(this).cancelAll();
 
         final SharedPreferences settings = getSharedPreferences("pref", 0);
+        // to see that awesome window with setting nickname in chat, add this
         //settings.edit().putString("knock_token", "").apply();
-
-        /*if(settings.getString("error", "") != null) {
-            if(!settings.getString("error", "").equals("")) {
-                final Snackbar s = Snackbar.make(findViewById(R.id.root), settings.getString("error", ""), Snackbar.LENGTH_LONG);
-                s.setAction("OK", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        settings.edit().remove("error").apply();
-                        s.dismiss();
-                    }
-                });
-                s.show();
-                loge(settings.getString("error", ""));
-            }
-        }*/
 
         if (!settings.getBoolean("first_time", true)) {
             //the app is being launched not for the first time
@@ -109,38 +91,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }.start();
         } else {
             log("first time");
-//            findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
-//            findViewById(R.id.l_login).setVisibility(View.VISIBLE);
         }
 
         fab = findViewById(R.id.fab_go);
-        btn_hash = findViewById(R.id.btn_hash);
-        btn_test = findViewById(R.id.btn_test);
         et_login = findViewById(R.id.et_login);
         et_password = findViewById(R.id.et_password);
 
-        btn_default = btn_hash.getBackground();
-
         fab.setOnClickListener(this);
-        btn_test.setOnClickListener(this);
-        btn_hash.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(hash) {
-                    et_password.setHint("password");
-//                    btn_hash.setBackground(getResources().getDrawable(android.R.drawable.btn_default));
-                    //TransitionManager.beginDelayedTransition((ViewGroup) findViewById(R.id.l_login));
-                    btn_hash.getBackground().setColorFilter(Color.parseColor("#5a5a5a"), PorterDuff.Mode.MULTIPLY);
-                    btn_hash.setTextColor(Color.parseColor("#ffffff"));
-                } else {
-                    et_password.setHint("hash");
-//                    btn_hash.setBackground(btn_default);
-                    btn_hash.getBackground().setColorFilter(Color.parseColor("#c8c8c8"), PorterDuff.Mode.MULTIPLY);
-                    btn_hash.setTextColor(Color.parseColor("#5a5a5a"));
-                }
-                hash = !hash;
-            }
-        });
 
         et_login.addTextChangedListener(new TextWatcher() {
             @Override
@@ -190,12 +147,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         String token = task.getResult().getToken();
 
                         log(token);
-                        fb_id = token;
-                        TheSingleton.getInstance().setFb_id(fb_id);
-                        // Log and toast
-//                        String msg = getString(R.string.msg_token_fmt, token);
-//                        log(msg);
-//                        Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        TheSingleton.getInstance().setFb_id(token);
                     }
                 });
     }
@@ -210,12 +162,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     public void onClick(final View v) {
         String logi = et_login.getText().toString();
-        String password;
-        if(v.getId() == R.id.btn_test) {
-            logi = "ilya_z";
-            password = "Booble19";
-        } else
-            password = et_password.getText().toString();
+        String password = et_password.getText().toString();
         if(logi.replaceAll(" ", "").equals("")) {
             et_login.getBackground().mutate().setColorFilter(getResources().getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
         } else {
@@ -230,17 +177,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return;
         }
         try {
-            if(!hash) {
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hashb = digest.digest(password.getBytes("UTF-8"));
-                StringBuilder hexString = new StringBuilder();
-                for (byte aHashb : hashb) {
-                    String hex = Integer.toHexString(0xff & aHashb);
-                    if (hex.length() == 1) hexString.append('0');
-                    hexString.append(hex);
-                }
-                password = hexString.toString();
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashb = digest.digest(password.getBytes("UTF-8"));
+            StringBuilder hexString = new StringBuilder();
+            for (byte aHashb : hashb) {
+                String hex = Integer.toHexString(0xff & aHashb);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
             }
+            password = hexString.toString();
             final String login = logi, pw = password;
             SharedPreferences settings = getSharedPreferences("pref", 0);
             settings.edit().putBoolean("first_time", false)
@@ -250,13 +195,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void run() {
                     try {
-                        int mode;
-                        if(v.getId() == R.id.btn_test)
-                            mode = 0;
-                        else if(v.getId() == R.id.btn_hash)
-                            mode = 3;
-                        else
-                            mode = 2;
+                        int mode = 2;
                         login(login, pw, mode);
                     } catch (Exception e) {
                         loge(e.toString());
@@ -278,11 +217,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
                 et_login.setText("");
                 et_password.setText("");
-                TextView tv = findViewById(R.id.tv_dead);
-                //Calendar calendar = Calendar.getInstance();
-                //loge("DAYS TO DEADLINE: " + (31 - calendar.get(Calendar.DAY_OF_MONTH)) + "!");
-                //tv.setText("до дедлайна осталось всего " + (31 - calendar.get(Calendar.DAY_OF_MONTH)) + " дня");
-                tv.setText("Rаботать, Александр, Rаботать");
             } else {
                 loge("wrong login/password");
                 Toast.makeText(getApplicationContext(), "wrong login/password", Toast.LENGTH_LONG).show();
