@@ -2,28 +2,21 @@ package com.example.sch;
 
 
 import android.annotation.SuppressLint;
-import android.app.DownloadManager;
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -57,9 +50,6 @@ import java.util.Locale;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -88,7 +78,6 @@ import static java.util.Calendar.getInstance;
 public class ChatFragment extends Fragment {
 
     private View view;
-    private String COOKIE, ROUTE;
     private int PERSON_ID;
     private LayoutInflater inflater;
 
@@ -111,8 +100,6 @@ public class ChatFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        COOKIE = TheSingleton.getInstance().getCOOKIE();
-        ROUTE = TheSingleton.getInstance().getROUTE();
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
 
         this.inflater = inflater;
@@ -225,21 +212,10 @@ public class ChatFragment extends Fragment {
                     public void onClick(View v) {
                         try {
                             String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
-                            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                            request.setDescription("Some description");
-                            request.setTitle(a.getString("fileName"));
-                            request.addRequestHeader("Cookie", COOKIE + "; site_ver=app; route=" + ROUTE + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                            request.allowScanningByMediaScanner();
-                            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, a.getString("fileName"));
-
-                            // get download service and enqueue file
-                            DownloadManager manager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-                            manager.enqueue(request);
+                            ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
                         } catch (JSONException e) {loge(e.toString());}
                     }
                 });
-                tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
             }
         } catch (JSONException e) {
@@ -342,20 +318,9 @@ public class ChatFragment extends Fragment {
                                                     @Override
                                                     public void onClick(View v) {
                                                         String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                                                        request.setDescription("Some description");
-                                                        request.setTitle(a.name);
-                                                        request.addRequestHeader("Cookie", COOKIE + "; site_ver=app; route=" + ROUTE + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                                                        request.allowScanningByMediaScanner();
-                                                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, a.name);
-
-                                                        // get download service and enqueue file
-                                                        DownloadManager manager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-                                                        manager.enqueue(request);
+                                                        ((MainActivity) getActivity()).saveFile(url, a.name, true);
                                                     }
                                                 });
-                                                tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                             }
                                         } else
@@ -487,20 +452,9 @@ public class ChatFragment extends Fragment {
                                                     @Override
                                                     public void onClick(View v) {
                                                         String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                                                        request.setDescription("Some description");
-                                                        request.setTitle(a.name);
-                                                        request.addRequestHeader("Cookie", COOKIE + "; site_ver=app; route=" + ROUTE + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                                                        request.allowScanningByMediaScanner();
-                                                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, a.name);
-
-                                                        // get download service and enqueue file
-                                                        DownloadManager manager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-                                                        manager.enqueue(request);
+                                                        ((MainActivity) getActivity()).saveFile(url, a.name, true);
                                                     }
                                                 });
-                                                tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                             }
                                         } else
@@ -626,23 +580,13 @@ public class ChatFragment extends Fragment {
                                 s = "MB";
                                 size /= 1024;
                             }
-                            tv_attach.setText(a.name + String.format(Locale.getDefault(), " (%.2f "+ s + ")", size ));
+                            tv_attach.setText(String.format(Locale.getDefault(), "%s (%.2f "+ s + ")", a.name, size));
                             tv_attach.setTextColor(getResources().getColor(R.color.two));
                             tv_attach.setOnClickListener(new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
                                     String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                    DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-                                    request.setDescription("Some description");
-                                    request.setTitle(a.name);
-                                    request.addRequestHeader("Cookie", COOKIE + "; site_ver=app; route=" + ROUTE + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                                    request.allowScanningByMediaScanner();
-                                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, a.name);
-
-                                    // get download service and enqueue file
-                                    DownloadManager manager = (DownloadManager) getActivity().getSystemService(Context.DOWNLOAD_SERVICE);
-                                    manager.enqueue(request);
+                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
                                 }
                             });
                             tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
@@ -893,24 +837,24 @@ public class ChatFragment extends Fragment {
 
                 log("l: " + msg.toString().getBytes().length);
 
-                dos.writeBytes(boundary);
-                dos.writeBytes("\n\rContent-Disposition: form-data; name=\"msgText\"" + lineEnd);
+                dos.writeBytes("--" + boundary);
+                dos.writeBytes("Content-Disposition: form-data; name=\"msgText\"" + lineEnd);
                 dos.writeBytes(lineEnd + "test text" + lineEnd);
 
-                dos.writeBytes(boundary);
+                dos.writeBytes("--" + boundary);
                 dos.writeBytes(lineEnd + "Content-Disposition: form-data; name=\"threadId\"" + lineEnd);
                 dos.writeBytes(lineEnd + "611127" + lineEnd);
 
-                dos.writeBytes(boundary);
+                dos.writeBytes("--" + boundary);
                 dos.writeBytes(lineEnd + "Content-Disposition: form-data; name=\"msgUID\"" + lineEnd);
                 dos.writeBytes(lineEnd + System.currentTimeMillis() + lineEnd);
 
                 log(System.currentTimeMillis() + "");
                 //dos.writeBytes(twoHyphens + boundary + lineEnd);
-                dos.writeBytes(boundary);
+                dos.writeBytes("--" + boundary);
                 dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
                         + "test.png" + "\"" + lineEnd);
-                dos.writeBytes("Content-Type: image/png\n\r");
+                dos.writeBytes("Content-Type: text/*\n\r");
 
                 log(msg.toString());
 //                dos.writeBytes(lineEnd);
@@ -998,59 +942,65 @@ public class ChatFragment extends Fragment {
         });*/
     }
 
+   // private static void sendFile(Uri uri, int threadId, String text){
+//        File file = new File(uri.getPath());
+//        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
+//        try {
+//*//*//    implementation files('С:/Android Studio/Project/sch/libs/org.apache.httpcomponents.httpclient_4.2.6.v201311072007.jar')
+//    implementation 'org.apache.httpcomponents:httpcore:4.4.11'
+////    implementation 'org.apache.httpcomponents:httpmime:4.5.8'
+//    implementation('org.apache.httpcomponents:httpmime:4.3.6') {
+//        exclude module: "httpclient"
+//    }/*
+//            HttpClient client = new DefaultHttpClient();
+//            HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
+//            post.addHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+//            post.addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary5uljBdgmqcUaMUOM");
+//            MultipartEntity entity = new MultipartEntity();
+//            entity.addPart("threadId", new StringBody(threadId + ""));
+//            entity.addPart("msgText", new StringBody(text));
+//            entity.addPart("msgUID", new StringBody(System.nanoTime() + ""));
+//            entity.addPart("file", new FileBody(file));
+//          post.setEntity(entity);
+//             HttpResponse response = client.execute(post);
+//
+//            BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+//            String line;
+//            StringBuilder result = new StringBuilder();
+//            while ((line = rd.readLine()) != null) {
+//                result.append(line);
+//            }
+//            rd.close();
+//            log("response to file: " +  result.toString());
+//
+//        } catch (Exception e) {
+//            loge(e.toString());
+//        }
+//        log("files sent");
+    //  }
 
-   /* private static void sendFile(Uri uri, int threadId, String text){
-        File file = new File(uri.getPath());
-        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
-        try {
-*//*//    implementation files('С:/Android Studio/Project/sch/libs/org.apache.httpcomponents.httpclient_4.2.6.v201311072007.jar')
-    implementation 'org.apache.httpcomponents:httpcore:4.4.11'
-//    implementation 'org.apache.httpcomponents:httpmime:4.5.8'
-    implementation('org.apache.httpcomponents:httpmime:4.3.6') {
-        exclude module: "httpclient"
-    }/*
-            HttpClient client = new DefaultHttpClient();
-            HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
-            post.addHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-            post.addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary5uljBdgmqcUaMUOM");
-            MultipartEntity entity = new MultipartEntity();
-            entity.addPart("threadId", new StringBody(threadId + ""));
-            entity.addPart("msgText", new StringBody(text));
-            entity.addPart("msgUID", new StringBody(System.nanoTime() + ""));
-            entity.addPart("file", new FileBody(file));
-          post.setEntity(entity);
-             HttpResponse response = client.execute(post);
 
-            BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            String line;
-            StringBuilder result = new StringBuilder();
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
-            }
-            rd.close();
-            log("response to file: " +  result.toString());
-
-        } catch (Exception e) {
-            loge(e.toString());
-        }
-        log("files sent");
-    }*/
+    @Override
+    public void onResume() {
+        super.onResume();
+        log("onResume ChatF");
+    }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
         "октября", "ноября", "декабря"};
 
     private static String getDate(Calendar calendar) {
         int day = calendar.get(Calendar.DAY_OF_MONTH),
-                month = calendar.get(MONTH) + 1,
+                month = calendar.get(MONTH),
                 year = calendar.get(YEAR);
         Calendar current = Calendar.getInstance();
         if(current.get(YEAR) != year)
-            return String.format(Locale.getDefault(), "%02d.%02d.%02d", day, month, year);
+            return String.format(Locale.getDefault(), "%02d.%02d.%02d", day, month+1, year);
         if(current.get(Calendar.DAY_OF_MONTH) == day)
             return "Сегодня";
         else if(current.get(Calendar.DAY_OF_MONTH) + 1 == day)
             return "Вчера";
-        return String.format(Locale.getDefault(), "%d " + months[month-1], day);
+        return String.format(Locale.getDefault(), "%d " + months[month], day);
     }
 
     private class Msg {

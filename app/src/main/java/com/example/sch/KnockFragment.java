@@ -50,7 +50,7 @@ public class KnockFragment extends Fragment {
     WebSocket socket_read, socket_write;
     private JSONObject last_msg, first_msg;
     Context context;
-    boolean first_time = true, uploading = false;
+//    boolean first_time = true, uploading = false;
     ArrayList<Ping> pings;
 
     @Override
@@ -245,6 +245,7 @@ public class KnockFragment extends Fragment {
                 public void onClick(View v) {
                     final String s = et.getText().toString();
                     et.setText("");
+                    view.findViewById(R.id.l_new).setVisibility(View.INVISIBLE);
                     new Thread() {
                         @Override
                         public void run() {
@@ -263,12 +264,6 @@ public class KnockFragment extends Fragment {
                                 if(spl.length > 10) {
                                     pref.edit().putString("knock_id", spl[1]).putString("knock_token", spl[3]).apply();
                                 }
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        view.findViewById(R.id.l_new).setVisibility(View.INVISIBLE);
-                                    }
-                                });
                                 thread.start();
                             } catch (Exception e) {loge(e.toString());}
                         }
@@ -377,15 +372,34 @@ public class KnockFragment extends Fragment {
                             item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
                         TextView tv = item.findViewById(R.id.chat_tv_sender);
                         if(tv != null) {
-                            if (last.getString("uuid").equals(object.getString("uuid")) && last != null) {
-                                tv.setVisibility(View.GONE);
-                            } else {
-                                tv.setText(object.getString("name"));
+                            if(last != null)
+                                if (last.getString("uuid").equals(object.getString("uuid"))) {
+                                    tv.setVisibility(View.GONE);
+                                } else {
+                                    tv.setText(object.getString("name"));
+                                }
+                        }
+                        tv = item.findViewById(R.id.tv_text);
+                        if(object.getString("type").equals("text"))
+                            tv.setText(object.getString("text"));
+                        else {
+                            tv.setVisibility(View.GONE);
+                            if(object.getString("type").equals("img")) {
+                                tv = new TextView(context);
+                                String[] spl = object.getString("text").split("/");
+                                final String name = spl[spl.length - 1];
+                                tv.setText(name);
+                                tv.setTextColor(getResources().getColor(R.color.two));
+                                final String link = object.getString("text");
+                                tv.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        ((MainActivity) getActivity()).saveFile(link, name, true);
+                                    }
+                                });
+                                ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                             }
                         }
-//                        if()
-                        tv = item.findViewById(R.id.tv_text);
-                        tv.setText(object.getString("text"));
                         tv = item.findViewById(R.id.tv_time);
                         Calendar c = toCalendar(object.getString("time"));
                         tv.setText(String.format(Locale.getDefault(), "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));

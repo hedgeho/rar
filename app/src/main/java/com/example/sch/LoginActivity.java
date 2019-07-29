@@ -1,13 +1,16 @@
 package com.example.sch;
 
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -37,10 +40,13 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+
+import static com.example.sch.MainActivity.hasConnection;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -48,6 +54,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     EditText et_login;
     EditText et_password;
     int threadId = -1;
+    BroadcastReceiver internet = null;
+
+    String login, hash;
+    int mode = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,7 +167,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         log("onResume");
         findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
         findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+        if(internet != null)
+            registerReceiver(internet, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        if(internet != null)
+            unregisterReceiver(internet);
+        super.onPause();
     }
 
     public void onClick(final View v) {
@@ -195,8 +214,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void run() {
                     try {
-                        int mode = 2;
-                        login(login, pw, mode);
+                        login(login, pw, 2);
                     } catch (Exception e) {
                         loge(e.toString());
                     }
@@ -213,15 +231,40 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         @Override
         public void handleMessage(Message msg) {
             if(msg.what == 0) {
+                findViewById(R.id.pb).setVisibility(View.VISIBLE);
+                ((TextView) findViewById(R.id.tv_dead)).setText("Rаботать, Александр, Rаботать");
                 findViewById(R.id.l_skip).setVisibility(View.VISIBLE);
                 findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
                 et_login.setText("");
                 et_password.setText("");
-            } else {
+            } else if(msg.what == 1){
                 loge("wrong login/password");
-                Toast.makeText(getApplicationContext(), "wrong login/password", Toast.LENGTH_LONG).show();
+                Toast.makeText(getApplicationContext(), "Неправильный логин/пароль", Toast.LENGTH_LONG).show();
                 findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
                 findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+            } else if(msg.what == 2) {
+                loge("no internet");
+                findViewById(R.id.pb).setVisibility(View.INVISIBLE);
+                ((TextView) findViewById(R.id.tv_dead)).setText("Нет подключения к интернету");
+                internet = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context context, Intent intent) {
+                        log("network settings changed");
+                        if(hasConnection(context) && mode != -1) {
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        login(login, hash, mode);
+                                    } catch (IOException e) {
+                                        loge(e.toString());
+                                    }
+                                }
+                            }.start();
+                        }
+                    }
+                };
+                registerReceiver(internet, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
             }
         }
     };
@@ -233,6 +276,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     void login(final String login, final String hash, int mode) throws IOException {
+        log("login mode " + mode);
         h.sendEmptyMessage(0);
 
         URL url;
@@ -245,36 +289,44 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         con.setDoOutput(true);
-        con.connect();
-        OutputStream os = con.getOutputStream();
-        os.write(("username=" + login + "&password=" + hash).getBytes());
-        con.connect();
-        log("code " + con.getResponseCode());
-        if(con.getResponseCode() == 200) {
-            Map<String, List<String>> a = con.getHeaderFields();
-            Object[] b = a.entrySet().toArray();
-            String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
-            String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
+        try {
+            OutputStream os = con.getOutputStream();
+            os.write(("username=" + login + "&password=" + hash).getBytes());
+            con.connect();
+            log("code " + con.getResponseCode());
+            if(con.getResponseCode() == 200) {
+                Map<String, List<String>> a = con.getHeaderFields();
+                Object[] b = a.entrySet().toArray();
+                String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+                String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
 
-            log("login: " + COOKIE2);
-            TheSingleton.getInstance().setCOOKIE(COOKIE2);
-            TheSingleton.getInstance().setROUTE(route);
+                log("login: " + COOKIE2);
+                TheSingleton.getInstance().setCOOKIE(COOKIE2);
+                TheSingleton.getInstance().setROUTE(route);
 
-            if (threadId != -1)
-                startActivity(new Intent(getApplicationContext(), MainActivity.class)
-                        .putExtra("type", "msg").putExtra("notif", true)
-                        .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
-                        .putExtra("mode", mode).putExtra("count", getIntent().getIntExtra("count", -1)));
-            else
-                startActivity(new Intent(getApplicationContext(), MainActivity.class)
-                        .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
-        } else {
-            h.sendEmptyMessage(1);
+                if (threadId != -1)
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class)
+                            .putExtra("type", "msg").putExtra("notif", true)
+                            .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
+                            .putExtra("mode", mode).putExtra("count", getIntent().getIntExtra("count", -1)));
+                else
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class)
+                            .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
+            } else {
+                h.sendEmptyMessage(1);
+            }
+        } catch (UnknownHostException e) {
+            loge("catched " + e.toString());
+            this.login = login;
+            this.hash = hash;
+            this.mode = mode;
+            h.sendEmptyMessage(2);
         }
     }
 
     static void log(String msg) {if(msg != null) Log.v("mylog", msg); else loge("null log");}
     static void loge(String msg) {if(msg != null) Log.e("mylog", msg); else loge("null log");}
+    static void loge(Exception e) {if(e != null) loge(e.toString());}
 
     static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException {
         log("connect " + url.replaceAll("https://app.eschool.center", ""));

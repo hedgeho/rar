@@ -22,6 +22,8 @@ import java.util.List;
 
 import static com.example.sch.LoginActivity.log;
 import static com.example.sch.LoginActivity.loge;
+import static com.example.sch.MyBroadcastReceiver.ACTION_DOWNLOAD;
+import static com.example.sch.MyBroadcastReceiver.ACTION_READ;
 
 
 public class MyFirebaseService extends FirebaseMessagingService {
@@ -127,18 +129,21 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     // Create an Intent for the activity you want to start
                     Intent resultIntent = new Intent(this, LoginActivity.class).putExtra("notif", true)
                             .putExtra("type", "msg").putExtra("threadId", thread_id).putExtra("count", addrCnt);
-// Create the TaskStackBuilder and add the intent, which inflates the back stack
+                    // Create the TaskStackBuilder and add the intent, which inflates the back stack
                     TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
                     stackBuilder.addNextIntentWithParentStack(resultIntent);
-// Get the PendingIntent containing the entire back stack
+                    // Get the PendingIntent containing the entire back stack
                     PendingIntent resultPendingIntent =
                             stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
                     stackBuilder.editIntentAt(0).putExtra("notif", true)
                             .putExtra("type", "msg").putExtra("threadId", thread_id);
 
                     PendingIntent actionIntent = PendingIntent.getBroadcast(this, thread_id,
-                            new Intent(this, MyBroadcastReceiver.class)
-                                    .putExtra("threadId", thread_id), 0);
+                            new Intent(this, MyBroadcastReceiver.class).putExtra("action", ACTION_READ)
+                                    .putExtra("threadId", thread_id), 0),
+                            saveIntent = PendingIntent.getBroadcast(this, 465,
+                                    new Intent(this, MyBroadcastReceiver.class).putExtra("action", ACTION_DOWNLOAD)
+                                    .putExtra("data", attach_s), 0);
 
 //                    log("groupId: " + groupId);
                     if(TheSingleton.getInstance().summary == null) {
@@ -161,6 +166,8 @@ public class MyFirebaseService extends FirebaseMessagingService {
                                     .bigText(text + (attachCount>0?"\nВложений: " + attachCount:"")))
                             .setGroup(MESSAGES_GROUP)
                             .addAction(R.drawable.alternative, "Прочитано", actionIntent);
+                    if(attachCount > 0 && !attach_s.equals(""))
+                        builder.addAction(R.drawable.alternative, "Скачать (" + attachCount + ")", saveIntent);
                     Notification notif = builder.build();
                     int nId = TheSingleton.getInstance().notification_id;
                     NotificationManagerCompat.from(this).notify(nId, notif);
