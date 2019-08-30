@@ -25,6 +25,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import static com.example.sch.LoginActivity.log;
+
 public class PeriodFragment1 extends Fragment {
 
 

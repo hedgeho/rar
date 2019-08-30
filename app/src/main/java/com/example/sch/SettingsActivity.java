@@ -18,6 +18,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Switch;
 
 import static com.example.sch.KnockFragment.connect;
@@ -27,7 +28,7 @@ import static com.example.sch.LoginActivity.loge;
 public class SettingsActivity extends AppCompatActivity {
 
     EditText et, et_nickname;
-    Button send;
+    ImageView send;
     boolean kk_enabled = false;
 
     @Override
@@ -52,9 +53,9 @@ public class SettingsActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(s.toString().trim().equals("")) {
-                    send.setEnabled(false);
+                    send.setVisibility(View.GONE);
                 } else
-                    send.setEnabled(true);
+                    send.setVisibility(View.VISIBLE);
             }
 
             @Override

@@ -65,6 +65,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         setContentView(R.layout.activity_login);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        TheSingleton.getInstance().t1 = System.currentTimeMillis();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(getResources().getColor(R.color.gr1));
         }
@@ -316,7 +318,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 h.sendEmptyMessage(1);
             }
         } catch (UnknownHostException e) {
-            loge("catched " + e.toString());
+            loge(e.toString());
             this.login = login;
             this.hash = hash;
             this.mode = mode;
@@ -324,9 +326,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    static void log(String msg) {if(msg != null) Log.v("mylog", msg); else loge("null log");}
-    static void loge(String msg) {if(msg != null) Log.e("mylog", msg); else loge("null log");}
-    static void loge(Exception e) {if(e != null) loge(e.toString());}
+    static <T> void log(T msg) { if(msg != null) Log.v("mylog", msg.toString()); else loge("null log");}
+    static <T> void loge(T msg) {if(msg != null) Log.e("mylog", msg.toString()); else loge("null log");}
 
     static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException {
         log("connect " + url.replaceAll("https://app.eschool.center", ""));
@@ -353,6 +354,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 return "";
             }
             if(con.getResponseCode() == 401) {
+                Toast.makeText(context, "Error 401", Toast.LENGTH_SHORT).show();
+
                 URL Url = new URL("https://app.eschool.center/ec-server/login");
                 con = (HttpURLConnection) Url.openConnection();
                 con.setRequestMethod("POST");
@@ -404,6 +407,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 result.append(line);
             }
             rd.close();
+            //log("flag \n" + result.toString());
             return result.toString();
         } else
             return "";

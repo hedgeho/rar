@@ -98,7 +98,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingBottom="8dp" />
+                android:paddingBottom="8dp"
+
+                android:focusable="true"
+                android:focusableInTouchMode="true"/>
+            <!--;[;-->
         </ScrollView>
 
     </LinearLayout>
@@ -125,7 +129,11 @@
             android:inputType="textMultiLine|textCapSentences"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_send"
-            app:layout_constraintStart_toEndOf="@+id/btn_file" />
+            app:layout_constraintStart_toEndOf="@+id/btn_file"
+
+            android:nextFocusUp="@id/et"
+            android:nextFocusLeft="@id/et" />
+        <!--;[;-->
 
         <ImageView
             android:id="@+id/btn_send"

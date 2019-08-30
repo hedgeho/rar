@@ -361,7 +361,7 @@ public class ChatFragment extends Fragment {
                                                 msg.files = null;
                                             } else {
                                                 msg.files = new Attach[tmp.getInt("attachCount")];
-                                                log(tmp.getString("attecInfo"));
+                                                log(tmp.getString("attachInfo"));
                                                 for (int j = 0; j < msg.files.length; j++) {
                                                     tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
                                                     msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),

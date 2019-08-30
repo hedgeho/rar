@@ -149,7 +149,6 @@ public class MessagesFragment extends Fragment {
                              Bundle savedInstanceState) {
         if(getActivity() != null)
             context = getActivity();
-        log("messages onCreateView");
         if(savedView != null)
             return savedView;
         view = inflater.inflate(R.layout.messages, contain, false);
@@ -516,6 +515,13 @@ public class MessagesFragment extends Fragment {
     boolean uploading = false;
 
     @Override
+    public void onResume() {
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setSubtitle("");
+        super.onResume();
+    }
+
+    @Override
     public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
         if(READY && !shown)
             show();
@@ -641,7 +647,7 @@ public class MessagesFragment extends Fragment {
                         BottomNavigationMenuView bottomNavigationMenuView =
                                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
                         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
-                        log("c: " + C);
+                        log("unread messages count: " + C);
                         tv = itemView.findViewById(R.id.tv_badge);
                         if(C > 0) {
                             tv.setVisibility(View.VISIBLE);
@@ -1003,7 +1009,6 @@ public class MessagesFragment extends Fragment {
                 log("handling");
                 items = new View[f_senders.size()];
                 final LinearLayout container1 = view.findViewById(R.id.container);
-                // container1 null
                 if(container1 == null)
                     return;
                 container1.removeAllViews();
@@ -1037,7 +1042,8 @@ public class MessagesFragment extends Fragment {
                         tv.setText("");
                         tv.setVisibility(View.INVISIBLE);
                         for (int i = 0; i < f_senders.size(); i++) {
-                            container1.addView(items[i], ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                            if(i < items.length)
+                                container1.addView(items[i], ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                             container1.addView(getLayoutInflater().inflate(R.layout.divider, container1, false));
                         }
                         final ScrollView scroll = view.findViewById(R.id.scroll);

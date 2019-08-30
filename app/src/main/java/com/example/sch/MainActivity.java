@@ -350,7 +350,11 @@ public class MainActivity extends AppCompatActivity {
         os.write(("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()).getBytes());
         log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
 
-        loge(con.getResponseMessage());
+        if(con.getResponseCode() == 200)
+            log("heroku login ok");
+        else {
+            loge("heroku login failed (" + con.getResponseCode() + "), msg: " + con.getResponseMessage());
+        }
     }
 
     void sasha(String s) {

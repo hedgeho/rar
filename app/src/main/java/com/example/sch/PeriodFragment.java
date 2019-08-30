@@ -15,14 +15,18 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Locale;
+
+import static com.example.sch.LoginActivity.log;
 
 public class PeriodFragment extends Fragment {
 
@@ -64,6 +68,8 @@ public class PeriodFragment extends Fragment {
         public void onClick(DialogInterface dialog, int which) {
             ListView lv = ((AlertDialog) dialog).getListView();
             if (which == Dialog.BUTTON_POSITIVE) {
+                TheSingleton.getInstance().t1 = System.currentTimeMillis();
+                log("start");
                 pernum = lv.getCheckedItemPosition();
                 if (periods[pernum].subjects == null) {
                     ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
@@ -77,6 +83,7 @@ public class PeriodFragment extends Fragment {
                     ((MainActivity) getActivity()).set(periods, pernum, 2);
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
+
                     show();
                 }
                 sasha("------------------------");
