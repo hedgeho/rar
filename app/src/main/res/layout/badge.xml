@@ -11,4 +11,5 @@
     android:text="1"
     android:textColor="#FFFFFF"
     android:textSize="11sp"
-    xmlns:android="http://schemas.android.com/apk/res/android" />
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:visibility="gone"/>

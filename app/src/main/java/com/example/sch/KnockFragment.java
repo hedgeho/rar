@@ -1,5 +1,6 @@
 package com.example.sch;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,9 +14,11 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
@@ -48,10 +51,12 @@ public class KnockFragment extends Fragment {
     View view;
     String id, token, auth_token, name, icon;
     WebSocket socket_read, socket_write;
-    private JSONObject last_msg, first_msg;
+    private JSONObject last_msg, last_msg_up, first_msg;
     Context context;
-    boolean first_time = true, uploading = false;
+//    boolean first_time = true, uploading = false;
     ArrayList<Ping> pings;
+    boolean uploading = false;
+    int upload_count = 0, umsg_num = 0;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -59,7 +64,6 @@ public class KnockFragment extends Fragment {
         final Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle("Общий чат");
         setHasOptionsMenu(true);
-        // todo toolbar subtitle - users online
         toolbar.setSubtitle("Загрузка...");
         if(getActivity() != null)
             context = getActivity();
@@ -76,6 +80,11 @@ public class KnockFragment extends Fragment {
                 EditText et = view.findViewById(R.id.et);
                 final String text = et.getText().toString();
                 et.setText("");
+                //;[;
+//                hideKeyboardFrom(context, et);
+                et.clearFocus();
+                //log("focus: " + container.requestFocus());
+
                 new Thread() {
                     @Override
                     public void run() {
@@ -90,14 +99,17 @@ public class KnockFragment extends Fragment {
                                     .put("name", name)
                                     .put("system", "false")
                                     .put("text", text)
-                                    .put("time", getDateString())
+                                    .put("time", new Date().getTime())
                                     .put("type", "text")
                                     .put("token", token)
                                     .put("admin", "true")
                                     .put("uuid", id);
                             socket_write.sendText(object.toString());
-                            socket_write.disconnect();
-                        } catch (Exception e) {loge(e.toString());}
+                            //socket_write.disconnect();
+                        } catch (Exception e) {loge(e.toString());
+                            if(e.getMessage().contains("503 Service Unavailable")) {
+                                Toast.makeText(context, "Сервер недоступен (#503)", Toast.LENGTH_SHORT).show();
+                            }}
                     }
                 }.start();
             }
@@ -188,7 +200,6 @@ public class KnockFragment extends Fragment {
                         }
                     });
 
-
                     socket_read.addExtension(WebSocketExtension.PERMESSAGE_DEFLATE);
                     socket_write.addExtension(WebSocketExtension.PERMESSAGE_DEFLATE);
 
@@ -245,6 +256,7 @@ public class KnockFragment extends Fragment {
                 public void onClick(View v) {
                     final String s = et.getText().toString();
                     et.setText("");
+                    view.findViewById(R.id.l_new).setVisibility(View.INVISIBLE);
                     new Thread() {
                         @Override
                         public void run() {
@@ -263,12 +275,6 @@ public class KnockFragment extends Fragment {
                                 if(spl.length > 10) {
                                     pref.edit().putString("knock_id", spl[1]).putString("knock_token", spl[3]).apply();
                                 }
-                                getActivity().runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        view.findViewById(R.id.l_new).setVisibility(View.INVISIBLE);
-                                    }
-                                });
                                 thread.start();
                             } catch (Exception e) {loge(e.toString());}
                         }
@@ -329,78 +335,114 @@ public class KnockFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        ScrollView scroll = view.findViewById(R.id.scroll);
+        final ScrollView scroll = view.findViewById(R.id.scroll);
         ViewTreeObserver.OnScrollChangedListener listener = new ViewTreeObserver.OnScrollChangedListener() {
             @Override
             public void onScrollChanged() {
                 // todo подгрузка
-                /*if (scroll.getScrollY() == 0 && !uploading && last_msg != 0) {
+                if (scroll.getScrollY() == 0 && !uploading) {
                     log("top!!");
                     uploading = true;
+                    upload_count++;
                     try {
                         JSONObject obj = new JSONObject();
-                        obj.put("lim", 25);
-                        obj.put("start", 25);
+                        obj.put("lim", 30);
+                        obj.put("start", 30*upload_count);
                         obj.put("msg", "false");
-                        obj.put("key", "8");
+                        obj.put("key", id);
                         obj.put("token", token);
                         socket_read.sendText(obj.toString());
                     } catch (Exception e) {
                         loge(e.toString());
                     }
-                }*/
+                }
             }
         };
         scroll.getViewTreeObserver().addOnScrollChangedListener(listener);
     }
 
     void newMessage(String text) throws JSONException {
-        final JSONObject object = new JSONObject(text), last = last_msg;
+        final boolean uploading = this.uploading;
+        final JSONObject object = new JSONObject(text), last = (uploading?last_msg_up:last_msg);
         if(!object.has("system")) {
+            loge("no system tag:");
             loge(object.toString());
             return;
         }
+        if(getActivity() == null)
+            loge("getactivity null");
+
         // case usual message
         if (object.has("uuid") && object.has("type") && getActivity() != null) {
             if(first_msg == null)
                 first_msg = object;
-            last_msg = object;
+            if(uploading)
+                last_msg_up = object;
+            else
+                last_msg = object;
+
             getActivity().runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     try {
-                        ViewGroup container = view.findViewById(R.id.main_container);
+                        ViewGroup container = getView().findViewById(R.id.main_container);
                         View item;
-                        if (!object.getString("uuid").equals(id))
+                        //if (!object.getString("uuid").equals(id))
                             item = getLayoutInflater().inflate(R.layout.chat_item_left, container, false);
-                        else
-                            item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
+                        //else
+                        //    item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
                         TextView tv = item.findViewById(R.id.chat_tv_sender);
                         if(tv != null) {
-                            if (last.getString("uuid").equals(object.getString("uuid")) && last != null) {
-                                tv.setVisibility(View.GONE);
-                            } else {
-                                tv.setText(object.getString("name"));
+                            if(last != null)
+                                if (!last.getString("uuid").equals(object.getString("uuid"))) {
+                                    tv.setText(object.getString("name"));
+                                    tv.setVisibility(View.VISIBLE);
+                                }
+                        }
+                        tv = item.findViewById(R.id.tv_text);
+                        if(object.getString("type").equals("text"))
+                            tv.setText(object.getString("text"));
+                        else {
+                            tv.setVisibility(View.GONE);
+                            if(object.getString("type").equals("img")) {
+                                tv = new TextView(context);
+                                String[] spl = object.getString("text").split("/");
+                                final String name = spl[spl.length - 1];
+                                tv.setText(name);
+                                tv.setTextColor(getResources().getColor(R.color.two));
+                                final String link = object.getString("text");
+                                tv.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        ((MainActivity) getActivity()).saveFile(link, name, true);
+                                    }
+                                });
+                                ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                             }
                         }
-//                        if()
-                        tv = item.findViewById(R.id.tv_text);
-                        tv.setText(object.getString("text"));
                         tv = item.findViewById(R.id.tv_time);
-                        Calendar c = toCalendar(object.getString("time"));
-                        tv.setText(String.format(Locale.getDefault(), "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
-                        container.addView(item);
+                        tv.setText(String.format(Locale.UK, "%02d:%02d", new Date(object.getLong("time")).getHours(), new Date(object.getLong("time")).getMinutes()));
+                        if(uploading)
+                            container.addView(item, umsg_num++%30);
+                        else
+                            container.addView(item);
                         final ScrollView scroll = view.findViewById(R.id.scroll);
                         scroll.post(new Runnable() {
                             @Override
                             public void run() {
-                                scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
+                                /*if(uploading && umsg_num%30 == 29) {
+                                    int s = ((ViewGroup) scroll.getChildAt(0)).getChildAt(24).getBottom();
+                                    log("scroll " + s);
+                                    scroll.scrollTo(0, s);
+                                } else*/ if(!uploading)
+                                    scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
                             }
                         });
                     } catch (Exception e) {loge("m: " + e.toString());}
                 }
             });
         }
+        // todo
         // case ping
         else if(object.getString("system").equals("true") && object.has("event")) {
             if(object.getString("event").equals("ping")) {
@@ -417,6 +459,11 @@ public class KnockFragment extends Fragment {
                 else
                     pings.get(index).time = System.currentTimeMillis();
             }
+        }
+        // case end of uploading
+        else if(object.has("end")) {
+            this.uploading = false;
+            last_msg_up = null;
         }
     }
 
@@ -494,34 +541,45 @@ public class KnockFragment extends Fragment {
         return response.toString();
     }
 
-    static final SimpleDateFormat format = new SimpleDateFormat("MMMM d", Locale.UK);
-    static final SimpleDateFormat format1 = new SimpleDateFormat(" YYYY, h:mm:ss a", Locale.UK);
-
-    static String getDateString() {
-        return format.format(new Date()) + "th" + format1.format(new Date());
+    public static void hideKeyboardFrom(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
-    static Calendar toCalendar(String s) throws ParseException {
-        Calendar calendar = Calendar.getInstance();
-        // June 3th 2019, 1:10:58 pm
+//
+//    static final SimpleDateFormat format = new SimpleDateFormat("MMMM d", Locale.UK);
+//    static final SimpleDateFormat format1 = new SimpleDateFormat(" YYYY, h:mm:ss a", Locale.UK);
 
-        String[] spl = s.split("th");
-        if(spl.length<2) {
-            spl = s.split("nd");
-        }
-        if(spl.length<2) {
-            spl = s.split("st");
-        }
-        if(spl.length<2) {
-            spl = s.split("rd");
-        }
-        if (spl.length >= 2) {
-            Date date1 = format.parse(spl[0]);
-            Date date2 = format1.parse(spl[1]);
-            calendar.set(date2.getYear(), date1.getMonth(), date1.getDay(), date2.getHours(), date2.getMinutes(), date2.getSeconds());
-        }
-        return calendar;
-    }
+//    static String getDateString() {
+//        return format.format(new Date()) + "th" + format1.format(new Date());
+//    }
+//
+//    static Calendar toCalendar(String s) throws ParseException {
+//        Calendar calendar = Calendar.getInstance();
+//        // June 3th 2019, 1:10:58 pm
+//
+//        String[] spl = s.split("th");
+//        if(spl.length<2) {
+//            spl = s.split("nd");
+//        }
+//        if(spl.length<2) {
+//            spl = s.split("st");
+//            if(s.contains("August") && spl.length == 2) {
+//                spl = new String[1];
+//            } else if(s.contains("August")) {
+//                spl = new String[] {spl[0]+"st"+spl[1], spl[2]};
+//            }
+//        }
+//        if(spl.length<2) {
+//            spl = s.split("rd");
+//        }
+//        if (spl.length >= 2) {
+//            Date date1 = format.parse(spl[0]);
+//            Date date2 = format1.parse(spl[1]);
+//            calendar.set(date2.getYear(), date1.getMonth(), date1.getDay(), date2.getHours(), date2.getMinutes(), date2.getSeconds());
+//        }
+//        return calendar;
+//    }
 
     private class Ping {
         String uuid;

@@ -11,6 +11,7 @@ class TheSingleton {
     int notification_id = 1;
     private ArrayList<Notification> notifications = new ArrayList<>();
     android.app.Notification summary = null;
+    long t1 = 0;
 
     static TheSingleton getInstance() {
         return ourInstance;

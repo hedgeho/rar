@@ -2,6 +2,7 @@ package com.example.sch;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -332,7 +334,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             ((MainActivity) getActivity()).setSupportActionBar(toolbar);
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
-            log("end");
+            if(TheSingleton.getInstance().t1 > 0) {
+                Toast.makeText(getContext(), "loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms", Toast.LENGTH_SHORT).show();
+                log("loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms");
+                //TheSingleton.getInstance().t1 = 0;
+            }
         } catch (Exception e) {
             loge("show: " + e.toString());
             getActivity().runOnUiThread(new Runnable() {
@@ -364,6 +370,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     void Download1() {
+        log("Dowload1()");
         new Thread() {
             @Override
             public void run() {
@@ -448,6 +455,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     void Download3() {
+        log("Dowload2()");
         new Thread() {
             @Override
             public void run() {
@@ -494,7 +502,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             }
         }.start();
     }
+
+    JSONObject object1 = null;
+    boolean first_downl = true;
     void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
+        log("Dowload2()");
+        if(first_downl && TheSingleton.getInstance().t1 == 0) {
+            log("start");
+            TheSingleton.getInstance().t1 = System.currentTimeMillis();
+            first_downl = false;
+        }
         pernum = h;
         periods[pernum].days = new ArrayList<>();
         periods[pernum].subjects = new ArrayList<>();
@@ -506,6 +523,20 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             public void run() {
                 try {
                     //------------------------------------------------------------------------------------------------
+
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                object1 = new JSONObject(
+                                        connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
+                                                null, getContext()));
+                            } catch (Exception e) {
+                                loge(e.toString());
+                            }
+                        }
+                    }.start();
+
                     JSONObject object = new JSONObject(
                             connect("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=" + id,
                                     null, getContext()));
@@ -531,9 +562,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             periods[pernum].subjects.get(i).unitid = obj.getInt("unitId");
                         periods[pernum].subjects.get(i).cells = new ArrayList<>();
                     }
-                    JSONObject object1 = new JSONObject(
-                            connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
-                                    null, getContext()));
+
+                    while(true) {
+                        if(object1 != null)
+                            break;
+                        Thread.sleep(10);
+                    }
+
                     JSONArray arraydaylessons = object1.getJSONArray("result");
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
@@ -571,6 +606,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Long date1;
                     int isODOD;
                     int index = -1;
+                    log(0);
                     for (int i = 0; i < array2.length(); i++) {
                         object2 = array2.getJSONObject(i);
                         date1 = Long.valueOf(String.valueOf(object2.getString("date")));
@@ -652,6 +688,17 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         day1 = date1;
                     }
 
+                    if(getActivity()!=null) {
+                        if(((MainActivity)getActivity()).getStackTop() instanceof ScheduleFragment)
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    show();
+                                }
+                            });
+                    }
+
+                    log(1);
                     for (int i = 0; i < periods[pernum].days.size(); i++) {
                         for (int j = 0; j < periods[pernum].cells.size(); j++) {
                             s1 = periods[pernum].cells.get(j).date;
@@ -696,10 +743,18 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         }
                     }
                     ready = true;
+
+                    // цикл на ~3 секунд
+                    log(2);
+                    long matvey = 0, a = 0, b = 0, c = 0, de = 0, ef = 0, t1;
+                    TextView txt, txt1;
+                    LinearLayout.LayoutParams lp, lp3;
+                    LinearLayout lin, lin1, lin2;
+                    String s;
                     for (int i = 0; i < periods[pernum].days.size(); i++) {
                         sasha(periods[pernum].days.get(i).day);
                         if (periods[pernum].days.get(i) != null) {
-                            LinearLayout lin = new LinearLayout(getContext());
+                            lin = new LinearLayout(getContext());
                             boolean ask = true;
                             lin.setOrientation(LinearLayout.VERTICAL);
                             lin.setGravity(Gravity.CENTER);
@@ -714,14 +769,14 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             }
                             lin.setPadding(30, 0, 30, 0);
 
-                            LinearLayout lin2 = new LinearLayout(getContext());
+                            lin2 = new LinearLayout(getContext());
                             lin2.setOrientation(LinearLayout.HORIZONTAL);
                             lin2.setGravity(Gravity.CENTER);
-                            TextView txt = new TextView(getActivity());
+                            txt = new TextView(getActivity());
                             txt.setGravity(Gravity.CENTER);
                             txt.setTextSize(20);
-                            String s = "";
-                            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            s = "";
+                            lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                             lp.setMargins(0, 0, 0, 10);
                             txt.setLayoutParams(lp);
                             try {
@@ -738,7 +793,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             lin2.addView(txt);
                             lin.addView(lin2);
                             for (int j = 0; j < periods[pernum].subjects.size() - 1; j++) {
-                                LinearLayout lin1 = new LinearLayout(getContext());
+                                lin1 = new LinearLayout(getContext());
                                 lin1.setOrientation(LinearLayout.HORIZONTAL);
                                 lin1.setGravity(Gravity.CENTER);
                                 for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
@@ -746,11 +801,17 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     if (periods[pernum].subjects.get(j).unitid - less.unitId == 0) {
                                         if (less.marks != null) {
                                             for (int l = 0; l < less.marks.size(); l++) {
-                                                TextView txt1 = new TextView(getActivity().getApplicationContext());
-                                                txt1.setGravity(Gravity.CENTER);
-                                                txt1.setTextColor(Color.WHITE);
-                                                txt1.setPadding(15, 0, 15, 0);
-                                                final Double d = less.marks.get(l).coefficient;
+                                                t1 = System.currentTimeMillis();
+                                                matvey++;
+
+//                                                txt1 = new TextView(getActivity().getApplicationContext());
+//                                                txt1.setGravity(Gravity.CENTER);
+//                                                txt1.setTextColor(Color.WHITE);
+//                                                txt1.setPadding(15, 0, 15, 0);
+                                                txt1 = new Kletka(getActivity().getApplicationContext());
+                                                a += System.currentTimeMillis()-t1;
+                                                t1 = System.currentTimeMillis();
+                                                final double d = less.marks.get(l).coefficient;
                                                 if (d <= 0.5)
                                                     txt1.setBackgroundColor(getResources().getColor(R.color.coff1));
                                                 else if (d <= 1)
@@ -768,6 +829,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                 else
                                                     txt1.setBackgroundColor(getResources().getColor(R.color.coff8));
                                                 txt1.setTextSize(20);
+                                                b += System.currentTimeMillis()-t1;
+                                                t1 = System.currentTimeMillis();
                                                 try {
                                                     final int finalJ = j;
                                                     final int finalL = l;
@@ -794,8 +857,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                     });
                                                 } catch (Exception ignore) {
                                                 }
+                                                c += System.currentTimeMillis()-t1;
+                                                t1 = System.currentTimeMillis();
                                                 ask = false;
-                                                LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                                lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                                                 lp3.setMargins(0, 0, 0, 10);
                                                 txt1.setLayoutParams(lp3);
                                                 if (less.marks.get(l).value == null || less.marks.get(l).value.equals("")) {
@@ -804,18 +869,20 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                     txt1.setText(less.marks.get(l).value);
                                                 }
                                                 lin1.addView(txt1);
+                                                de += System.currentTimeMillis()-t1;
                                             }
                                         }
                                     }
                                 }
+                                t1 = System.currentTimeMillis();
                                 if (ask) {
                                     lin1 = new LinearLayout(getContext());
                                     lin1.setOrientation(LinearLayout.HORIZONTAL);
                                     lin1.setGravity(Gravity.CENTER);
-                                    TextView txt1 = new TextView(getActivity());
+                                    txt1 = new TextView(getActivity());
                                     txt1.setGravity(Gravity.CENTER);
                                     txt1.setTextSize(20);
-                                    LinearLayout.LayoutParams lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                    lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                                     lp3.setMargins(0, 0, 0, 10);
                                     txt1.setLayoutParams(lp3);
                                     txt1.setText("—");
@@ -823,6 +890,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     lin1.addView(txt1);
                                     lin.addView(lin1);
                                 }
+                                ef += System.currentTimeMillis()-t1;
                                 ask = true;
                                 if (lin1.getParent() != null)
                                     ((ViewGroup) lin1.getParent()).removeView(lin1);
@@ -831,24 +899,39 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             periods[pernum].lins.add(lin);
                         }
                     }
+                    log("a " + a);
+                    log("b " + b);
+                    log("c " + c);
+                    log("e " + de);
+                    log("f " + ef);
+                    log(3);
+                    log("matvey: " + matvey);
                     sasha("set subjects: " + periods[pernum].subjects.size() + " and days: " + periods[pernum].days.size());
                     if (isone)
                         ((MainActivity) getActivity()).set(periods, pernum, 1);
                     if (istwo)
                         ((MainActivity) getActivity()).set(periods, pernum, 2);
                     READY = true;
-                    if(getActivity()!=null) {
-                        if(((MainActivity)getActivity()).getStackTop() instanceof ScheduleFragment)
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    show();
-                                }
-                            });
+
+                    log("Dowload2() ended");
+                    if (TheSingleton.getInstance().t1 > 0) {
+                        final long t = System.currentTimeMillis() - TheSingleton.getInstance().t1;
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(getContext(), "loading ended in " + t + " ms", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                        log("loading ended in " + t + " ms");
+                        TheSingleton.getInstance().t1 = 0;
                     }
+                    first_downl = true;
+
+
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (Exception e) {
                     sasha("second " + e);
+                    loge("Download2() " + e.toString());
                     periods[pernum].days = new ArrayList<>();
                     periods[pernum].subjects = new ArrayList<>();
                     periods[pernum].lins = new ArrayList<>();
@@ -917,6 +1000,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     ((MainActivity) getActivity()).quit();
     }
 
+    @Override
+    public void onResume() {
+        if(!shown) show();
+        super.onResume();
+    }
+
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {
 
         MyFragmentPagerAdapter(FragmentManager fm) {
@@ -949,6 +1038,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         ArrayList<LinearLayout> lins;
 
         Period() {
+        }
+    }
+
+    class Kletka extends android.support.v7.widget.AppCompatTextView {
+
+        public Kletka(Context context) {
+            super(context);
+            this.setGravity(Gravity.CENTER);
+            this.setTextColor(Color.WHITE);
+            this.setPadding(15, 0, 15, 0);
         }
     }
 

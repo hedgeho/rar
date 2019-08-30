@@ -38,12 +38,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:layout_marginLeft="8dp"
-                        android:layout_marginTop="8dp"
                         android:text="Общий чат"
                         android:textColor="#FFFFFF"
-                        android:textSize="18sp"
+                        android:textSize="24sp"
+                        app:layout_constraintBottom_toBottomOf="@+id/tv_icon"
                         app:layout_constraintStart_toEndOf="@+id/tv_icon"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="@+id/tv_icon" />
 
                     <TextView
                         android:id="@+id/tv_topic"
@@ -56,6 +56,7 @@
                         android:layout_marginRight="16dp"
                         android:paddingRight="75dp"
                         android:text="блабла"
+                        android:visibility="gone"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.0"
                         app:layout_constraintStart_toEndOf="@+id/tv_icon"
@@ -88,14 +89,12 @@
                         android:layout_marginStart="8dp"
                         android:layout_marginLeft="8dp"
                         android:layout_marginTop="8dp"
-                        android:layout_marginBottom="8dp"
                         android:background="@drawable/threads_border"
                         android:paddingLeft="10dp"
                         android:paddingRight="10dp"
                         android:text="R"
                         android:textColor="#303030"
                         android:textSize="24sp"
-                        app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 

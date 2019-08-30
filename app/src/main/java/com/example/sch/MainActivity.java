@@ -1,19 +1,24 @@
 package com.example.sch;
 
 import android.annotation.SuppressLint;
+import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
@@ -41,7 +46,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.example.sch.LoginActivity.connect;
@@ -196,11 +203,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
-        log("permission check: " + permissionCheck);
-        if (permissionCheck < 0) {
-            ActivityCompat.requestPermissions(this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 12345);
-        }
         main = findViewById(R.id.main_container);
         chat = findViewById(R.id.chat_container);
 
@@ -348,7 +350,11 @@ public class MainActivity extends AppCompatActivity {
         os.write(("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()).getBytes());
         log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
 
-        loge(con.getResponseMessage());
+        if(con.getResponseCode() == 200)
+            log("heroku login ok");
+        else {
+            loge("heroku login failed (" + con.getResponseCode() + "), msg: " + con.getResponseMessage());
+        }
     }
 
     void sasha(String s) {
@@ -402,6 +408,50 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void saveFile(String url, String name, boolean useCookies) {
+        log("saving " + name);
+        int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
+        if (permissionCheck < 0) {
+            log("requesting permission to save file");
+            this.url = url;
+            this.name = name;
+            this.useCookies = useCookies;
+            ActivityCompat.requestPermissions(this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 12345);
+        } else {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+            try {
+                request.setDescription("Downloading file from " + new URL(url).getHost());
+            } catch (MalformedURLException e) {
+                loge(e.toString());
+                request.setDescription("Some Description");
+            }
+            request.setTitle(name);
+            if (useCookies)
+                request.addRequestHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app;" +
+                        " route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+
+            // get download service and enqueue file
+            DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+            manager.enqueue(request);
+        }
+    }
+
+    String url = null, name;
+    boolean useCookies;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(url != null && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            log("permission granted: " + permissions[0]);
+            saveFile(url, name, useCookies);
+        } else
+            log("permission denied: " + permissions[0]);
+        url = null;
+    }
+
     @Override
     public void onBackPressed() {
         log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
@@ -431,7 +481,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        log("onResume");
+        log("onResume MainActivity");
         try {
             registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
             registerReceiver(internet_receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
