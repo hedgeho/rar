@@ -250,7 +250,7 @@ public class PeriodFragment1 extends Fragment {
         MenuItem item;
         item = menu.add(0, 3, 0, "Settings");
         item.setIcon(R.drawable.settings);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         super.onCreateOptionsMenu(menu, inflater);
     }
 

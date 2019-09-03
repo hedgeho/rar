@@ -512,6 +512,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             TheSingleton.getInstance().t1 = System.currentTimeMillis();
             first_downl = false;
         }
+        if(periods.length == 0)
+            log("periods are empty????");
         pernum = h;
         periods[pernum].days = new ArrayList<>();
         periods[pernum].subjects = new ArrayList<>();
@@ -540,6 +542,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     JSONObject object = new JSONObject(
                             connect("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=" + id,
                                     null, getContext()));
+                    if(!object.has("result"))
+                        log("lol no result: " + object.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
                         periods[pernum].subjects.add(new PeriodFragment.Subject());
@@ -569,6 +573,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         Thread.sleep(10);
                     }
 
+                    if(!object1.has("result"))
+                        log("kek no result: " + object1.toString());
                     JSONArray arraydaylessons = object1.getJSONArray("result");
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
@@ -595,8 +601,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     String s1 = periods[pernum].cells.get(0).date;
                     String s2 = periods[pernum].cells.get(periods[pernum].cells.size() - 1).date;
                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
-                    Long d1 = format.parse(s1).getTime();
-                    Long d2 = format.parse(s2).getTime();
+                    long d1 = format.parse(s1).getTime();
+                    long d2 = format.parse(s2).getTime();
                     JSONObject object2 = new JSONObject(
                             connect("https://app.eschool.center/ec-server/student/diary?" +
                                     "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2, null, getContext()));
@@ -688,15 +694,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         day1 = date1;
                     }
 
-                    if(getActivity()!=null) {
-                        if(((MainActivity)getActivity()).getStackTop() instanceof ScheduleFragment)
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    show();
-                                }
-                            });
-                    }
+
 
                     log(1);
                     for (int i = 0; i < periods[pernum].days.size(); i++) {
@@ -743,6 +741,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         }
                     }
                     ready = true;
+
+                    if(getActivity()!=null) {
+                        if(((MainActivity)getActivity()).getStackTop() instanceof ScheduleFragment)
+                            getActivity().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    show();
+                                }
+                            });
+                    }
 
                     // цикл на ~3 секунд
                     log(2);
@@ -971,10 +979,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         menu.clear();
         MenuItem item = menu.add(0, 2, 0, "Calendar");
         item.setIcon(R.drawable.calendar);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 3, 0, "Settings");
         item.setIcon(R.drawable.settings);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         super.onCreateOptionsMenu(menu, inflater);
     }
 

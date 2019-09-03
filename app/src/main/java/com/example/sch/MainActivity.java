@@ -18,7 +18,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
@@ -31,7 +30,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -48,7 +46,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.example.sch.LoginActivity.connect;
@@ -57,20 +54,19 @@ import static com.example.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
 
-    PeriodFragment periodFragment;
-    PeriodFragment1 periodFragment1;
-    MessagesFragment messagesFragment;
-    ConstraintLayout main, chat;
+    private PeriodFragment periodFragment;
+    private PeriodFragment1 periodFragment1;
+    private MessagesFragment messagesFragment;
+    private ConstraintLayout main, chat;
+    private Snackbar snackbar;
+    private String[] period;
+    private int state = 2;
+    private BroadcastReceiver receiver, internet_receiver, auth_receiver;
+    private BottomNavigationView bottomnav;
+    private BottomNavigationItemView itemView;
+    private boolean mode0 = false;
+
     ScheduleFragment scheduleFragment;
-    Snackbar snackbar;
-    String[] period;
-    int state = 2;
-    static LayoutInflater layoutInflater;
-    BroadcastReceiver receiver, internet_receiver, auth_receiver;
-    BottomNavigationView bottomnav;
-    boolean LOAD_READY = false;
-    BottomNavigationItemView itemView;
-    boolean mode0 = false;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mNavigationListener = new BottomNavigationView.OnNavigationItemSelectedListener() {
 
@@ -208,8 +204,6 @@ public class MainActivity extends AppCompatActivity {
 
         snackbar = Snackbar.make(findViewById(R.id.frame), "Нет подключения к интернету", Snackbar.LENGTH_INDEFINITE);
 
-        layoutInflater = getLayoutInflater();
-
         bottomnav = findViewById(R.id.bottomnav);
         bottomnav.setOnNavigationItemSelectedListener(mNavigationListener);
         BottomNavigationMenuView bottomNavigationMenuView =
@@ -238,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressLint("HandlerLeak")
-    final Handler h = new Handler() {
+    private final Handler h = new Handler() {
         @Override
         public void handleMessage(final Message msg) {
             if(getStackTop() instanceof MessagesFragment)
@@ -257,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    void login(String login, String hash) throws IOException, JSONException {
+    private void login(String login, String hash) throws IOException, JSONException {
         URL url;
         HttpURLConnection con;
         StringBuilder result;
@@ -301,7 +295,6 @@ public class MainActivity extends AppCompatActivity {
         log("userId: " + userId + ", prsId: " + prsId + ", name: " + name);
         TheSingleton.getInstance().setUSER_ID(userId);
         TheSingleton.getInstance().setPERSON_ID(prsId);
-        LOAD_READY = true;
         new Thread() {
             @Override
             public void run() {
@@ -357,7 +350,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void sasha(String s) {
+    private void sasha(String s) {
         Log.v("sasha", s);
     }
 
@@ -384,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
        // TheSingleton.getInstance().setDays(days);
     }
 
-    void loadFragment(Fragment fragment) {
+    private void loadFragment(Fragment fragment) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frame, fragment);
         transaction.addToBackStack(null);
@@ -439,8 +432,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    String url = null, name;
-    boolean useCookies;
+    private String url = null, name;
+    private boolean useCookies;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -482,8 +475,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         log("onResume MainActivity");
-        try {
-            registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
+        try {            registerReceiver(receiver, new IntentFilter("com.example.sch.action"));
             registerReceiver(internet_receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
             registerReceiver(auth_receiver, new IntentFilter("com.example.sch.auth"));
         } catch (Exception e) {

@@ -71,8 +71,8 @@ class TheSingleton {
         return hasNotifications;
     }
 
-    void setHasNotifications(boolean hasNotifications) {
-        this.hasNotifications = hasNotifications;
+    void setHasNotifications() {
+        this.hasNotifications = true;
     }
 
     ArrayList<Notification> getNotifications() {return notifications;}

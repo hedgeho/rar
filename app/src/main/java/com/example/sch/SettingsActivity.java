@@ -15,7 +15,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -27,9 +26,9 @@ import static com.example.sch.LoginActivity.loge;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    EditText et, et_nickname;
-    ImageView send;
-    boolean kk_enabled = false;
+    private EditText et, et_nickname;
+    private ImageView send;
+    private boolean kk_enabled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,7 +190,7 @@ public class SettingsActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public static void hideKeyboard(Context context, View view) {
+    private static void hideKeyboard(Context context, View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
