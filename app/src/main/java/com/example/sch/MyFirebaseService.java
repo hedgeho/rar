@@ -32,7 +32,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
         super();
     }
 
-    final static String MESSAGES_GROUP = "1.RAArArrrAAAArr";
+    private final static String MESSAGES_GROUP = "1.RAArArrrAAAArr";
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -80,7 +80,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                                 .setSmallIcon(R.drawable.alternative);
                         Notification notif = builder.build();
                         compat.notify(TheSingleton.getInstance().notification_id++, notif);
-                        TheSingleton.getInstance().setHasNotifications(true);
+                        TheSingleton.getInstance().setHasNotifications();
                         break;
                     }
                 }
@@ -147,6 +147,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
 
 //                    log("groupId: " + groupId);
                     if(TheSingleton.getInstance().summary == null) {
+                        log("creating summary");
                         Notification notification = new NotificationCompat.Builder(this, "1")
                                 .setContentTitle("rar").setContentText("RAR").setSmallIcon(R.drawable.alternative)
                                 .setGroup(MESSAGES_GROUP)
@@ -170,6 +171,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         builder.addAction(R.drawable.alternative, "Скачать (" + attachCount + ")", saveIntent);
                     Notification notif = builder.build();
                     int nId = TheSingleton.getInstance().notification_id;
+                    log("nId " + nId);
                     NotificationManagerCompat.from(this).notify(nId, notif);
                     TheSingleton.getInstance().getNotifications().add(
                             new TheSingleton.Notification(thread_id, TheSingleton.getInstance().notification_id++));
@@ -230,7 +232,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
         //Toast.makeText(getApplicationContext(), remoteMessage.getNotification().getTitle() + ":\n" + remoteMessage.getNotification().getBody(), Toast.LENGTH_LONG).show();
     }
 
-    boolean isBackground() {
+    private boolean isBackground() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         List<ActivityManager.RunningTaskInfo> runningTaskInfo = manager.getRunningTasks(1);
         ComponentName componentInfo = runningTaskInfo.get(0).topActivity;

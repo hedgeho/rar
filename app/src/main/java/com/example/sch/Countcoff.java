@@ -425,11 +425,6 @@ public class Countcoff extends Fragment {
     }
 
     @Override
-    public void onDetach() {
-        super.onDetach();
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         menu.add(0, 2, 0, "Сброс");

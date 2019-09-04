@@ -8,7 +8,7 @@ import com.google.gson.annotations.SerializedName;
 class Model {
     @SerializedName("message")
     @Expose
-    Message message;
+    private Message message;
 
     @NonNull
     @Override

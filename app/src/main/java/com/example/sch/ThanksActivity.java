@@ -13,7 +13,7 @@ import static com.example.sch.LoginActivity.log;
 
 public class ThanksActivity extends AppCompatActivity {
 
-    int count = 0;
+    private int count = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

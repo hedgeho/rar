@@ -8,5 +8,5 @@
     android:paddingRight="20dp"
     android:paddingBottom="5dp"
     android:text="Sample Text"
-    android:textColor="@color/cardview_light_background"
+    android:textColor="#FFFFFFFF"
     android:textSize="20sp" />

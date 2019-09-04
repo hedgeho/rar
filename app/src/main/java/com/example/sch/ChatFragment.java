@@ -16,7 +16,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -47,11 +46,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.RequestBody;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+//import okhttp3.MediaType;
+//import okhttp3.MultipartBody;
+//import okhttp3.RequestBody;
+//import retrofit2.Retrofit;
+//import retrofit2.converter.gson.GsonConverterFactory;
 
 import static android.view.View.GONE;
 import static com.example.sch.LoginActivity.connect;
@@ -80,6 +79,7 @@ public class ChatFragment extends Fragment {
     private View view;
     private int PERSON_ID;
     private LayoutInflater inflater;
+    private LinearLayout container;
 
     private Msg[] messages;
     private Handler h;
@@ -117,6 +117,7 @@ public class ChatFragment extends Fragment {
         // Inflate the layout for this fragment``
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
 
+        this.container = view.findViewById(R.id.main_container);
         this.view = view;
         return view;
     }
@@ -125,10 +126,9 @@ public class ChatFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if(getContext() != null) {
             menu.clear();
-            menu.add(0, 1, 0, "Quit");
             MenuItem ref = menu.add(0, 2, 0, "Refresh");
             ref.setIcon(getResources().getDrawable(R.drawable.refresh));
-            ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+            ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         }
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -182,13 +182,13 @@ public class ChatFragment extends Fragment {
             tv.setVisibility(GONE);
         } else if (tv != null){
             tv.setText(sender_fio);
+            tv.setVisibility(View.VISIBLE);
         }
         tv = item.findViewById(R.id.tv_text);
         if(Html.fromHtml(text).toString().equals("")) {
             tv.setVisibility(GONE);
         }
         tv.setText(Html.fromHtml(text));
-        tv.setMovementMethod(LinkMovementMethod.getInstance());
         JSONArray array;
         try {
             array = new JSONArray(attach);
@@ -207,14 +207,11 @@ public class ChatFragment extends Fragment {
                 }
                 tv_attach.setText(String.format(Locale.getDefault(), a.getString("fileName") + " (%.2f " + s + ")", size));
                 tv_attach.setTextColor(getResources().getColor(R.color.two));
-                tv_attach.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
-                            ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
-                        } catch (JSONException e) {loge(e.toString());}
-                    }
+                tv_attach.setOnClickListener(v -> {
+                    try {
+                        String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
+                        ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
+                    } catch (JSONException e) {loge(e.toString());}
                 });
                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
             }
@@ -228,12 +225,7 @@ public class ChatFragment extends Fragment {
         log("person_id: " + PERSON_ID + ", sender: " + sender_id);
 
         container.addView(item);
-        scroll.post(new Runnable() {
-            @Override
-            public void run() {
-                scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
-            }
-        });
+        scroll.post(() -> scroll.scrollTo(0, scroll.getChildAt(0).getBottom()));
     }
 
     @SuppressLint("HandlerLeak")
@@ -242,281 +234,276 @@ public class ChatFragment extends Fragment {
         if(first_time) {
             scroll = view.findViewById(R.id.scroll);
 
-            ViewTreeObserver.OnScrollChangedListener listener = new ViewTreeObserver.OnScrollChangedListener() {
-                @Override
-                public void onScrollChanged() {
-                    if (scroll != null) {
-                        if (!scrolled)
-                            scrolled = true;
-                        else {
-                            LinearLayout l = scroll.findViewById(R.id.main_container);
-                            if (l.findViewWithTag("result") != null && scrolled)
-                                if (l.findViewWithTag("result").getTag(R.id.TAG_POSITION).equals("left"))
-                                    l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_left));
-                                else
-                                    l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border));
-                        }
-                        if (scroll.getScrollY() == 0 && !uploading && last_msg != 0) {
-                            log("top!!");
-                            uploading = true;
-                            final Handler h = new Handler() {
-                                @Override
-                                public void handleMessage(Message yoyyoyoy) {
-                                    final LinearLayout container = view.findViewById(R.id.main_container);
-                                    View item;
-                                    TextView tv, tv_attach;
-                                    Calendar cal = getInstance(), cal1 = getInstance();
-                                    int i = 0;
-                                    for (Msg msg : messages) {
-                                        if(i != 0) {
-                                            cal1.setTime(msg.time);
-                                            cal.setTime(messages[i-1].time);
-                                            //log("comparing day " + сal1.get(Calendar.DAY_OF_MONTH) + " and " + cal.get(Calendar.DAY_OF_MONTH));
-                                            if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
-                                                item = inflater.inflate(R.layout.date_divider, container, false);
-                                                tv = item.findViewById(R.id.tv_date);
-                                                tv.setText(getDate(cal));
-                                                container.addView(item, 0);
-                                            }
+            ViewTreeObserver.OnScrollChangedListener listener = () -> {
+                if (scroll != null) {
+                    if (!scrolled)
+                        scrolled = true;
+                    else {
+                        LinearLayout l = scroll.findViewById(R.id.main_container);
+                        if (l.findViewWithTag("result") != null && scrolled)
+                            if (l.findViewWithTag("result").getTag(R.id.TAG_POSITION).equals("left"))
+                                l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_left));
+                            else
+                                l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border));
+                    }
+                    if (scroll.getScrollY() == 0 && !uploading && last_msg != 0) {
+                        log("top!!");
+                        uploading = true;
+                        final Handler h = new Handler() {
+                            @Override
+                            public void handleMessage(Message yoyyoyoy) {
+                                final LinearLayout container = view.findViewById(R.id.main_container);
+                                View item;
+                                TextView tv, tv_attach;
+                                Calendar cal = getInstance(), cal1 = getInstance();
+                                int i = 0;
+                                for (Msg msg : messages) {
+                                    if(i != 0) {
+                                        cal1.setTime(msg.time);
+                                        cal.setTime(messages[i-1].time);
+                                        //log("comparing day " + сal1.get(Calendar.DAY_OF_MONTH) + " and " + cal.get(Calendar.DAY_OF_MONTH));
+                                        if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
+                                            item = inflater.inflate(R.layout.date_divider, container, false);
+                                            tv = item.findViewById(R.id.tv_date);
+                                            tv.setText(getDate(cal));
+                                            container.addView(item, 0);
                                         }
-                                        if(PERSON_ID == msg.user_id) {
-                                            item = inflater.inflate(R.layout.chat_item, container, false);
-                                        } else {
-                                            item = inflater.inflate(R.layout.chat_item_left, container, false);
-                                        }
-                                        tv = item.findViewById(R.id.chat_tv_sender);
-                                        if(!group && tv != null) {
-                                            tv.setVisibility(GONE);
-                                        } else if(tv != null) {
-                                            tv.setText(msg.sender);
-                                        }
-                                        tv = item.findViewById(R.id.tv_text);
-                                        if (Html.fromHtml(msg.text).toString().equals("")) {
-                                            tv.setVisibility(GONE);
-                                        }
-                                        tv.setText(Html.fromHtml(msg.text));
-                                        tv.setMovementMethod(LinkMovementMethod.getInstance());
-                                        tv = item.findViewById(R.id.tv_time);
+                                    }
+                                    if(PERSON_ID == msg.user_id) {
+                                        item = inflater.inflate(R.layout.chat_item, container, false);
+                                    } else {
+                                        item = inflater.inflate(R.layout.chat_item_left, container, false);
+                                    }
+                                    tv = item.findViewById(R.id.chat_tv_sender);
+                                    if(!group && tv != null) {
+                                        tv.setVisibility(GONE);
+                                    } else if(tv != null) {
+                                        tv.setText(msg.sender);
+                                        tv.setVisibility(View.VISIBLE);
+                                    }
+                                    tv = item.findViewById(R.id.tv_text);
+                                    if (Html.fromHtml(msg.text).toString().equals("")) {
+                                        tv.setVisibility(GONE);
+                                    }
+                                    tv.setText(Html.fromHtml(msg.text));
+                                    tv = item.findViewById(R.id.tv_time);
 
-                                        tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-                                        if (msg.files != null) {
-                                            for (final Attach a : msg.files) {
-                                                tv_attach = new TextView(getContext());
-                                                float size = a.size;
-                                                String s = "B";
-                                                if (size > 900) {
-                                                    s = "KB";
-                                                    size /= 1024;
-                                                }
-                                                if (size > 900) {
-                                                    s = "MB";
-                                                    size /= 1024;
-                                                }
-                                                tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
-                                                tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                                tv_attach.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                        ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                                    }
-                                                });
-                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+                                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
+                                    if (msg.files != null) {
+                                        for (final Attach a : msg.files) {
+                                            tv_attach = new TextView(getContext());
+                                            float size = a.size;
+                                            String s = "B";
+                                            if (size > 900) {
+                                                s = "KB";
+                                                size /= 1024;
                                             }
-                                        } else
-                                            item.findViewById(R.id.attach).setVisibility(GONE);
-                                        container.addView(item, 0);
-                                        i++;
-                                    }
-                                    scroll.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if (container.getChildCount() >= 25 && messages.length > 0)
-                                                scroll.scrollTo(0, container.getChildAt(messages.length - 1).getBottom());
+                                            if (size > 900) {
+                                                s = "MB";
+                                                size /= 1024;
+                                            }
+                                            tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
+                                            tv_attach.setTextColor(getResources().getColor(R.color.two));
+                                            tv_attach.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                }
+                                            });
+                                            ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                         }
+                                    } else
+                                        item.findViewById(R.id.attach).setVisibility(GONE);
+                                    container.addView(item, 0);
+                                    i++;
+                                }
+                                if(scroll != null)
+                                    scroll.post(() -> {
+                                        if (container.getChildCount() >= 25 && messages.length > 0)
+                                            scroll.scrollTo(0, container.getChildAt(messages.length - 1).getBottom());
                                     });
-                                    uploading = false;
-                                }
-                            };
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                                "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, context));
-                                        if(array.length() == 0) {
-                                            last_msg = 0;
-                                        }
-                                        messages = new Msg[array.length()];
-                                        for (int i = 0; i < messages.length; i++) {
-                                            messages[i] = new Msg();
-                                        }
-                                        JSONObject tmp, tmp1;
-                                        Msg msg;
-                                        for (int i = 0; i < array.length(); i++) {
-                                            msg = messages[i];
-                                            tmp = array.getJSONObject(i);
-                                            msg.time = new Date(tmp.getLong("sendDate"));
-                                            if (tmp.getInt("attachCount") <= 0) {
-                                                msg.files = null;
-                                            } else {
-                                                msg.files = new Attach[tmp.getInt("attachCount")];
-                                                log(tmp.getString("attachInfo"));
-                                                for (int j = 0; j < msg.files.length; j++) {
-                                                    tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                                                    msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-                                                            tmp1.getString("fileName"), tmp1.getString("fileType"));
-                                                }
-                                            }
-                                            msg.user_id = tmp.getInt("senderId");
-                                            msg.msg_id = tmp.getInt("msgNum");
-                                            msg.sender = tmp.getString("senderFio");
-                                            if (i == array.length() - 1) {
-                                                last_msg = tmp.getInt("msgNum");
-                                            }
-                                            if (!tmp.has("msg")) {
-                                                loge("no msg tag: " + tmp.toString());
-                                                msg.text = "";
-                                                continue;
-                                            }
-                                            msg.text = tmp.getString("msg");
-                                        }
-                                        h.sendEmptyMessage(0);
-                                    } catch (Exception e) {
-                                        loge("on scroll top: " + e.toString());
+                                uploading = false;
+                            }
+                        };
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
+                                            "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, context));
+                                    if(array.length() == 0) {
+                                        last_msg = 0;
                                     }
-                                }
-                            }.start();
-                        }
-                        else if (scroll.getChildAt(0).getBottom()
-                                <= (scroll.getHeight() + scroll.getScrollY()) && !uploading) {
-                            if (first_msgs.size() == 0) return;
-                            log("bottom");
-                            uploading = true;
-                            final Handler h = new Handler() {
-                                @Override
-                                public void handleMessage(Message yoyoy) {
-                                    final LinearLayout container = view.findViewById(R.id.container);
-                                    View item;
-                                    TextView tv, tv_attach;
-                                    Calendar cal = getInstance(), cal1 = getInstance();
+                                    messages = new Msg[array.length()];
+                                    for (int i = 0; i < messages.length; i++) {
+                                        messages[i] = new Msg();
+                                    }
+                                    JSONObject tmp, tmp1;
                                     Msg msg;
-                                    for (int i = messages.length - 1; i >= 0; i--) {
+                                    for (int i = 0; i < array.length(); i++) {
                                         msg = messages[i];
-                                        if(i != messages.length-1) {
-                                            cal.setTime(msg.time);
-                                            cal1.setTime(messages[i+1].time);
-                                            if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
-                                                item = inflater.inflate(R.layout.date_divider, container, false);
-                                                tv = item.findViewById(R.id.tv_date);
-                                                tv.setText(getDate(cal));
-                                                container.addView(item);
-                                            }
-                                        }
-                                        if(PERSON_ID == msg.user_id) {
-                                            item = inflater.inflate(R.layout.chat_item, container, false);
+                                        tmp = array.getJSONObject(i);
+                                        msg.time = new Date(tmp.getLong("sendDate"));
+                                        if (tmp.getInt("attachCount") <= 0) {
+                                            msg.files = null;
                                         } else {
-                                            item = inflater.inflate(R.layout.chat_item_left, container, false);
-                                        }
-                                        tv = item.findViewById(R.id.chat_tv_sender);
-                                        if(!group && tv != null) {
-                                            tv.setVisibility(GONE);
-                                        } else if(tv != null) {
-                                            tv.setText(msg.sender);
-                                        }
-                                        tv = item.findViewById(R.id.tv_text);
-                                        if (Html.fromHtml(msg.text).toString().equals("")) {
-                                            tv.setVisibility(GONE);
-                                        }
-                                        tv.setText(Html.fromHtml(msg.text));
-                                        tv.setMovementMethod(LinkMovementMethod.getInstance());
-                                        tv = item.findViewById(R.id.tv_time);
-                                        tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-
-                                        if (msg.files != null) {
-                                            for (final Attach a : msg.files) {
-                                                tv_attach = new TextView(getContext());
-                                                float size = a.size;
-                                                String s = "B";
-                                                if (size > 900) {
-                                                    s = "KB";
-                                                    size /= 1024;
-                                                }
-                                                if (size > 900) {
-                                                    s = "MB";
-                                                    size /= 1024;
-                                                }
-                                                tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
-                                                tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                                tv_attach.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                        ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                                    }
-                                                });
-                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+                                            msg.files = new Attach[tmp.getInt("attachCount")];
+                                            log(tmp.getString("attachInfo"));
+                                            for (int j = 0; j < msg.files.length; j++) {
+                                                tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
+                                                msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                                        tmp1.getString("fileName"), tmp1.getString("fileType"));
                                             }
-                                        } else
-                                            item.findViewById(R.id.attach).setVisibility(GONE);
-                                        container.addView(item);
+                                        }
+                                        msg.user_id = tmp.getInt("senderId");
+                                        msg.msg_id = tmp.getInt("msgNum");
+                                        msg.sender = tmp.getString("senderFio");
+                                        if (i == array.length() - 1) {
+                                            last_msg = tmp.getInt("msgNum");
+                                        }
+                                        if (!tmp.has("msg")) {
+                                            loge("no msg tag: " + tmp.toString());
+                                            msg.text = "";
+                                            continue;
+                                        }
+                                        msg.text = tmp.getString("msg");
                                     }
-                                    scroll.post(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            //if(container.getChildCount() >= 25 && msg.length > 0)
-                                            //scroll.scrollTo(0, container.getChildAt(msg.length-1).getBottom());
-                                        }
-                                    });
-                                    uploading = false;
-                                    first_msgs.remove(first_msgs.size() - 1);
+                                    h.sendEmptyMessage(0);
+                                } catch (Exception e) {
+                                    loge("on scroll top: " + e.toString());
                                 }
-                            };
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                                "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1), null, context));
-
-                                        messages = new Msg[array.length()];
-                                        for (int i = 0; i < messages.length; i++) {
-                                            messages[i] = new Msg();
+                            }
+                        }.start();
+                    }
+                    else if (scroll.getChildAt(0).getBottom()
+                            <= (scroll.getHeight() + scroll.getScrollY()) && !uploading) {
+                        if (first_msgs.size() == 0) return;
+                        log("bottom");
+                        uploading = true;
+                        final Handler h = new Handler() {
+                            @Override
+                            public void handleMessage(Message yoyoy) {
+                                final LinearLayout container = view.findViewById(R.id.container);
+                                View item;
+                                TextView tv, tv_attach;
+                                Calendar cal = getInstance(), cal1 = getInstance();
+                                Msg msg;
+                                for (int i = messages.length - 1; i >= 0; i--) {
+                                    msg = messages[i];
+                                    if(i != messages.length-1) {
+                                        cal.setTime(msg.time);
+                                        cal1.setTime(messages[i+1].time);
+                                        if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
+                                            item = inflater.inflate(R.layout.date_divider, container, false);
+                                            tv = item.findViewById(R.id.tv_date);
+                                            tv.setText(getDate(cal));
+                                            container.addView(item);
                                         }
-                                        JSONObject tmp, tmp1;
-                                        Msg msg;
-                                        for (int i = 0; i < array.length(); i++) {
-                                            msg = messages[i];
-                                            tmp = array.getJSONObject(i);
-                                            msg.time = new Date(tmp.getLong("sendDate"));
-                                            if (tmp.getInt("attachCount") <= 0) {
-                                                msg.files = null;
-                                            } else {
-                                                msg.files = new Attach[tmp.getInt("attachCount")];
-                                                for (int j = 0; j < msg.files.length; j++) {
-                                                    tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                                                    msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-                                                            tmp1.getString("fileName"), tmp1.getString("fileType"));
-                                                }
-                                            }
-                                            msg.user_id = tmp.getInt("senderId");
-                                            msg.msg_id = tmp.getInt("msgNum");
-                                            msg.sender = tmp.getString("senderFio");
-                                            if (!tmp.has("msg")) {
-                                                loge("no msg tag: " + tmp.toString());
-                                                msg.text = "";
-                                                continue;
-                                            }
-                                            msg.text = tmp.getString("msg");
-                                        }
-                                        h.sendEmptyMessage(0);
-                                    } catch (Exception e) {
-                                        loge("on scroll bottom: " + e.toString());
                                     }
-                                }
-                            }.start();
+                                    if(PERSON_ID == msg.user_id) {
+                                        item = inflater.inflate(R.layout.chat_item, container, false);
+                                    } else {
+                                        item = inflater.inflate(R.layout.chat_item_left, container, false);
+                                    }
+                                    tv = item.findViewById(R.id.chat_tv_sender);
+                                    if(!group && tv != null) {
+                                        tv.setVisibility(GONE);
+                                    } else if(tv != null) {
+                                        tv.setText(msg.sender);
+                                        tv.setVisibility(View.VISIBLE);
+                                    }
+                                    tv = item.findViewById(R.id.tv_text);
+                                    if (Html.fromHtml(msg.text).toString().equals("")) {
+                                        tv.setVisibility(GONE);
+                                    }
+                                    tv.setText(Html.fromHtml(msg.text));
+                                    tv = item.findViewById(R.id.tv_time);
+                                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
 
-                        }
+                                    if (msg.files != null) {
+                                        for (final Attach a : msg.files) {
+                                            tv_attach = new TextView(getContext());
+                                            float size = a.size;
+                                            String s = "B";
+                                            if (size > 900) {
+                                                s = "KB";
+                                                size /= 1024;
+                                            }
+                                            if (size > 900) {
+                                                s = "MB";
+                                                size /= 1024;
+                                            }
+                                            tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
+                                            tv_attach.setTextColor(getResources().getColor(R.color.two));
+                                            tv_attach.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                }
+                                            });
+                                            ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+                                        }
+                                    } else
+                                        item.findViewById(R.id.attach).setVisibility(GONE);
+                                    container.addView(item);
+                                }
+                                scroll.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        //if(container.getChildCount() >= 25 && msg.length > 0)
+                                        //scroll.scrollTo(0, container.getChildAt(msg.length-1).getBottom());
+                                    }
+                                });
+                                uploading = false;
+                                first_msgs.remove(first_msgs.size() - 1);
+                            }
+                        };
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
+                                            "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1), null, context));
+
+                                    messages = new Msg[array.length()];
+                                    for (int i = 0; i < messages.length; i++) {
+                                        messages[i] = new Msg();
+                                    }
+                                    JSONObject tmp, tmp1;
+                                    Msg msg;
+                                    for (int i = 0; i < array.length(); i++) {
+                                        msg = messages[i];
+                                        tmp = array.getJSONObject(i);
+                                        msg.time = new Date(tmp.getLong("sendDate"));
+                                        if (tmp.getInt("attachCount") <= 0) {
+                                            msg.files = null;
+                                        } else {
+                                            msg.files = new Attach[tmp.getInt("attachCount")];
+                                            for (int j = 0; j < msg.files.length; j++) {
+                                                tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
+                                                msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                                        tmp1.getString("fileName"), tmp1.getString("fileType"));
+                                            }
+                                        }
+                                        msg.user_id = tmp.getInt("senderId");
+                                        msg.msg_id = tmp.getInt("msgNum");
+                                        msg.sender = tmp.getString("senderFio");
+                                        if (!tmp.has("msg")) {
+                                            loge("no msg tag: " + tmp.toString());
+                                            msg.text = "";
+                                            continue;
+                                        }
+                                        msg.text = tmp.getString("msg");
+                                    }
+                                    h.sendEmptyMessage(0);
+                                } catch (Exception e) {
+                                    loge("on scroll bottom: " + e.toString());
+                                }
+                            }
+                        }.start();
+
                     }
                 }
             };
@@ -524,7 +511,9 @@ public class ChatFragment extends Fragment {
         h = new Handler() {
             @Override
             public void handleMessage(Message yoy) {
-                final LinearLayout container = view.findViewById(R.id.main_container);
+                //final LinearLayout container = view.findViewById(R.id.main_container);
+                if(container == null)
+                    container = view.findViewById(R.id.main_container);
                 container.removeAllViews();
                 View item;
                 TextView tv, tv_attach;
@@ -533,6 +522,8 @@ public class ChatFragment extends Fragment {
                 Msg msg;
                 for (int i = messages.length-1; i >= 0; i--) {
                     msg = messages[i];
+                    if (msg.text.equals(""))
+                        continue;
                     if(i != messages.length-1) {
                         cal.setTime(msg.time);//tg
                         cal1.setTime(messages[i+1].time);
@@ -553,13 +544,13 @@ public class ChatFragment extends Fragment {
                         tv.setVisibility(GONE);
                     } else if(tv != null) {
                         tv.setText(msg.sender);
+                        tv.setVisibility(View.VISIBLE);
                     }
                     tv = item.findViewById(R.id.tv_text);
                     if(Html.fromHtml(msg.text).toString().equals("")) {
                         tv.setVisibility(GONE);
                     }
                     tv.setText(Html.fromHtml(msg.text));
-                    tv.setMovementMethod(LinkMovementMethod.getInstance());
                     tv = item.findViewById(R.id.tv_time);
                     tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
 //                    item.setPadding(0, 16, 4, 0);
@@ -582,12 +573,9 @@ public class ChatFragment extends Fragment {
                             }
                             tv_attach.setText(String.format(Locale.getDefault(), "%s (%.2f "+ s + ")", a.name, size));
                             tv_attach.setTextColor(getResources().getColor(R.color.two));
-                            tv_attach.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                }
+                            tv_attach.setOnClickListener(v -> {
+                                String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+                                ((MainActivity) getActivity()).saveFile(url, a.name, true);
                             });
                             tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
                             ((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
@@ -606,90 +594,72 @@ public class ChatFragment extends Fragment {
                     scroll = view.findViewById(R.id.scroll);
                 if(scroll == null)
                     scroll = ChatFragment.this.view.findViewById(R.id.scroll);
-                scroll.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if(searchMsgId == -1)
-                            scroll.fullScroll(ScrollView.FOCUS_DOWN);
-                        else {
-                            scroll.scrollTo(0, container.findViewWithTag("result").getTop());
-                            container.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_highlited));
-                            //scrolled = true;
-                        }
+                scroll.post(() -> {
+                    if(searchMsgId == -1)
+                        scroll.fullScroll(ScrollView.FOCUS_DOWN);
+                    else {
+                        scroll.scrollTo(0, container.findViewWithTag("result").getTop());
+                        container.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_highlited));
+                        //scrolled = true;
                     }
                 });
 
                 final EditText et = view.findViewById(R.id.et);
                 scroll = view.findViewById(R.id.scroll);
 
-                view.findViewById(R.id.btn_send).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        final String text = et.getText().toString();
-                        final ArrayList<Uri> files = attach;
-                        //attach = null;
-                        et.setText("");
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    getActivity().runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            View item = inflater.inflate(R.layout.chat_item, container, false);
-                                            TextView tv = item.findViewById(R.id.tv_text);
-                                            if (Html.fromHtml(text).toString().equals("")) {
-                                                tv.setVisibility(GONE);
-                                            }
-                                            tv.setText(Html.fromHtml(text));
-                                            tv = item.findViewById(R.id.tv_time);
-                                            tv.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
-                                            container.addView(item);
-                                            scroll.post(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    scroll.fullScroll(ScrollView.FOCUS_DOWN);
-                                                }
-                                            });
-                                        }
-                                    });
-                                    if(files != null) {
-                                        try {
-//                                            sendFile(files.get(0), threadId, text);
-                                            uploadFile(files.get(0));
-                                        } catch (Exception e) {
-                                            loge("sendFile: " + e.toString());
-                                        }
-                                    } else {
-                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
-                                                "&msgUID=" + System.currentTimeMillis(), context);
+                view.findViewById(R.id.btn_send).setOnClickListener(v -> {
+                    final String text = et.getText().toString();
+                    final ArrayList<Uri> files = attach;
+                    //attach = null;
+                    et.setText("");
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                getActivity().runOnUiThread(() -> {
+                                    View item1 = inflater.inflate(R.layout.chat_item, container, false);
+                                    TextView tv1 = item1.findViewById(R.id.tv_text);
+                                    if (Html.fromHtml(text).toString().equals("")) {
+                                        tv1.setVisibility(GONE);
                                     }
-                                    //con.connect();
-                                } catch (Exception e) {
-                                    loge("rar: " + e.toString());
+                                    tv1.setText(Html.fromHtml(text));
+                                    tv1 = item1.findViewById(R.id.tv_time);
+                                    tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
+                                    container.addView(item1);
+                                    //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+                                });
+                                if(files != null) {
+                                    try {
+//                                            sendFile(files.get(0), threadId, text);
+                                        uploadFile(files.get(0));
+                                    } catch (Exception e) {
+                                        loge("sendFile: " + e.toString());
+                                    }
+                                } else {
+                                    connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
+                                            "&msgUID=" + System.currentTimeMillis(), context);
                                 }
+                            } catch (Exception e) {
+                                loge("rar: " + e.toString());
                             }
-                        }.start();
-                    }
+                        }
+                    }.start();
                 });
-                view.findViewById(R.id.btn_file).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-
-                        // Filter to only show results that can be "opened", such as a
-                        // file (as opposed to a list of contacts or timezones)
-                        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-                        // Filter to show only images, using the image MIME data type.
-                        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-                        // To search for all documents available via installed storage providers,
-                        // it would be "*/*".
-                        intent.setType("*/*");
-
-                        startActivityForResult(intent, 42);
-                    }
-                });
+//                view.findViewById(R.id.btn_file).setOnClickListener(v -> {
+//                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+//
+//                    // Filter to only show results that can be "opened", such as a
+//                    // file (as opposed to a list of contacts or timezones)
+//                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+//
+//                    // Filter to show only images, using the image MIME data type.
+//                    // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+//                    // To search for all documents available via installed storage providers,
+//                    // it would be "*/*".
+//                    intent.setType("*/*");
+//
+//                    startActivityForResult(intent, 42);
+//                });
                 first_time = false;
                 if(itemToEnable != null)
                     itemToEnable.setEnabled(true);
@@ -722,8 +692,16 @@ public class ChatFragment extends Fragment {
         super.onDetach();
     }
 
-    void download(Handler h) throws IOException, JSONException {
-        connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, context);
+    private void download(Handler h) throws IOException, JSONException {
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, context);
+                } catch (Exception e) {loge(e.toString());}
+            }
+        }.start();
+
         boolean found = false;
         if(searchMsgId == -1)
             found = true;
@@ -761,7 +739,7 @@ public class ChatFragment extends Fragment {
                 if(tmp.getInt("msgNum") == searchMsgId)
                     found = true;
                 if (!tmp.has("msg")) {
-                    loge("no msg tag: " + tmp.toString());
+                    log("no msg tag: " + tmp.toString());
                     msg.text = "";
                     continue;
                 }
@@ -775,7 +753,7 @@ public class ChatFragment extends Fragment {
     }
 
     // testing, trying to send a file (not working)
-    public void uploadFile(Uri uri) throws IOException {
+    private void uploadFile(Uri uri) throws IOException {
         HttpURLConnection conn = null;
         DataOutputStream dos = null;
         String lineEnd = "\r\n";
@@ -912,11 +890,11 @@ public class ChatFragment extends Fragment {
         }
 
         log("file path: " + file.getAbsolutePath());
-        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
-                .baseUrl("https://app.eschool.center").build();
-        RequestBody requestBody = RequestBody.create(MediaType.parse("*/*"), file);
-        MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
-        RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
+//        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
+//                .baseUrl("https://app.eschool.center").build();
+//        RequestBody requestBody = RequestBody.create(MediaType.parse("*/*"), file);
+//        MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+//        RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
         /*RetrofitInterface interf = retrofit.create(RetrofitInterface.class);
         Call<Model> call = interf.getData("multipart/form-data; boundary=----WebKitFormBoundarymBTAnQQ5kHFE0Vyx",
                 TheSingleton.getInstance().getCOOKIE() + "vc; site_ver=app; routef=" +
@@ -978,13 +956,6 @@ public class ChatFragment extends Fragment {
 //        }
 //        log("files sent");
     //  }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        log("onResume ChatF");
-    }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
         "октября", "ноября", "декабря"};

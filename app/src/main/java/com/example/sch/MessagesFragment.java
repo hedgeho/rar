@@ -48,39 +48,35 @@ import static com.example.sch.LoginActivity.loge;
 
 public class MessagesFragment extends Fragment {
 
-    String COOKIE, ROUTE;
-    int USER_ID, PERSON_ID;
-    String[] senders, topics;
-    int[] threadIds, newCounts;
-    int[] users = null;
-    ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
-    ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds;
-    ArrayList<Boolean> s_group;
-    String s_query = "";
-    int count = 25, s_count = 0;
-    boolean first_time = true;
-    LinearLayout container;
-    ViewTreeObserver.OnScrollChangedListener scrollListener;
-    MenuItem searchView = null;
+    private int PERSON_ID;
+    private String[] senders, topics;
+    private int[] threadIds, newCounts;
+    private int[] users = null;
+    private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
+    private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds;
+    private ArrayList<Boolean> s_group;
+    private String s_query = "";
+    private int count = 25, s_count = 0;
+    private boolean first_time = true;
+    private LinearLayout container;
+    private ViewTreeObserver.OnScrollChangedListener scrollListener;
+    private MenuItem searchView = null;
 
     boolean fromNotification = false;
     int notifThreadId, notifCount;
 
-    View savedView = null, view;
-    int search_mode = -1;
-    Person[] olist;
-    Context context;
-    boolean READY = false, shown = false;
-    View[] fitems;
-    SwipeRefreshLayout refreshL;
-    boolean refreshing = false;
+    private View savedView = null, view;
+    private int search_mode = -1;
+    private Person[] olist;
+    private Context context;
+    private boolean READY = false, shown = false;
+    private View[] fitems;
+    private SwipeRefreshLayout refreshL;
+    private boolean refreshing = false;
 
     public MessagesFragment() {}
 
     public void start(final Handler h) {
-        COOKIE = TheSingleton.getInstance().getCOOKIE();
-        ROUTE = TheSingleton.getInstance().getROUTE();
-        USER_ID = TheSingleton.getInstance().getUSER_ID();
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
 
         new Thread() {
@@ -512,10 +508,11 @@ public class MessagesFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    boolean uploading = false;
+    private boolean uploading = false;
 
     @Override
     public void onResume() {
+        log("onResume() MessagesF");
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setSubtitle("");
         super.onResume();
@@ -569,16 +566,13 @@ public class MessagesFragment extends Fragment {
         container1.removeAllViews();
         if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
-            view.findViewById(R.id.knock_l).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    KnockFragment fragment = new KnockFragment();
-                    ((MainActivity) getActivity()).set_visible(false);
-                    transaction.replace(R.id.chat_container, fragment);
-                    transaction.addToBackStack(null);
-                    transaction.commit();
-                }
+            view.findViewById(R.id.knock_l).setOnClickListener(v -> {
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                KnockFragment fragment = new KnockFragment();
+                ((MainActivity) getActivity()).set_visible(false);
+                transaction.replace(R.id.chat_container, fragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
             });
         } else
             view.findViewById(R.id.knock_l).setVisibility(View.GONE);
@@ -627,11 +621,13 @@ public class MessagesFragment extends Fragment {
                     c += f_newCounts.get(i);
                     final int users = f_users.get(i);
                     //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
-                    item.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            loadChat(f_threadIds.get(j), f_senders.get(j), -1, users > 2);
+                    item.setOnClickListener(v -> {
+                        if(v instanceof ViewGroup) {
+                            TextView textv = v.findViewById(R.id.tv_new);
+                            textv.setText("");
+                            textv.setVisibility(View.INVISIBLE);
                         }
+                        loadChat(f_threadIds.get(j), f_senders.get(j), -1, users > 2);
                     });
                     fitems[i] = item;
                 }
@@ -946,7 +942,7 @@ public class MessagesFragment extends Fragment {
         scroll.scrollTo(0, container.getBottom());
     }
 
-    void download(Handler handler) throws JSONException, IOException {
+    private void download(Handler handler) throws JSONException, IOException {
         JSONArray array = new JSONArray(
                 connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row=1&rowsCount=25",
                         null, context));
@@ -998,6 +994,8 @@ public class MessagesFragment extends Fragment {
     void refresh() {
         if(refreshing)
             return;
+        if(refreshL == null)
+            return;
         refreshL.setRefreshing(true);
 
         @SuppressLint("HandlerLeak") final Handler h = new Handler() {
@@ -1019,16 +1017,13 @@ public class MessagesFragment extends Fragment {
 
                         if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
                             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
-                            view.findViewById(R.id.knock_l).setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                    KnockFragment fragment = new KnockFragment();
-                                    ((MainActivity) getActivity()).set_visible(false);
-                                    transaction.replace(R.id.chat_container, fragment);
-                                    transaction.addToBackStack(null);
-                                    transaction.commit();
-                                }
+                            view.findViewById(R.id.knock_l).setOnClickListener(v ->  {
+                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                KnockFragment fragment = new KnockFragment();
+                                ((MainActivity) getActivity()).set_visible(false);
+                                transaction.replace(R.id.chat_container, fragment);
+                                transaction.addToBackStack(null);
+                                transaction.commit();
                             });
                         } else
                             view.findViewById(R.id.knock_l).setVisibility(View.GONE);
@@ -1124,7 +1119,7 @@ public class MessagesFragment extends Fragment {
         }.start();
     }
 
-    void loadChat(int threadId, String threadName, int searchId, boolean group) {
+    private void loadChat(int threadId, String threadName, int searchId, boolean group) {
         fromNotification = false;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         ChatFragment fragment = new ChatFragment();

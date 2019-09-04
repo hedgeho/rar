@@ -7,13 +7,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -24,7 +23,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,7 +40,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
@@ -50,14 +47,14 @@ import static com.example.sch.MainActivity.hasConnection;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    FloatingActionButton fab;
-    EditText et_login;
-    EditText et_password;
-    int threadId = -1;
-    BroadcastReceiver internet = null;
+    private FloatingActionButton fab;
+    private EditText et_login;
+    private EditText et_password;
+    private int threadId = -1;
+    private BroadcastReceiver internet = null;
 
-    String login, hash;
-    int mode = -1;
+    private String login, hash;
+    private int mode = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +81,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         NotificationManagerCompat.from(this).cancelAll();
 
         final SharedPreferences settings = getSharedPreferences("pref", 0);
-        // to see that awesome window with setting nickname in chat, add this
+        // to see that window with setting nickname in chat, add this
         //settings.edit().putString("knock_token", "").apply();
 
         if (!settings.getBoolean("first_time", true)) {
@@ -228,8 +225,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    int internet_count = 0;
+
     @SuppressLint("HandlerLeak")
-    Handler h = new Handler() {
+    private Handler h = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if(msg.what == 0) {
@@ -257,6 +256,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 @Override
                                 public void run() {
                                     try {
+                                        unregisterReceiver(internet);
+                                        internet_count++;
                                         login(login, hash, mode);
                                     } catch (IOException e) {
                                         loge(e.toString());
@@ -277,10 +278,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             log("activity result received, auth = " + data.getStringExtra("auth"));
     }
 
-    void login(final String login, final String hash, int mode) throws IOException {
+    private void login(final String login, final String hash, int mode) throws IOException {
         log("login mode " + mode);
         h.sendEmptyMessage(0);
 
+        log("login " + login);
         URL url;
         HttpURLConnection con;
 
@@ -315,6 +317,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     startActivity(new Intent(getApplicationContext(), MainActivity.class)
                             .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
             } else {
+                log("response code " + con.getResponseCode());
                 h.sendEmptyMessage(1);
             }
         } catch (UnknownHostException e) {
@@ -330,7 +333,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     static <T> void loge(T msg) {if(msg != null) Log.e("mylog", msg.toString()); else loge("null log");}
 
     static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException {
-        log("connect " + url.replaceAll("https://app.eschool.center", ""));
+        log("connect " + url.replaceAll("https://app.eschool.center", "") + ", query: " + query);
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
         if(query == null) {
@@ -354,7 +357,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 return "";
             }
             if(con.getResponseCode() == 401) {
-                Toast.makeText(context, "Error 401", Toast.LENGTH_SHORT).show();
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(() -> Toast.makeText(context, "Error #401", Toast.LENGTH_LONG).show());
 
                 URL Url = new URL("https://app.eschool.center/ec-server/login");
                 con = (HttpURLConnection) Url.openConnection();

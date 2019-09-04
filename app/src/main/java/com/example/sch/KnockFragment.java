@@ -1,6 +1,5 @@
 package com.example.sch;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -35,10 +33,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
@@ -48,15 +43,15 @@ import static com.example.sch.LoginActivity.loge;
 
 public class KnockFragment extends Fragment {
 
-    View view;
-    String id, token, auth_token, name, icon;
-    WebSocket socket_read, socket_write;
+    private View view;
+    private String id, token, auth_token, name;
+    private WebSocket socket_read, socket_write;
     private JSONObject last_msg, last_msg_up, first_msg;
-    Context context;
+    private Context context;
 //    boolean first_time = true, uploading = false;
-    ArrayList<Ping> pings;
-    boolean uploading = false;
-    int upload_count = 0, umsg_num = 0;
+    private ArrayList<Ping> pings;
+    private boolean uploading = false;
+    private int upload_count = 0, umsg_num = 0;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -126,7 +121,7 @@ public class KnockFragment extends Fragment {
                     if(spl.length > 10) {
                         name = spl[3];
                         getActivity().getSharedPreferences("pref", 0).edit().putString("knock_name", name).apply();
-                        icon = spl[5];
+                        //icon = spl[5];
                         token = spl[7];
                     }
 
@@ -143,7 +138,7 @@ public class KnockFragment extends Fragment {
                         }
 
                         @Override
-                        public void onSendingFrame(WebSocket websocket, WebSocketFrame frame) throws Exception {
+                        public void onSendingFrame(WebSocket websocket, WebSocketFrame frame) {
                             if (frame.getPayload() == null) {
                                 loge("null frame SENT");
                                 return;
@@ -156,7 +151,7 @@ public class KnockFragment extends Fragment {
                         }
 
                         @Override
-                        public void onError(WebSocket websocket, WebSocketException cause) throws Exception {
+                        public void onError(WebSocket websocket, WebSocketException cause) {
                             loge("/receive: " + cause.toString());
 //                            if (cause.toString().contains("Failed to connect")) {
 //                                socket_read.connect();
@@ -165,7 +160,7 @@ public class KnockFragment extends Fragment {
                     });
                     socket_write.addListener(new WebSocketAdapter() {
                         @Override
-                        public void onTextMessage(WebSocket websocket, String text) throws Exception {
+                        public void onTextMessage(WebSocket websocket, String text) {
                             log("received /submit: " + text);
                             if(text.contains("wrong token")) {
                                 new Thread() {
@@ -182,7 +177,7 @@ public class KnockFragment extends Fragment {
                         }
 
                         @Override
-                        public void onSendingFrame(WebSocket websocket, WebSocketFrame frame) throws Exception {
+                        public void onSendingFrame(WebSocket websocket, WebSocketFrame frame) {
                             if (frame.hasPayload())
 //                                if(frame.getPayloadText().contains("ping") || frame.getPayloadText().contains("pong"))
 //                                    log(0, "SENDING MESSAGE /submit : " + frame.getPayloadText());
@@ -192,7 +187,7 @@ public class KnockFragment extends Fragment {
                         }
 
                         @Override
-                        public void onError(WebSocket websocket, WebSocketException cause) throws Exception {
+                        public void onError(WebSocket websocket, WebSocketException cause) {
                             loge("/submit: " + cause.toString());
 //                            Thread.sleep(10);
 //                            socket_write.connect();
@@ -302,27 +297,24 @@ public class KnockFragment extends Fragment {
                             if(pings.size() == 0)
                                 continue;
                             final int count = pings.size()-1;
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    String end;
-                                    if(count < 10 || count > 19)
-                                        switch (count % 10) {
-                                            case 1:
-                                                end = "ь";
-                                                break;
-                                            case 2:
-                                            case 3:
-                                            case 4:
-                                                end = "я";
-                                                break;
-                                            default:
-                                                end = "ей";
-                                        }
-                                    else
-                                        end = "ей";
-                                    toolbar.setSubtitle(count + " пользовател" + end + " онлайн");
-                                }
+                            getActivity().runOnUiThread(() -> {
+                                String end;
+                                if(count < 10 || count > 19)
+                                    switch (count % 10) {
+                                        case 1:
+                                            end = "ь";
+                                            break;
+                                        case 2:
+                                        case 3:
+                                        case 4:
+                                            end = "я";
+                                            break;
+                                        default:
+                                            end = "ей";
+                                    }
+                                else
+                                    end = "ей";
+                                toolbar.setSubtitle(count + " пользовател" + end + " онлайн");
                             });
                         }
                         Thread.sleep(1000);
@@ -361,7 +353,7 @@ public class KnockFragment extends Fragment {
         scroll.getViewTreeObserver().addOnScrollChangedListener(listener);
     }
 
-    void newMessage(String text) throws JSONException {
+    private void newMessage(String text) throws JSONException {
         final boolean uploading = this.uploading;
         final JSONObject object = new JSONObject(text), last = (uploading?last_msg_up:last_msg);
         if(!object.has("system")) {
@@ -387,10 +379,10 @@ public class KnockFragment extends Fragment {
                     try {
                         ViewGroup container = getView().findViewById(R.id.main_container);
                         View item;
-                        //if (!object.getString("uuid").equals(id))
+                        if (!object.getString("uuid").equals(id))
                             item = getLayoutInflater().inflate(R.layout.chat_item_left, container, false);
-                        //else
-                        //    item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
+                        else
+                            item = getLayoutInflater().inflate(R.layout.chat_item, container, false);
                         TextView tv = item.findViewById(R.id.chat_tv_sender);
                         if(tv != null) {
                             if(last != null)
@@ -402,7 +394,7 @@ public class KnockFragment extends Fragment {
                         tv = item.findViewById(R.id.tv_text);
                         if(object.getString("type").equals("text"))
                             tv.setText(object.getString("text"));
-                        else {
+                         else {
                             tv.setVisibility(View.GONE);
                             if(object.getString("type").equals("img")) {
                                 tv = new TextView(context);
@@ -438,6 +430,7 @@ public class KnockFragment extends Fragment {
                                     scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
                             }
                         });
+                        log("text: " + object.getString("text"));
                     } catch (Exception e) {loge("m: " + e.toString());}
                 }
             });
@@ -467,7 +460,7 @@ public class KnockFragment extends Fragment {
         }
     }
 
-    void getNewToken() throws Exception {
+    private void getNewToken() throws Exception {
         log("getting new token, auth token: "+ auth_token + ", id: " + id);
 
         String[] spl = connect("https://warm-bayou-37022.herokuapp.com/check?cookie=" + auth_token + "&id=" + id,
@@ -531,7 +524,7 @@ public class KnockFragment extends Fragment {
         return context;
     }
 
-    static String randomize(String s) {
+    private static String randomize(String s) {
         long a = s.length()*System.currentTimeMillis();
         StringBuilder response = new StringBuilder();
         Random random = new Random(System.currentTimeMillis());
@@ -539,11 +532,6 @@ public class KnockFragment extends Fragment {
             response.append((char)((a + random.nextInt())% (i<s.length()?s.charAt(i):100000) % ('Z'-'a') + 'a'));
         }
         return response.toString();
-    }
-
-    public static void hideKeyboardFrom(Context context, View view) {
-        InputMethodManager imm = (InputMethodManager) context.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
 //
