@@ -225,6 +225,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
+    int internet_count = 0;
+
     @SuppressLint("HandlerLeak")
     private Handler h = new Handler() {
         @Override
@@ -254,6 +256,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 @Override
                                 public void run() {
                                     try {
+                                        unregisterReceiver(internet);
+                                        internet_count++;
                                         login(login, hash, mode);
                                     } catch (IOException e) {
                                         loge(e.toString());
@@ -278,6 +282,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         log("login mode " + mode);
         h.sendEmptyMessage(0);
 
+        log("login " + login);
         URL url;
         HttpURLConnection con;
 

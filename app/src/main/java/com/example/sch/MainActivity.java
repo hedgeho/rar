@@ -261,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
         int userId = -1, prsId;
         String name;
         SharedPreferences pref = getSharedPreferences("pref", 0);
-        if(pref.getInt("userId", -1) == -1) {
+        if(pref.getInt("userId", -1) == -1 && !pref.getBoolean("auto", true)) {
          //if(true) {
             log("userId not found, calling state");
             url = new URL("https://app.eschool.center/ec-server/state?menu=false");

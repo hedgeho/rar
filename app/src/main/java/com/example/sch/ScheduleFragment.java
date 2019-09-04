@@ -47,7 +47,6 @@ import static com.example.sch.LoginActivity.loge;
 
 public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDateSetListener {
 
-
     boolean READY = false;
     boolean shown = false;
     static int pageCount = 10001;

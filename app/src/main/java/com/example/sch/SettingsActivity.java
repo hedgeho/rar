@@ -62,23 +62,20 @@ public class SettingsActivity extends AppCompatActivity {
 
             }
         });
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final String text = et.getText().toString();
-                new Thread() {
-                    @Override
-                    public void run() {
-                        try {
-                            connect("https://still-cove-90434.herokuapp.com/new_event",
-                                    "firebase_id=" + TheSingleton.getInstance().getFb_id() + "&event=feedback" +
-                                            "&msg=" + text + "&time=" + System.currentTimeMillis());
-                        } catch (Exception e) {loge(e.toString());}
-                    }
-                }.start();
-                et.setText("");
-                startActivity(new Intent(getApplicationContext(), ThanksActivity.class));
-            }
+        send.setOnClickListener(v -> {
+            final String text = et.getText().toString();
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        connect("https://still-cove-90434.herokuapp.com/new_event",
+                                "firebase_id=" + TheSingleton.getInstance().getFb_id() + "&event=feedback" +
+                                        "&msg=" + text + "&time=" + System.currentTimeMillis());
+                    } catch (Exception e) {loge(e.toString());}
+                }
+            }.start();
+            et.setText("");
+            startActivity(new Intent(getApplicationContext(), ThanksActivity.class));
         });
 
         Switch auto = findViewById(R.id.switch_auto);
@@ -89,6 +86,7 @@ public class SettingsActivity extends AppCompatActivity {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 log("switch1: " + isChecked);
                 pref.edit().putBoolean("auto", isChecked).apply();
+
             }
         });
 
