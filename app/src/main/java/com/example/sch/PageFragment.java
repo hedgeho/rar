@@ -64,12 +64,7 @@ public class PageFragment extends Fragment {
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
             final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
-            refreshL.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-                @Override
-                public void onRefresh() {
-                    refreshL.setRefreshing(false);
-                }
-            });
+            refreshL.setOnRefreshListener(() -> refreshL.setRefreshing(false));
         }
         return v;
     }
@@ -114,25 +109,21 @@ public class PageFragment extends Fragment {
             tv3.setId(i);
 
             try {
-                tbrow.setOnClickListener(new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-
-                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        DayFragment fragment = new DayFragment();
-                        transaction.replace(R.id.frame, fragment);
-                        try {
-                            fragment.homework = lesson.homeWork.stringwork;
-                            fragment.teachername = lesson.teachername;
-                            fragment.topic = lesson.topic;
-                            fragment.marks = lesson.marks;
-                            fragment.subjects = subjects;
-                        } catch (Exception ignore) {
-                        }
-                        transaction.addToBackStack(null);
-                        transaction.commit();
+                tbrow.setOnClickListener(v -> {
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    DayFragment fragment = new DayFragment();
+                    transaction.replace(R.id.frame, fragment);
+                    try {
+                        fragment.homework = lesson.homeWork.stringwork;
+                        fragment.teachername = lesson.teachername;
+                        fragment.topic = lesson.topic;
+                        fragment.marks = lesson.marks;
+                        fragment.subjects = subjects;
+                        fragment.name = lesson.name;
+                    } catch (Exception ignore) {
                     }
+                    transaction.addToBackStack(null);
+                    transaction.commit();
                 });
             } catch (Exception ignore) {
             }

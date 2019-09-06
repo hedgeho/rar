@@ -144,20 +144,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         });
 
         FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
-                        if (!task.isSuccessful()) {
-                            loge("getInstanceId failed: " + task.getException().toString());
-                            return;
-                        }
-
-                        // Get new Instance ID token
-                        String token = task.getResult().getToken();
-
-                        log(token);
-                        TheSingleton.getInstance().setFb_id(token);
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        loge("getInstanceId failed: " + task.getException().toString());
+                        return;
                     }
+
+                    // Get new Instance ID token
+                    String token = task.getResult().getToken();
+
+                    log(token);
+                    TheSingleton.getInstance().setFb_id(token);
                 });
     }
 
