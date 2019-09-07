@@ -7,7 +7,6 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,25 +31,13 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.Header;
-import org.apache.http.entity.mime.HttpMultipartMode;
-import org.apache.http.entity.mime.MinimalField;
-import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -147,7 +134,6 @@ public class ChatFragment extends Fragment {
             pinned = new File(data.getData().getPath().replace("/document/raw:", ""));
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
         } else {
-            System.out.println("result");
             uploadFile(new File(data.getData().getPath().replace("/document/raw:", "")));
         }
 
@@ -779,7 +765,6 @@ public class ChatFragment extends Fragment {
     public void uploadFile(File file) {
         new Thread(()-> {
             try {
-                System.out.println(file.getAbsolutePath());
                 HttpURLConnection connection = (HttpURLConnection) new URL("https://app.eschool.center/ec-server/chat/sendNew").openConnection();
                 connection.setDoOutput(true);
                 connection.setRequestMethod("POST");
@@ -795,10 +780,6 @@ public class ChatFragment extends Fragment {
                 connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
                 connection.connect();
                 reqEntity.build().writeTo(connection.getOutputStream());
-                reqEntity.build().writeTo(System.out);
-                if(connection.getErrorStream() != null) IoUtils.copy(connection.getErrorStream(), System.err);
-                if(connection.getInputStream() != null) IoUtils.copy(connection.getInputStream(), System.out);
-                System.out.println(connection.getResponseCode() + " " + connection.getResponseMessage());
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (ProtocolException e) {
