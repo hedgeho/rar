@@ -28,7 +28,7 @@ import java.util.ArrayList;
 
 public class DayFragment extends Fragment {
 
-    String homework = "";
+    String homework = "", name = "";
     ArrayList<PeriodFragment.Mark> marks = new ArrayList<>();
     String topic = "";
     String teachername = "";
@@ -53,7 +53,7 @@ public class DayFragment extends Fragment {
 
         LinearLayout linearLayout = view.findViewById(R.id.container);
         linearLayout.setBaselineAligned(false);
-        if (homework != " " && homework != "") {
+        if (!homework.equals(" ") && !homework.equals("")) {
             TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -77,7 +77,7 @@ public class DayFragment extends Fragment {
         if (marks.size() != 0) {
             int g = 0;
             for (int i = 0; i < marks.size(); i++) {
-                if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
+                if (marks.get(i).value != null && !marks.get(i).value.equals("") && !marks.get(i).value.equals(" ")) {
                     g++;
                 }
             }
@@ -98,7 +98,7 @@ public class DayFragment extends Fragment {
                 tv2.setPadding(50, 50, 50, 10);
                 linearLayout.addView(tv2);
                 for (int i = 0; i < marks.size(); i++) {
-                    if (marks.get(i).value != null && marks.get(i).value != "" && marks.get(i).value != " ") {
+                    if (marks.get(i).value != null && !marks.get(i).value.equals("") && !marks.get(i).value.equals(" ")) {
                         TextView tv1 = new TextView(getContext());
                         String s1 = marks.get(i).value + "   " + marks.get(i).coefficient;
                         Spannable spans1 = new SpannableString(s1);
@@ -111,39 +111,35 @@ public class DayFragment extends Fragment {
                         tv1.setPadding(80, 10, 80, 10);
                         final int finalI = i;
                         final int finalJ;
-                        tv1.setOnClickListener(new View.OnClickListener() {
-
-                            @Override
-                            public void onClick(View v) {
-                                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                MarkFragment fragment = new MarkFragment();
-                                transaction.replace(R.id.frame, fragment);
-                                try {
-                                    PeriodFragment.Cell cell = marks.get(finalI).cell;
-                                    fragment.coff = cell.mktWt;
-                                    fragment.data = cell.date;
-                                    fragment.markdata = cell.markdate;
-                                    fragment.teachname = cell.teachFio;
-                                    fragment.topic = cell.lptname;
-                                    fragment.value = cell.markvalue;
-                                    for (int j = 0; j < subjects.size(); j++) {
-                                        if (marks.get(finalI).unitid - subjects.get(j).unitid == 0) {
-                                            fragment.subject = subjects.get(j).name;
-                                            break;
-                                        }
+                        tv1.setOnClickListener(v -> {
+                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                            MarkFragment fragment = new MarkFragment();
+                            transaction.replace(R.id.frame, fragment);
+                            try {
+                                PeriodFragment.Cell cell = marks.get(finalI).cell;
+                                fragment.coff = cell.mktWt;
+                                fragment.data = cell.date;
+                                fragment.markdata = cell.markdate;
+                                fragment.teachname = cell.teachFio;
+                                fragment.topic = cell.lptname;
+                                fragment.value = cell.markvalue;
+                                for (int j = 0; j < subjects.size(); j++) {
+                                    if (marks.get(finalI).unitid - subjects.get(j).unitid == 0) {
+                                        fragment.subject = subjects.get(j).name;
+                                        break;
                                     }
-                                } catch (Exception ignore) {
                                 }
-                                transaction.addToBackStack(null);
-                                transaction.commit();
+                            } catch (Exception ignore) {
                             }
+                            transaction.addToBackStack(null);
+                            transaction.commit();
                         });
                         linearLayout.addView(tv1);
                     }
                 }
             }
         }
-        if (topic != " " && topic != "") {
+        if (!topic.equals(" ") && !topic.equals("")) {
             TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -158,7 +154,7 @@ public class DayFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
         }
-        if (teachername != " " && teachername != "") {
+        if (!teachername.equals(" ") && !teachername.equals("")) {
             TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -173,8 +169,8 @@ public class DayFragment extends Fragment {
         }
 
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        //  todo заголовок на тулбаре - дата
-        toolbar.setTitle("Day");
+        //  todo заголовок на тулбаре дня
+        toolbar.setTitle(name);
         setHasOptionsMenu(true);
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);

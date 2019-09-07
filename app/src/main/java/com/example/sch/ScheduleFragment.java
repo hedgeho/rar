@@ -49,7 +49,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     boolean READY = false;
     boolean shown = false;
-    static int pageCount = 10001;
+    static int pageCount = 5001;
     boolean ready = false;
     String[] period;
     boolean first = true;
@@ -68,7 +68,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     View v;
     DatePickerDialog datePickerDialog;
     int[] week;
-    int yearname = 2018;
+    int yearname = 2019;
     KindaList[] s = new KindaList[11];
     String[] name = {"1 четверть", "2 четверть", "1 полугодие", "3 четверть", "4 четверть",
             "2 полугодие", "Годовая оценка", "Экзамен", "Оценка за ОГЭ", "Оценка в аттестат"};
@@ -134,7 +134,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             v = inflater.inflate(R.layout.fragment_schedule, container, false);
             return v;
         }
-        if(!shown)
+        if(!shown && periods[pernum].days != null)
             show();
         log("oncreateview2");
         return v;
@@ -149,19 +149,27 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             }
             int y = 0;
             try {
-                Long daymsec = periods[pernum].days.get(y).daymsec;
+                log("size: " +  periods[pernum].days.size());
+                long daymsec = periods[pernum].days.get(y).daymsec;
+                boolean z = false;
                 for (int i = 0; i < pageCount; i++) {
-                    if (pageFragments.get(i).c.getTimeInMillis() - daymsec == 0) {
+                    //log("page " + periods[pernum].days.get(y));
+                    if (pageFragments.get(i).c.getTimeInMillis() == daymsec || z) {
+                        //z = true;
                         pageFragments.get(i).day = periods[pernum].days.get(y);
                         if (y + 1 - periods[pernum].days.size() == 0) {
+                            loge("break");
                             break;
                         } else {
                             y++;
                             daymsec = periods[pernum].days.get(y).daymsec;
                         }
                     }
+                    log("daymsec " + new Date(pageFragments.get(i).c.getTimeInMillis()).toString() + "; " + new Date(daymsec).toString());
                 }
+                log("y: " + y);
             } catch (Exception e) {
+                loge("show " + e);
                 sasha(String.valueOf(e));
             }
             pager = v.findViewById(R.id.pager);
@@ -310,11 +318,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 p.weight = (float) 1 / 7;
                 tv[i].setLayoutParams(p);
                 final int finalI = i;
-                tv[i].setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        pager.setCurrentItem(pager.getCurrentItem() - (day - finalI - 1));
-                        day = finalI + 1;
-                    }
+                tv[i].setOnClickListener(v -> {
+                    pager.setCurrentItem(pager.getCurrentItem() - (day - finalI - 1));
+                    day = finalI + 1;
                 });
                 linear1.addView(tv[i]);
             }
@@ -340,17 +346,14 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             }
         } catch (Exception e) {
             loge("show: " + e.toString());
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-                    toolbar.setTitle("Дневник");
-                    toolbar.setClickable(false);
-                    setHasOptionsMenu(true);
-                    ((MainActivity) getActivity()).setSupportActionBar(toolbar);
-                    v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-                    v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
-                }
+            getActivity().runOnUiThread(() -> {
+                Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+                toolbar.setTitle("Дневник");
+                toolbar.setClickable(false);
+                setHasOptionsMenu(true);
+                ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+                v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+                v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
             });
         }
     }
@@ -447,6 +450,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         Download2(periods[6].id, 6, true, true);
                     }
                 } catch (Exception e) {
+                    loge("Download1() " + e.toString());
                     sasha(String.valueOf(e));
                 }
             }
@@ -617,9 +621,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         date1 = Long.valueOf(String.valueOf(object2.getString("date")));
                         isODOD = object2.getInt("isODOD");
                         if (isODOD != 1) {
-                            if (!date1.equals(day1) || date1 - day1 != 0) {
+                            if (!date1.equals(day1)) {
                                 index++;
                                 Date date = new Date(date1);
+                                date.setHours(0);
+                                date.setMinutes(0);
+                                date1 = date.getTime();
                                 PeriodFragment.Day thisday = new PeriodFragment.Day();
                                 thisday.day = String.valueOf(date);
                                 thisday.daymsec = date1;
@@ -651,6 +658,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                         break;
                                 }
                                 thisday.lessons = new ArrayList<>();
+//                                log("added day " + date.toString());
                                 periods[pernum].days
                                         .add(thisday);
                             }
@@ -692,8 +700,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         }
                         day1 = date1;
                     }
-
-
 
                     log(1);
                     for (int i = 0; i < periods[pernum].days.size(); i++) {
@@ -743,12 +749,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
                     if(getActivity()!=null) {
                         if(((MainActivity)getActivity()).getStackTop() instanceof ScheduleFragment)
-                            getActivity().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    show();
-                                }
-                            });
+                            getActivity().runOnUiThread(() -> show());
                     }
 
                     // цикл на ~3 секунд
@@ -841,26 +842,22 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                 try {
                                                     final int finalJ = j;
                                                     final int finalL = l;
-                                                    txt1.setOnClickListener(new View.OnClickListener() {
-
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                                            MarkFragment fragment = new MarkFragment();
-                                                            transaction.replace(R.id.frame, fragment);
-                                                            try {
-                                                                fragment.coff = d;
-                                                                fragment.data = less.marks.get(finalL).date;
-                                                                fragment.markdata = less.marks.get(finalL).markdate;
-                                                                fragment.teachname = less.marks.get(finalL).teachFio;
-                                                                fragment.topic = less.marks.get(finalL).topic;
-                                                                fragment.value = less.marks.get(finalL).value;
-                                                                fragment.subject = periods[pernum].subjects.get(finalJ).name;
-                                                            } catch (Exception ignore) {
-                                                            }
-                                                            transaction.addToBackStack(null);
-                                                            transaction.commit();
+                                                    txt1.setOnClickListener(v -> {
+                                                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                                        MarkFragment fragment = new MarkFragment();
+                                                        transaction.replace(R.id.frame, fragment);
+                                                        try {
+                                                            fragment.coff = d;
+                                                            fragment.data = less.marks.get(finalL).date;
+                                                            fragment.markdata = less.marks.get(finalL).markdate;
+                                                            fragment.teachname = less.marks.get(finalL).teachFio;
+                                                            fragment.topic = less.marks.get(finalL).topic;
+                                                            fragment.value = less.marks.get(finalL).value;
+                                                            fragment.subject = periods[pernum].subjects.get(finalJ).name;
+                                                        } catch (Exception ignore) {
                                                         }
+                                                        transaction.addToBackStack(null);
+                                                        transaction.commit();
                                                     });
                                                 } catch (Exception ignore) {
                                                 }
@@ -923,12 +920,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     log("Dowload2() ended");
                     if (TheSingleton.getInstance().t1 > 0) {
                         final long t = System.currentTimeMillis() - TheSingleton.getInstance().t1;
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Toast.makeText(getContext(), "loading ended in " + t + " ms", Toast.LENGTH_SHORT).show();
-                            }
-                        });
+                        getActivity().runOnUiThread(() ->
+                                Toast.makeText(getContext(), "loading ended in " + t + " ms", Toast.LENGTH_SHORT).show());
                         log("loading ended in " + t + " ms");
                         TheSingleton.getInstance().t1 = 0;
                     }
@@ -1009,7 +1002,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     @Override
     public void onResume() {
-        if(!shown) show();
+        if(!shown && periods[pernum].days != null) show();
+        if(getActivity() != null) {
+            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            if(toolbar != null)
+                toolbar.setTitle("Дневник");
+        }
         super.onResume();
     }
 
