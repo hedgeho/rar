@@ -1,5 +1,6 @@
 package com.example.sch;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
@@ -40,12 +41,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.Permission;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.example.sch.LoginActivity.connect;
@@ -261,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
         int userId = -1, prsId;
         String name;
         SharedPreferences pref = getSharedPreferences("pref", 0);
-        if(pref.getInt("userId", -1) == -1 && !pref.getBoolean("auto", true)) {
+        if(pref.getInt("userId", -1) == -1) {
          //if(true) {
             log("userId not found, calling state");
             url = new URL("https://app.eschool.center/ec-server/state?menu=false");
@@ -409,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
             this.url = url;
             this.name = name;
             this.useCookies = useCookies;
-            ActivityCompat.requestPermissions(this, new String[]{"android.permission.WRITE_EXTERNAL_STORAGE"}, 12345);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 12345);
         } else {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
             try {

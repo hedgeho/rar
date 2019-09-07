@@ -1,11 +1,15 @@
 package com.example.sch;
 
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.Image;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -28,6 +32,18 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.Header;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MinimalField;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,19 +55,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-//import okhttp3.MediaType;
-//import okhttp3.MultipartBody;
-//import okhttp3.RequestBody;
-//import retrofit2.Retrofit;
-//import retrofit2.converter.gson.GsonConverterFactory;
+import io.grpc.internal.IoUtils;
 
+import static android.support.v4.content.ContextCompat.checkSelfPermission;
 import static android.view.View.GONE;
 import static com.example.sch.LoginActivity.connect;
 import static com.example.sch.LoginActivity.log;
@@ -59,20 +75,6 @@ import static com.example.sch.LoginActivity.loge;
 import static java.util.Calendar.MONTH;
 import static java.util.Calendar.YEAR;
 import static java.util.Calendar.getInstance;
-
-//import org.apache.http.client.HttpClient;
-//import org.apache.http.HttpResponse;
-//import org.apache.http.client.HttpClient;
-//import org.apache.http.client.methods.HttpPost;
-//import org.apache.http.entity.mime.MultipartEntity;
-//import org.apache.http.entity.mime.content.FileBody;
-//import org.apache.http.entity.mime.content.StringBody;
-//import org.apache.http.impl.client.DefaultHttpClient;
-
-//import org.apache.http.client.HttpClient;
-//import org.apache.http.client.methods.HttpPost;
-//import org.apache.http.entity.mime.MultipartEntity;
-//import org.apache.http.client.methods.HttpPost;
 
 public class ChatFragment extends Fragment {
 
@@ -98,9 +100,24 @@ public class ChatFragment extends Fragment {
     boolean group = false;
 
     @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+
+        getActivity().findViewById(R.id.btn_file).setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            startActivityForResult(intent, 43);
+        });
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
+
+
 
         this.inflater = inflater;
 
@@ -120,6 +137,27 @@ public class ChatFragment extends Fragment {
         this.container = view.findViewById(R.id.main_container);
         this.view = view;
         return view;
+    }
+
+    File pinned = null;
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            pinned = new File(data.getData().getPath().replace("/document/raw:", ""));
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
+        } else {
+            System.out.println("result");
+            uploadFile(new File(data.getData().getPath().replace("/document/raw:", "")));
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if(grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == 124) {
+            uploadFile(pinned);
+        }
     }
 
     @Override
@@ -372,6 +410,7 @@ public class ChatFragment extends Fragment {
                                     h.sendEmptyMessage(0);
                                 } catch (Exception e) {
                                     loge("on scroll top: " + e.toString());
+                                    e.printStackTrace();
                                 }
                             }
                         }.start();
@@ -499,6 +538,7 @@ public class ChatFragment extends Fragment {
                                     }
                                     h.sendEmptyMessage(0);
                                 } catch (Exception e) {
+                                    e.printStackTrace();
                                     loge("on scroll bottom: " + e.toString());
                                 }
                             }
@@ -508,182 +548,162 @@ public class ChatFragment extends Fragment {
                 }
             };
             scroll.getViewTreeObserver().addOnScrollChangedListener(listener);
-        h = new Handler() {
-            @Override
-            public void handleMessage(Message yoy) {
-                //final LinearLayout container = view.findViewById(R.id.main_container);
-                if(container == null)
-                    container = view.findViewById(R.id.main_container);
-                container.removeAllViews();
-                View item;
-                TextView tv, tv_attach;
-                Calendar cal = Calendar.getInstance(), cal1 = Calendar.getInstance();
-                log(messages.length + "");
-                Msg msg;
-                for (int i = messages.length-1; i >= 0; i--) {
-                    msg = messages[i];
-                    if (msg.text.equals(""))
-                        continue;
-                    if(i != messages.length-1) {
-                        cal.setTime(msg.time);//tg
-                        cal1.setTime(messages[i+1].time);
-                        if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
-                            item = inflater.inflate(R.layout.date_divider, container, false);
-                            tv = item.findViewById(R.id.tv_date);
-                            tv.setText(getDate(cal));
-                            container.addView(item);
+            h = new Handler() {
+                @Override
+                public void handleMessage(Message yoy) {
+                    //final LinearLayout container = view.findViewById(R.id.main_container);
+                    if(container == null)
+                        container = view.findViewById(R.id.main_container);
+                    container.removeAllViews();
+                    View item;
+                    TextView tv, tv_attach;
+                    Calendar cal = Calendar.getInstance(), cal1 = Calendar.getInstance();
+                    log(messages.length + "");
+                    Msg msg;
+                    for (int i = messages.length-1; i >= 0; i--) {
+                        msg = messages[i];
+                        if (msg.text.equals(""))
+                            continue;
+                        if(i != messages.length-1) {
+                            cal.setTime(msg.time);//tg
+                            cal1.setTime(messages[i+1].time);
+                            if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
+                                item = inflater.inflate(R.layout.date_divider, container, false);
+                                tv = item.findViewById(R.id.tv_date);
+                                tv.setText(getDate(cal));
+                                container.addView(item);
+                            }
                         }
-                    }
-                    if(PERSON_ID == msg.user_id) {
-                        item = inflater.inflate(R.layout.chat_item, container, false);
-                    } else {
-                        item = inflater.inflate(R.layout.chat_item_left, container, false);
-                    }
-                    tv = item.findViewById(R.id.chat_tv_sender);
-                    if(!group && tv != null) {
-                        tv.setVisibility(GONE);
-                    } else if(tv != null) {
-                        tv.setText(msg.sender);
-                        tv.setVisibility(View.VISIBLE);
-                    }
-                    tv = item.findViewById(R.id.tv_text);
-                    if(Html.fromHtml(msg.text).toString().equals("")) {
-                        tv.setVisibility(GONE);
-                    }
-                    tv.setText(Html.fromHtml(msg.text));
-                    tv = item.findViewById(R.id.tv_time);
-                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
+                        if(PERSON_ID == msg.user_id) {
+                            item = inflater.inflate(R.layout.chat_item, container, false);
+                        } else {
+                            item = inflater.inflate(R.layout.chat_item_left, container, false);
+                        }
+                        tv = item.findViewById(R.id.chat_tv_sender);
+                        if(!group && tv != null) {
+                            tv.setVisibility(GONE);
+                        } else if(tv != null) {
+                            tv.setText(msg.sender);
+                            tv.setVisibility(View.VISIBLE);
+                        }
+                        tv = item.findViewById(R.id.tv_text);
+                        if(Html.fromHtml(msg.text).toString().equals("")) {
+                            tv.setVisibility(GONE);
+                        }
+                        tv.setText(Html.fromHtml(msg.text));
+                        tv = item.findViewById(R.id.tv_time);
+                        tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
 //                    item.setPadding(0, 16, 4, 0);
-                    if(PERSON_ID != msg.user_id) {
-                        item.setTag(R.id.TAG_POSITION, "left");
-                    } else
-                        item.setTag(R.id.TAG_POSITION, "right");
-                    if(msg.files != null) {
-                        for (final Attach a: msg.files) {
-                            tv_attach = new TextView(context);
-                            float size = a.size;
-                            String s = "B";
-                            if  (size > 900) {
-                                s = "KB";
-                                size /= 1024;
-                            }
-                            if (size > 900) {
-                                s = "MB";
-                                size /= 1024;
-                            }
-                            tv_attach.setText(String.format(Locale.getDefault(), "%s (%.2f "+ s + ")", a.name, size));
-                            tv_attach.setTextColor(getResources().getColor(R.color.two));
-                            tv_attach.setOnClickListener(v -> {
-                                String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                            });
-                            tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
-                            ((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
-                        }
-                    }  else
-                        item.findViewById(R.id.attach).setVisibility(GONE);
-                    if(msg.msg_id == searchMsgId) {
-                        log("result found");
-                        item.setTag("result");
-                    }
-                    container.addView(item);
-                }
-                view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
-
-                if(scroll == null)
-                    scroll = view.findViewById(R.id.scroll);
-                if(scroll == null)
-                    scroll = ChatFragment.this.view.findViewById(R.id.scroll);
-                scroll.post(() -> {
-                    if(searchMsgId == -1)
-                        scroll.fullScroll(ScrollView.FOCUS_DOWN);
-                    else {
-                        scroll.scrollTo(0, container.findViewWithTag("result").getTop());
-                        container.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_highlited));
-                        //scrolled = true;
-                    }
-                });
-
-                final EditText et = view.findViewById(R.id.et);
-                scroll = view.findViewById(R.id.scroll);
-
-                view.findViewById(R.id.btn_send).setOnClickListener(v -> {
-                    final String text = et.getText().toString();
-                    final ArrayList<Uri> files = attach;
-                    //attach = null;
-                    et.setText("");
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            try {
-                                getActivity().runOnUiThread(() -> {
-                                    View item1 = inflater.inflate(R.layout.chat_item, container, false);
-                                    TextView tv1 = item1.findViewById(R.id.tv_text);
-                                    if (Html.fromHtml(text).toString().equals("")) {
-                                        tv1.setVisibility(GONE);
-                                    }
-                                    tv1.setText(Html.fromHtml(text));
-                                    tv1 = item1.findViewById(R.id.tv_time);
-                                    tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
-                                    container.addView(item1);
-                                    //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
-                                });
-                                if(files != null) {
-                                    try {
-//                                            sendFile(files.get(0), threadId, text);
-                                        uploadFile(files.get(0));
-                                    } catch (Exception e) {
-                                        loge("sendFile: " + e.toString());
-                                    }
-                                } else {
-                                    connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
-                                            "&msgUID=" + System.currentTimeMillis(), context);
+                        if(PERSON_ID != msg.user_id) {
+                            item.setTag(R.id.TAG_POSITION, "left");
+                        } else
+                            item.setTag(R.id.TAG_POSITION, "right");
+                        if(msg.files != null) {
+                            for (final Attach a: msg.files) {
+                                tv_attach = new TextView(context);
+                                float size = a.size;
+                                String s = "B";
+                                if  (size > 900) {
+                                    s = "KB";
+                                    size /= 1024;
                                 }
-                            } catch (Exception e) {
-                                loge("rar: " + e.toString());
+                                if (size > 900) {
+                                    s = "MB";
+                                    size /= 1024;
+                                }
+                                tv_attach.setText(String.format(Locale.getDefault(), "%s (%.2f "+ s + ")", a.name, size));
+                                tv_attach.setTextColor(getResources().getColor(R.color.two));
+                                tv_attach.setOnClickListener(v -> {
+                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                });
+                                tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
+                                ((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
                             }
+                        }  else
+                            item.findViewById(R.id.attach).setVisibility(GONE);
+                        if(msg.msg_id == searchMsgId) {
+                            log("result found");
+                            item.setTag("result");
                         }
-                    }.start();
-                });
-//                view.findViewById(R.id.btn_file).setOnClickListener(v -> {
-//                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-//
-//                    // Filter to only show results that can be "opened", such as a
-//                    // file (as opposed to a list of contacts or timezones)
-//                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-//
-//                    // Filter to show only images, using the image MIME data type.
-//                    // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-//                    // To search for all documents available via installed storage providers,
-//                    // it would be "*/*".
-//                    intent.setType("*/*");
-//
-//                    startActivityForResult(intent, 42);
-//                });
-                first_time = false;
-                if(itemToEnable != null)
-                    itemToEnable.setEnabled(true);
-            }
-        };
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    download(h);
-                } catch (Exception e) {loge("onViewCreated() run: " + e.toString());}
-            }
-        }.start();
-    }
-    }
+                        container.addView(item);
+                    }
+                    view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        log("result");
+                    if(scroll == null)
+                        scroll = view.findViewById(R.id.scroll);
+                    if(scroll == null)
+                        scroll = ChatFragment.this.view.findViewById(R.id.scroll);
+                    scroll.post(() -> {
+                        if(searchMsgId == -1)
+                            scroll.fullScroll(ScrollView.FOCUS_DOWN);
+                        else {
+                            scroll.scrollTo(0, container.findViewWithTag("result").getTop());
+                            container.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_highlited));
+                            //scrolled = true;
+                        }
+                    });
 
-        if(attach == null)
-            attach = new ArrayList<>();
+                    final EditText et = view.findViewById(R.id.et);
+                    scroll = view.findViewById(R.id.scroll);
 
-        attach.add(data.getData());
+                    view.findViewById(R.id.btn_send).setOnClickListener(v -> {
+                        final String text = et.getText().toString();
+                        final ArrayList<Uri> files = attach;
+                        //attach = null;
+                        et.setText("");
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    getActivity().runOnUiThread(() -> {
+                                        View item1 = inflater.inflate(R.layout.chat_item, container, false);
+                                        TextView tv1 = item1.findViewById(R.id.tv_text);
+                                        if (Html.fromHtml(text).toString().equals("")) {
+                                            tv1.setVisibility(GONE);
+                                        }
+                                        tv1.setText(Html.fromHtml(text));
+                                        tv1 = item1.findViewById(R.id.tv_time);
+                                        tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
+                                        container.addView(item1);
+                                        //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+                                    });
+                                    if(files != null) {
+                                        try {
+//                                            sendFile(files.get(0), threadId, text);
+                                            uploadFile(new File(files.get(0).getPath()));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            loge("sendFile: " + e.toString());
+                                        }
+                                    } else {
+                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
+                                                "&msgUID=" + System.currentTimeMillis(), context);
+                                    }
+                                } catch (Exception e) {
+                                    loge("rar: " + e.toString());
+                                    e.printStackTrace();
+                                }
+                            }
+                        }.start();
+                    });
+                    first_time = false;
+                    if(itemToEnable != null)
+                        itemToEnable.setEnabled(true);
+                }
+            };
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        download(h);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        loge("onViewCreated() run: " + e.toString());
+                    }
+                }
+            }.start();
+        }
     }
 
     @Override
@@ -698,7 +718,10 @@ public class ChatFragment extends Fragment {
             public void run() {
                 try {
                     connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, context);
-                } catch (Exception e) {loge(e.toString());}
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    loge(e.toString());
+                }
             }
         }.start();
 
@@ -753,127 +776,39 @@ public class ChatFragment extends Fragment {
     }
 
     // testing, trying to send a file (not working)
-    private void uploadFile(Uri uri) throws IOException {
-        HttpURLConnection conn = null;
-        DataOutputStream dos = null;
-        String lineEnd = "\r\n";
-        String twoHyphens = "--";
-        //String boundary = "----WebKitFormBoundarymBTAnQQ5kHFE0Vyx";
-        String boundary = "----WebKitFormBoundarywivugwcoddchjcde";
-        int bytesRead, bytesAvailable, bufferSize;
-        byte[] buffer;
-        int maxBufferSize = 1024 * 1024 * 1024;
-        File file = new File(getActivity().getCacheDir(), "test.png");
-        OutputStream outputStream = new FileOutputStream(file);
-        InputStream is = context.getContentResolver().openInputStream(uri);
-
-        int read;
-        byte[] bytes = new byte[1024];
-        while ((read = is.read(bytes)) != -1) {
-            outputStream.write(bytes, 0, read);
-        }
-
-        log("file path: " + file.getAbsolutePath());
-
-        if (!file.isFile()) {
-
-            loge("Source File not exist");
-        } else {
+    public void uploadFile(File file) {
+        new Thread(()-> {
             try {
+                System.out.println(file.getAbsolutePath());
+                HttpURLConnection connection = (HttpURLConnection) new URL("https://app.eschool.center/ec-server/chat/sendNew").openConnection();
+                connection.setDoOutput(true);
+                connection.setRequestMethod("POST");
 
-                // open a URL connection to the Servlet
-                FileInputStream fileInputStream = new FileInputStream(file);
-                URL url = new URL("https://app.eschool.center/ec-server/chat/sendNew");
+                MultipartEntityBuilder reqEntity = MultipartEntityBuilder.create();
+                reqEntity.setBoundary("----WebKitFormBoundaryfgXAnWy3pntveyQZ");
+                reqEntity.addBinaryBody("file", file, ContentType.create("image/jpeg"), file.getName());
+                reqEntity.addTextBody("threadId", "" + threadId);
+                reqEntity.addTextBody("msgUID", "" + System.currentTimeMillis());
+                reqEntity.addTextBody("msgText", "");
 
-                // Open a HTTP  connection to  the URL
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setDoInput(true); // Allow Inputs
-                conn.setDoOutput(true); // Allow Outputs
-                conn.setUseCaches(false); // Don't use a Cached Copy
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Connection", "Keep-Alive");
-                conn.setRequestProperty("ENCTYPE", "multipart/form-data");
-                conn.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
-//                conn.setRequestProperty("Content-Length", "12094");
-//                conn.setRequestProperty("uploaded_file", "test.png");
-                conn.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-
-                dos = new DataOutputStream(conn.getOutputStream());
-
-                StringBuilder msg = new StringBuilder();
-                msg.append(boundary);
-                msg.append("Content-Disposition: form-data; name=\"msgText\"" + lineEnd);
-                msg.append("test text");
-
-                msg.append(boundary);
-                msg.append("Content-Disposition: form-data; name=\"threadId\"" + lineEnd);
-                msg.append("611127");
-
-                msg.append(boundary);
-                msg.append("Content-Disposition: form-data; name=\"msgUID\"" + lineEnd);
-                msg.append("" + System.currentTimeMillis());
-
-                log("l: " + msg.toString().getBytes().length);
-
-                dos.writeBytes("--" + boundary);
-                dos.writeBytes("Content-Disposition: form-data; name=\"msgText\"" + lineEnd);
-                dos.writeBytes(lineEnd + "test text" + lineEnd);
-
-                dos.writeBytes("--" + boundary);
-                dos.writeBytes(lineEnd + "Content-Disposition: form-data; name=\"threadId\"" + lineEnd);
-                dos.writeBytes(lineEnd + "611127" + lineEnd);
-
-                dos.writeBytes("--" + boundary);
-                dos.writeBytes(lineEnd + "Content-Disposition: form-data; name=\"msgUID\"" + lineEnd);
-                dos.writeBytes(lineEnd + System.currentTimeMillis() + lineEnd);
-
-                log(System.currentTimeMillis() + "");
-                //dos.writeBytes(twoHyphens + boundary + lineEnd);
-                dos.writeBytes("--" + boundary);
-                dos.writeBytes("Content-Disposition: form-data; name=\"file\";filename=\""
-                        + "test.png" + "\"" + lineEnd);
-                dos.writeBytes("Content-Type: text/*\n\r");
-
-                log(msg.toString());
-//                dos.writeBytes(lineEnd);
-
-                // create a buffer of  maximum size
-                bytesAvailable = fileInputStream.available();
-
-                bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                buffer = new byte[bufferSize];
-
-                // read file and write it into form...
-                bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-
-                while (bytesRead > 0) {
-                    dos.write(buffer, 0, bufferSize);
-                    bytesAvailable = fileInputStream.available();
-                    bufferSize = Math.min(bytesAvailable, maxBufferSize);
-                    bytesRead = fileInputStream.read(buffer, 0, bufferSize);
-                }
-
-                // send multipart form data necessary after file data...
-//                dos.writeBytes(lineEnd);
-//                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
-                dos.writeBytes(boundary);
-
-                // Responses from the server (code and message)
-                int serverResponseCode = conn.getResponseCode();
-                String serverResponseMessage = conn.getResponseMessage();
-
-                log("HTTP Response is: "
-                        + serverResponseMessage + ": " + serverResponseCode);
-
-
-                //close the streams //
-                fileInputStream.close();
-                dos.flush();
-                dos.close();
-            } catch (Exception e) {
-                loge(e.toString());
+                connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
+                connection.connect();
+                reqEntity.build().writeTo(connection.getOutputStream());
+                reqEntity.build().writeTo(System.out);
+                if(connection.getErrorStream() != null) IoUtils.copy(connection.getErrorStream(), System.err);
+                if(connection.getInputStream() != null) IoUtils.copy(connection.getInputStream(), System.out);
+                System.out.println(connection.getResponseCode() + " " + connection.getResponseMessage());
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            } catch (ProtocolException e) {
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } // End else block
+        }).start();
     }
 
     private void sendFile(Uri uri, int threadId, String text) throws IOException {
@@ -920,7 +855,7 @@ public class ChatFragment extends Fragment {
         });*/
     }
 
-   // private static void sendFile(Uri uri, int threadId, String text){
+    // private static void sendFile(Uri uri, int threadId, String text){
 //        File file = new File(uri.getPath());
 //        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
 //        try {
@@ -958,7 +893,7 @@ public class ChatFragment extends Fragment {
     //  }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
-        "октября", "ноября", "декабря"};
+            "октября", "ноября", "декабря"};
 
     private static String getDate(Calendar calendar) {
         int day = calendar.get(Calendar.DAY_OF_MONTH),

@@ -62,20 +62,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     String[] days1 = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
     ViewPager pager;
     PagerAdapter pagerAdapter;
-    LinearLayout linear1;
     int lastposition;
     ArrayList<PageFragment> pageFragments;
     View v;
     DatePickerDialog datePickerDialog;
     int[] week;
-    int yearname = 2019;
+    int yearname = Calendar.getInstance().get(Calendar.MONTH) < Calendar.JULY ? Calendar.getInstance().get(Calendar.YEAR)-1 : Calendar.getInstance().get(Calendar.YEAR);
     KindaList[] s = new KindaList[11];
     String[] name = {"1 четверть", "2 четверть", "1 полугодие", "3 четверть", "4 четверть",
             "2 полугодие", "Годовая оценка", "Экзамен", "Оценка за ОГЭ", "Оценка в аттестат"};
     Period[] periods = new Period[7];
-    private int startYear = 2019;
-    private int starthMonth = 1;
-    private int startDay = 1;
     int yeatid;
 
     public ScheduleFragment () {
@@ -177,29 +173,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             pager.setAdapter(pagerAdapter);
             pager.setCurrentItem(pageCount / 2 + 1);
             lastposition = pager.getCurrentItem();
-            int w;
-            if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {
-                w = 7;
-            } else
-                w = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1;
-            sasha("hshs " + pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_MONTH) + " " + w);
 
-            for (int i = w - 1; i < 7; i++) {
-                week[i] = pager.getCurrentItem() - 1 + i - w + 1 + 1;
-            }
-            for (int i = w - 2; i > -1; i--) {
-                week[i] = pager.getCurrentItem() - 1 + i - w + 1 + 1;
-            }
-            for (int i = 0; i < 7; i++) {
-                sasha(week[i] + "SSS");
-            }
-            sasha(lastposition + " last " + pageFragments.get(lastposition - 1).c.get(Calendar.DAY_OF_WEEK) + " " + pageFragments.get(lastposition - 1).c.get(Calendar.DAY_OF_MONTH));
-            pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            Calendar date = Calendar.getInstance();
+            datePickerDialog = new DatePickerDialog(getContext(), ScheduleFragment.this, date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
+            ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageSelected(int position) {
-                    if(position == 0 || position == 1)
-                        return;
-                    okras(tv);
                     int w;
                     if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {
                         w = 7;
@@ -217,52 +196,19 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     for (int i = 0; i < 7; i++) {
                         sasha(week[i] + "SSS");
                     }
-                    for (int i = 0; i < 7; i++) {
-                        String s = days1[i] + "\n" + pageFragments.get(week[i] - 1).c.get(Calendar.DAY_OF_MONTH);
-                        Spannable spans = new SpannableString(s);
-                        spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                        spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                        spans.setSpan(new ForegroundColorSpan(Color.WHITE), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        tv[i].setText(spans);
-                    }
-                    tv[w - 1].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
-                    String s = days1[w - 1] + "\n" + pageFragments.get(week[w - 1] - 1).c.get(Calendar.DAY_OF_MONTH);
-                    Spannable spans = new SpannableString(s);
-                    spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                    spans.setSpan(new ForegroundColorSpan(Color.BLACK), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                    spans.setSpan(new ForegroundColorSpan(Color.BLACK), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    tv[w - 1].setText(spans);
-                    lastposition = pager.getCurrentItem();
-                    startDay = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_MONTH);
-                    starthMonth = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.MONTH);
-                    startYear = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.YEAR);
-                    datePickerDialog = new DatePickerDialog(getContext(), ScheduleFragment.this, startYear, starthMonth, startDay);
-                    Calendar c = Calendar.getInstance();
-                    c.setTime(datenow);
-                    c.set(Calendar.MONTH, 8);
-                    c.set(Calendar.DAY_OF_MONTH, 1);
-                    c.set(Calendar.HOUR_OF_DAY, 0);
-                    c.set(Calendar.MINUTE, 0);
-                    c.set(Calendar.SECOND, 0);
-                    c.set(Calendar.MILLISECOND, 0);
-                    c.add(Calendar.YEAR, -1);
-                    long minDate = c.getTime().getTime();
-                    c.setTime(datenow);
-                    c.set(Calendar.MONTH, 7);
-                    c.set(Calendar.DAY_OF_MONTH, 0);
-                    c.set(Calendar.HOUR_OF_DAY, 0);
-                    c.set(Calendar.MINUTE, 0);
-                    c.set(Calendar.SECOND, 0);
-                    c.set(Calendar.MILLISECOND, 0);
-                    c.add(Calendar.MONTH, 1);
-                    long maxDate = c.getTime().getTime();
-                    datePickerDialog.getDatePicker().setMaxDate(maxDate);
-                    datePickerDialog.getDatePicker().setMinDate(minDate);
+                    Calendar date = Calendar.getInstance();
+                    date.add(Calendar.DATE, position-lastposition);
+                    datePickerDialog.updateDate(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
+                    Calendar MaxOrMinDate = Calendar.getInstance();
+                    MaxOrMinDate.add(Calendar.YEAR,1);
+                    datePickerDialog.getDatePicker().setMaxDate(MaxOrMinDate.getTimeInMillis());
+                    MaxOrMinDate.add(Calendar.YEAR,-2);
+                    datePickerDialog.getDatePicker().setMinDate(MaxOrMinDate.getTimeInMillis());
                     datePickerDialog.getDatePicker().setSpinnersShown(true);
                     day = w;
                     sasha(String.valueOf(position));
+                    date.add(Calendar.DAY_OF_WEEK, -1);
+                    okras(tv, date.get(Calendar.DAY_OF_WEEK)-1);
                 }
 
                 @Override
@@ -272,66 +218,22 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 @Override
                 public void onPageScrollStateChanged(int state) {
                 }
-            });
-            startDay = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_MONTH);
-            starthMonth = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.MONTH);
-            startYear = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.YEAR);
-            datePickerDialog = new DatePickerDialog(getContext(), ScheduleFragment.this, startYear, starthMonth, startDay);
-            Calendar c = Calendar.getInstance();
-            c.setTime(datenow);
-            c.set(Calendar.MONTH, 8);
-            c.set(Calendar.DAY_OF_MONTH, 1);
-            c.set(Calendar.HOUR_OF_DAY, 0);
-            c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0);
-            c.set(Calendar.MILLISECOND, 0);
-            c.add(Calendar.YEAR, -1);
-            long minDate = c.getTime().getTime();
-            c.setTime(datenow);
-            c.set(Calendar.MONTH, 9);
-            c.set(Calendar.DAY_OF_MONTH, 0);
-            c.set(Calendar.HOUR_OF_DAY, 0);
-            c.set(Calendar.MINUTE, 0);
-            c.set(Calendar.SECOND, 0);
-            c.set(Calendar.MILLISECOND, 0);
-            c.add(Calendar.MONTH, 1);
-            long maxDate = c.getTime().getTime();
-            datePickerDialog.getDatePicker().setMaxDate(maxDate);
-            datePickerDialog.getDatePicker().setMinDate(minDate);
-            datePickerDialog.getDatePicker().setSpinnersShown(true);
-            linear1 = v.findViewById(R.id.liner1);
-            linear1.setWeightSum(1);
-            for (int i = 0; i < 7; i++) {
-                tv[i] = new TextView(getContext());
-                tv[i].setId(i);
-                tv[i].setGravity(Gravity.CENTER);
-                tv[i].setTextColor(Color.WHITE);
+            };
+            pager.setOnPageChangeListener(onPageChangeListener);
+            onPageChangeListener.onPageSelected(pager.getCurrentItem());
 
-                String s = days1[i] + "\n" + pageFragments.get(week[i] - 1).c.get(Calendar.DAY_OF_MONTH);
-                Spannable spans = new SpannableString(s);
-                spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.WHITE), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                tv[i].setText(spans);
-                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                p.weight = (float) 1 / 7;
-                tv[i].setLayoutParams(p);
-                final int finalI = i;
-                tv[i].setOnClickListener(v -> {
-                    pager.setCurrentItem(pager.getCurrentItem() - (day - finalI - 1));
-                    day = finalI + 1;
-                });
-                linear1.addView(tv[i]);
-            }
-            tv[day - 1].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
-            String s = days1[day - 1] + "\n" + pageFragments.get(week[day - 1] - 1).c.get(Calendar.DAY_OF_MONTH);
-            Spannable spans = new SpannableString(s);
-            spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.BLACK), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.BLACK), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            tv[day - 1].setText(spans);
+//            for (int i = 0; i < 7; i++) {
+//                tv[i].setTextColor(Color.WHITE);
+//
+//                String s = days1[i] + "\n" + pageFragments.get(week[i] - 1).c.get(Calendar.DAY_OF_MONTH);
+//                Spannable spans = new SpannableString(s);
+//                spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+//                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+//                spans.setSpan(new ForegroundColorSpan(Color.WHITE), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                tv[i].setText(spans);
+//
+//            }
             first = false;
             Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
             toolbar.setTitle("Дневник");
@@ -344,7 +246,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 log("loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms");
                 //TheSingleton.getInstance().t1 = 0;
             }
+
         } catch (Exception e) {
+            e.printStackTrace();
             loge("show: " + e.toString());
             getActivity().runOnUiThread(() -> {
                 Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
@@ -357,16 +261,43 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             });
         }
     }
-    public void okras(TextView [] tv){
+
+    public void okras(TextView [] tv, int selected){
         for (int i = 0; i < 7; i++) {
-            tv[i].setBackground(null);
-            tv[i].setTextColor(Color.WHITE);
+            if(tv[i] == null) {
+                tv[i] = new TextView(getContext());
+                tv[i].setId(i);
+                tv[i].setGravity(Gravity.CENTER);
+                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                p.weight = (float) 1 / 7;
+                tv[i].setLayoutParams(p);
+                final int finalI = i;
+                tv[i].setOnClickListener(v -> {
+                    pager.setCurrentItem(pager.getCurrentItem() - (day - finalI - 1));
+                    day = finalI + 1;
+                });
+                LinearLayout linear1 = v.findViewById(R.id.liner1);
+                linear1.setWeightSum(1);
+                linear1.addView(tv[i]);
+            }
+            ForegroundColorSpan color;
+
+            if(i == selected){
+                tv[i].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
+                tv[i].setTextColor(Color.parseColor("#38423B"));
+                color = new ForegroundColorSpan(Color.parseColor("#38423B"));
+            }else {
+                tv[i].setBackground(null);
+                tv[i].setTextColor(Color.WHITE);
+                color = new ForegroundColorSpan(Color.WHITE);
+            }
+
             String s = days1[i] + "\n" + pageFragments.get(week[i] - 1).c.get(Calendar.DAY_OF_MONTH);
             Spannable spans = new SpannableString(s);
             spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans.setSpan(color, 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.WHITE), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans.setSpan(color, s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv[i].setText(spans);
         }
     }
@@ -437,6 +368,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                         break;
                                 }
                             }
+                            break;
                         }
                     }
 
@@ -537,7 +469,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                         connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
                                                 null, getContext()));
                             } catch (Exception e) {
-                                loge(e.toString());
+                                e.printStackTrace();
+            loge(e.toString());
                             }
                         }
                     }.start();
@@ -549,7 +482,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         log("lol no result: " + object.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
-                        periods[pernum].subjects.add(new PeriodFragment.Subject());
+                        PeriodFragment.Subject subject = new PeriodFragment.Subject();
                         JSONObject obj = array.getJSONObject(i);
                         if (obj.has("overMark")) {
                             double d = obj.getDouble("overMark");
@@ -557,17 +490,18 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             if (s.length() > 4) {
                                 s = String.format(Locale.UK, "%.2f", d);
                             }
-                            periods[pernum].subjects.get(i).avg = Double.valueOf(s);
+                            subject.avg = Double.valueOf(s);
                         }
                         if (obj.has("totalMark"))
-                            periods[pernum].subjects.get(i).totalmark = obj.getString("totalMark");
+                            subject.totalmark = obj.getString("totalMark");
                         if (obj.has("unitName"))
-                            periods[pernum].subjects.get(i).name = obj.getString("unitName");
+                            subject.name = obj.getString("unitName");
                         if (obj.has("rating"))
-                            periods[pernum].subjects.get(i).rating = obj.getString("rating");
+                            subject.rating = obj.getString("rating");
                         if (obj.has("unitId"))
-                            periods[pernum].subjects.get(i).unitid = obj.getInt("unitId");
-                        periods[pernum].subjects.get(i).cells = new ArrayList<>();
+                            subject.unitid = obj.getInt("unitId");
+                        subject.cells = new ArrayList<>();
+                        periods[pernum].subjects.add(subject);
                     }
 
                     while(true) {
@@ -704,39 +638,81 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     log(1);
                     for (int i = 0; i < periods[pernum].days.size(); i++) {
                         for (int j = 0; j < periods[pernum].cells.size(); j++) {
-                            s1 = periods[pernum].cells.get(j).date;
+                            PeriodFragment.Cell cell = periods[pernum].cells.get(j);
+                            s1 = cell.date;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                             d1 = format.parse(s1).getTime();
-                            if (periods[pernum].cells.get(j).mktWt != 0) {
+                            if (cell.mktWt != 0) {
                                 if (periods[pernum].days.get(i).daymsec - d1 == 0 || periods[pernum].days.get(i).daymsec.equals(d1)) {
                                     for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
-                                        if (periods[pernum].days.get(i).lessons.get(k).id.equals(periods[pernum].cells.get(j).lessonid)) {
+                                        if (periods[pernum].days.get(i).lessons.get(k).id.equals(cell.lessonid)) {
                                             PeriodFragment.Mark mark = new PeriodFragment.Mark();
-                                            mark.cell = periods[pernum].cells.get(j);
-                                            mark.idlesson = periods[pernum].cells.get(j).lessonid;
-                                            mark.coefficient = periods[pernum].cells.get(j).mktWt;
-                                            if (periods[pernum].cells.get(j).markvalue != null)
-                                                mark.value = periods[pernum].cells.get(j).markvalue;
+                                            mark.cell = cell;
+                                            mark.idlesson = cell.lessonid;
+                                            mark.coefficient = cell.mktWt;
+                                            if (cell.markvalue != null)
+                                                mark.value = cell.markvalue;
                                             else
                                                 mark.value = "";
-                                            mark.teachFio = periods[pernum].cells.get(j).teachFio;
-                                            mark.markdate = periods[pernum].cells.get(j).markdate;
-                                            mark.date = periods[pernum].cells.get(j).date;
+                                            mark.teachFio = cell.teachFio;
+                                            mark.markdate = cell.markdate;
+                                            mark.date = cell.date;
 
-                                            mark.topic = periods[pernum].cells.get(j).lptname;
-                                            mark.unitid = periods[pernum].cells.get(j).unitid;
+                                            mark.topic = cell.lptname;
+                                            mark.unitid = cell.unitid;
                                             for (int l = 0; l < periods[pernum].subjects.size() - 1; l++) {
                                                 if (periods[pernum].subjects.get(l).unitid == mark.unitid) {
-                                                    periods[pernum].subjects.get(l).cells.add(periods[pernum].cells.get(j));
-                                                    if (periods[pernum].subjects.get(l).shortname != null)
-                                                        periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
-                                                    if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
-                                                        periods[pernum].subjects.get(l).shortname = "Общест.";
-                                                    if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
-                                                        periods[pernum].subjects.get(l).shortname = "Физ-ра";
-                                                    if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
-                                                        periods[pernum].subjects.get(l).shortname = "Информ.";
+                                                    periods[pernum].subjects.get(l).cells.add(cell);
                                                 }
+                                                if(periods[pernum].subjects.get(l).shortname == null || periods[pernum].subjects.get(l).shortname.isEmpty()) {
+                                                    PeriodFragment.Subject subject = periods[pernum].subjects.get(l);
+                                                    switch (subject.name){
+                                                        case "Физика":
+                                                        case "Химия":
+                                                        case "История":
+                                                        case "Алгебра":
+                                                            subject.shortname = subject.name;
+                                                            break;
+                                                        case "БЕСЕДЫ КЛ РУК":
+                                                            subject.shortname = "Кл. Час";
+                                                            break;
+                                                        case "Биология":
+                                                            subject.shortname = "Биолог.";
+                                                            break;
+                                                        case "География":
+                                                            subject.shortname = "Геогр.";
+                                                            break;
+                                                        case "Геометрия":
+                                                            subject.shortname = "Геометр.";
+                                                            break;
+                                                        case "Литература":
+                                                            subject.shortname = "Лит-ра";
+                                                            break;
+                                                        case "Обществознание":
+                                                            subject.shortname = "Общ.";
+                                                            break;
+                                                        case "Русский язык":
+                                                            subject.shortname = "Рус. Яз.";
+                                                            break;
+                                                        case "Физическая культура":
+                                                            subject.shortname = "Физ-ра";
+                                                            break;
+                                                        default:
+                                                            periods[pernum].subjects.get(l).shortname = periods[pernum].subjects.get(l).name.substring(0,6);
+                                                    }
+
+                                                }
+//                                                    if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
+//                                                        periods[pernum].subjects.get(l).shortname = "Общест.";
+//                                                    else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
+//                                                        periods[pernum].subjects.get(l).shortname = "Физ-ра";
+//                                                    else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
+//                                                        periods[pernum].subjects.get(l).shortname = "Информ.";
+//                                                    else if (periods[pernum].subjects.get(l).shortname != null)
+//                                                        periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
+//                                                    else
+//                                                        periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
+//                                                }
                                             }
                                             periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
                                         }
@@ -931,6 +907,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (Exception e) {
                     sasha("second " + e);
+                    e.printStackTrace();
                     loge("Download2() " + e.toString());
                     periods[pernum].days = new ArrayList<>();
                     periods[pernum].subjects = new ArrayList<>();
