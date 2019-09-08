@@ -7,8 +7,8 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.net.Uri;
-import android.net.http.AndroidHttpClient;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -32,20 +32,25 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.Header;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MinimalField;
+import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.util.EntityUtilsHC4;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,7 +89,7 @@ public class ChatFragment extends Fragment {
     private int last_msg = -1;
     private ArrayList<Integer> first_msgs;
     private ScrollView scroll;
-    private ArrayList<File> attach = new ArrayList<>();
+    private ArrayList<Uri> attach;
     private boolean scrolled = false, first_time = true;
     private MenuItem itemToEnable = null;
 
@@ -142,6 +147,7 @@ public class ChatFragment extends Fragment {
             pinned = new File(data.getData().getPath().replace("/document/raw:", ""));
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
         } else {
+            System.out.println("result");
             uploadFile(new File(data.getData().getPath().replace("/document/raw:", "")));
         }
 
@@ -336,9 +342,12 @@ public class ChatFragment extends Fragment {
                                             }
                                             tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
                                             tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                            tv_attach.setOnClickListener(v -> {
-                                                String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                            tv_attach.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                }
                                             });
                                             ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                         }
@@ -466,9 +475,12 @@ public class ChatFragment extends Fragment {
                                             }
                                             tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
                                             tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                            tv_attach.setOnClickListener(v -> {
-                                                String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                            tv_attach.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                }
                                             });
                                             ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                         }
@@ -637,42 +649,43 @@ public class ChatFragment extends Fragment {
 
                     view.findViewById(R.id.btn_send).setOnClickListener(v -> {
                         final String text = et.getText().toString();
-                        ChatFragment.this.sendMessage(threadId, text);
+                        final ArrayList<Uri> files = attach;
+                        //attach = null;
                         et.setText("");
-//                        new Thread() {
-//                            @Override
-//                            public void run() {
-//                                try {
-//                                    getActivity().runOnUiThread(() -> {
-//                                        View item1 = inflater.inflate(R.layout.chat_item, container, false);
-//                                        TextView tv1 = item1.findViewById(R.id.tv_text);
-//                                        if (Html.fromHtml(text).toString().equals("")) {
-//                                            tv1.setVisibility(GONE);
-//                                        }
-//                                        tv1.setText(Html.fromHtml(text));
-//                                        tv1 = item1.findViewById(R.id.tv_time);
-//                                        tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
-//                                        container.addView(item1);
-//                                        //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
-//                                    });
-//                                    if(files != null) {
-//                                        try {
-////                                            sendFile(files.get(0), threadId, text);
-//                                            uploadFile(new File(files.get(0).getPath()));
-//                                        } catch (Exception e) {
-//                                            e.printStackTrace();
-//                                            loge("sendFile: " + e.toString());
-//                                        }
-//                                    } else {
-//                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
-//                                                "&msgUID=" + System.currentTimeMillis(), context);
-//                                    }
-//                                } catch (Exception e) {
-//                                    loge("rar: " + e.toString());
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                        }.start();
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    getActivity().runOnUiThread(() -> {
+                                        View item1 = inflater.inflate(R.layout.chat_item, container, false);
+                                        TextView tv1 = item1.findViewById(R.id.tv_text);
+                                        if (Html.fromHtml(text).toString().equals("")) {
+                                            tv1.setVisibility(GONE);
+                                        }
+                                        tv1.setText(Html.fromHtml(text));
+                                        tv1 = item1.findViewById(R.id.tv_time);
+                                        tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
+                                        container.addView(item1);
+                                        //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+                                    });
+                                    if(files != null) {
+                                        try {
+//                                            sendFile(files.get(0), threadId, text);
+                                            uploadFile(new File(files.get(0).getPath()));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            loge("sendFile: " + e.toString());
+                                        }
+                                    } else {
+                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
+                                                "&msgUID=" + System.currentTimeMillis(), context);
+                                    }
+                                } catch (Exception e) {
+                                    loge("rar: " + e.toString());
+                                    e.printStackTrace();
+                                }
+                            }
+                        }.start();
                     });
                     first_time = false;
                     if(itemToEnable != null)
@@ -764,27 +777,28 @@ public class ChatFragment extends Fragment {
 
     // testing, trying to send a file (not working)
     public void uploadFile(File file) {
-        attach.add(file);
-    }
-
-    private void sendMessage(int threadId, String text) {
         new Thread(()-> {
             try {
-                HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
-                HttpClient httpAsyncClient = AndroidHttpClient.newInstance("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393", getContext());
+                System.out.println(file.getAbsolutePath());
+                HttpURLConnection connection = (HttpURLConnection) new URL("https://app.eschool.center/ec-server/chat/sendNew").openConnection();
+                connection.setDoOutput(true);
+                connection.setRequestMethod("POST");
 
                 MultipartEntityBuilder reqEntity = MultipartEntityBuilder.create();
                 reqEntity.setBoundary("----WebKitFormBoundaryfgXAnWy3pntveyQZ");
-                for(File f : attach)
-                    reqEntity.addBinaryBody("file", f, ContentType.create("image/jpeg"), f.getName());
-                attach.clear();
+                reqEntity.addBinaryBody("file", file, ContentType.create("image/jpeg"), file.getName());
                 reqEntity.addTextBody("threadId", "" + threadId);
                 reqEntity.addTextBody("msgUID", "" + System.currentTimeMillis());
-                reqEntity.addTextBody("msgText", text, ContentType.parse("text/plain; charset=utf-8"));
-                post.setHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                post.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
-                post.setEntity(reqEntity.build());
-                System.out.println(httpAsyncClient.execute(post).getStatusLine().getStatusCode());
+                reqEntity.addTextBody("msgText", "");
+
+                connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
+                connection.connect();
+                reqEntity.build().writeTo(connection.getOutputStream());
+                reqEntity.build().writeTo(System.out);
+                if(connection.getErrorStream() != null) IoUtils.copy(connection.getErrorStream(), System.err);
+                if(connection.getInputStream() != null) IoUtils.copy(connection.getInputStream(), System.out);
+                System.out.println(connection.getResponseCode() + " " + connection.getResponseMessage());
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (ProtocolException e) {
@@ -795,8 +809,88 @@ public class ChatFragment extends Fragment {
                 e.printStackTrace();
             }
         }).start();
-
     }
+
+    private void sendFile(Uri uri, int threadId, String text) throws IOException {
+
+        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
+        File file = new File(getActivity().getCacheDir(), "test.png");
+        OutputStream outputStream = new FileOutputStream(file);
+        InputStream is = context.getContentResolver().openInputStream(uri);
+
+        int read;
+        byte[] bytes = new byte[1024];
+        while ((read = is.read(bytes)) != -1) {
+            outputStream.write(bytes, 0, read);
+        }
+
+        log("file path: " + file.getAbsolutePath());
+//        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
+//                .baseUrl("https://app.eschool.center").build();
+//        RequestBody requestBody = RequestBody.create(MediaType.parse("*/*"), file);
+//        MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
+//        RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
+        /*RetrofitInterface interf = retrofit.create(RetrofitInterface.class);
+        Call<Model> call = interf.getData("multipart/form-data; boundary=----WebKitFormBoundarymBTAnQQ5kHFE0Vyx",
+                TheSingleton.getInstance().getCOOKIE() + "vc; site_ver=app; routef=" +
+                TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.",
+                threadId, text, System.nanoTime(), fileToUpload, filename);
+        call.enqueue(new Callback<Model>() {
+            @Override
+            public void onResponse(Call call, Response response) {
+                log("success sending file");
+                log("code " + response.code());
+                log("message " + response.message());
+                Model model = (Model) response.body();
+                if(model != null)
+                    log("senderFio: " + model.toString());
+                else
+                    log("null response");
+            }
+
+            @Override
+            public void onFailure(Call call, Throwable t) {
+                loge("failure sending file: " + t.toString());
+            }
+        });*/
+    }
+
+    // private static void sendFile(Uri uri, int threadId, String text){
+//        File file = new File(uri.getPath());
+//        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
+//        try {
+//*//*//    implementation files('С:/Android Studio/Project/sch/libs/org.apache.httpcomponents.httpclient_4.2.6.v201311072007.jar')
+//    implementation 'org.apache.httpcomponents:httpcore:4.4.11'
+////    implementation 'org.apache.httpcomponents:httpmime:4.5.8'
+//    implementation('org.apache.httpcomponents:httpmime:4.3.6') {
+//        exclude module: "httpclient"
+//    }/*
+//            HttpClient client = new DefaultHttpClient();
+//            HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
+//            post.addHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+//            post.addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary5uljBdgmqcUaMUOM");
+//            MultipartEntity entity = new MultipartEntity();
+//            entity.addPart("threadId", new StringBody(threadId + ""));
+//            entity.addPart("msgText", new StringBody(text));
+//            entity.addPart("msgUID", new StringBody(System.nanoTime() + ""));
+//            entity.addPart("file", new FileBody(file));
+//          post.setEntity(entity);
+//             HttpResponse response = client.execute(post);
+//
+//            BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+//            String line;
+//            StringBuilder result = new StringBuilder();
+//            while ((line = rd.readLine()) != null) {
+//                result.append(line);
+//            }
+//            rd.close();
+//            log("response to file: " +  result.toString());
+//
+//        } catch (Exception e) {
+//            loge(e.toString());
+//        }
+//        log("files sent");
+    //  }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
             "октября", "ноября", "декабря"};

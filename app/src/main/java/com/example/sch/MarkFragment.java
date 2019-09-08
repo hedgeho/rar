@@ -114,6 +114,7 @@ public class MarkFragment extends Fragment {
             try {
                 Date date = format.parse(s1);
                 format = new SimpleDateFormat("EEEE, d MMMM yyyy", myDateFormatSymbols);
+                System.out.println(date);
                 s1 = format.format(date);
             } catch (ParseException e) {
                 e.printStackTrace();
