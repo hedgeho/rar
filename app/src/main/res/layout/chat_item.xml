@@ -71,7 +71,7 @@
     android:layout_height="wrap_content"
     android:paddingTop="8dp">
 
-    <com.example.sch.ChatBubble
+    <ru.gurhouse.sch.ChatBubble
         android:id="@+id/tv_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
