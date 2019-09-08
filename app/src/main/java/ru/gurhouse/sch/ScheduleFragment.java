@@ -182,7 +182,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     int w;
                     if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {
                         w = 7;
-
                     } else
                         w = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1;
                     sasha("hshs " + pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_MONTH) + " " + w);
@@ -242,7 +241,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
             if(TheSingleton.getInstance().t1 > 0) {
-                Toast.makeText(getContext(), "loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms", Toast.LENGTH_SHORT).show();
                 log("loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms");
                 //TheSingleton.getInstance().t1 = 0;
             }
@@ -901,8 +899,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     log("Dowload2() ended");
                     if (TheSingleton.getInstance().t1 > 0) {
                         final long t = System.currentTimeMillis() - TheSingleton.getInstance().t1;
-                        getActivity().runOnUiThread(() ->
-                                Toast.makeText(getContext(), "loading ended in " + t + " ms", Toast.LENGTH_SHORT).show());
                         log("loading ended in " + t + " ms");
                         TheSingleton.getInstance().t1 = 0;
                     }
@@ -926,7 +922,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        Calendar c1 = pageFragments.get(pager.getCurrentItem()).c;
+        Calendar c1 = (Calendar) pageFragments.get(pager.getCurrentItem()).c.clone();
         Calendar c2 = Calendar.getInstance();
         c1.setTime(datenow);
         c1.set(Calendar.YEAR, year);

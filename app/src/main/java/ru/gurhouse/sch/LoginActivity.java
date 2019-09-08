@@ -325,7 +325,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     static <T> void log(T msg) { if(msg != null) Log.v("mylog", msg.toString()); else loge("null log");}
     static <T> void loge(T msg) {if(msg != null) Log.e("mylog", msg.toString()); else loge("null log");}
 
-    static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException {
+    static String connect(String url, @Nullable String query, Context context, boolean put) throws IOException/*,
+            UnauthorizedException, NoInternetException*/ {
         log("connect " + url.replaceAll("https://app.eschool.center", "") + ", query: " + query);
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
@@ -347,7 +348,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             loge("query: '" + query + "'");
             if(context == null) {
                 loge("null context");
-                return "";
+                //throw new UnauthorizedException();
             }
             if(con.getResponseCode() == 401) {
                 Handler handler = new Handler(Looper.getMainLooper());
@@ -409,7 +410,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         } else
             return "";
     }
-    static String connect(String url, @Nullable String query, Context context) throws IOException {
+    static String connect(String url, @Nullable String query, Context context) throws IOException/*, UnauthorizedException,
+            NoInternetException*/ {
         return connect(url, query, context, false);
     }
+    static class NoInternetException extends Exception {}
+    static class UnauthorizedException extends Exception {}
 }
+

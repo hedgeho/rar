@@ -93,7 +93,6 @@ public class ChatFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-
         getActivity().findViewById(R.id.btn_file).setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -106,8 +105,6 @@ public class ChatFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
-
-
 
         this.inflater = inflater;
 
@@ -659,7 +656,6 @@ public class ChatFragment extends Fragment {
                                     });
                                     if(!files.isEmpty()) {
                                         try {
-//                                            sendFile(files.get(0), threadId, text);
                                             uploadFile(new File(files.get(0).getPath()));
                                             ChatFragment.this.sendMessage(threadId, text);
                                         } catch (Exception e) {
@@ -786,7 +782,9 @@ public class ChatFragment extends Fragment {
                 post.setHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
                 post.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
                 post.setEntity(reqEntity.build());
-                System.out.println(httpAsyncClient.execute(post).getStatusLine().getStatusCode());
+                int code = httpAsyncClient.execute(post).getStatusLine().getStatusCode();
+                System.out.println(code);
+                log("sending file code " + code);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (ProtocolException e) {
@@ -812,72 +810,7 @@ public class ChatFragment extends Fragment {
         }
 
         log("file path: " + file.getAbsolutePath());
-//        Retrofit retrofit = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create())
-//                .baseUrl("https://app.eschool.center").build();
-//        RequestBody requestBody = RequestBody.create(MediaType.parse("*/*"), file);
-//        MultipartBody.Part fileToUpload = MultipartBody.Part.createFormData("file", file.getName(), requestBody);
-//        RequestBody filename = RequestBody.create(MediaType.parse("text/plain"), file.getName());
-        /*RetrofitInterface interf = retrofit.create(RetrofitInterface.class);
-        Call<Model> call = interf.getData("multipart/form-data; boundary=----WebKitFormBoundarymBTAnQQ5kHFE0Vyx",
-                TheSingleton.getInstance().getCOOKIE() + "vc; site_ver=app; routef=" +
-                TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.",
-                threadId, text, System.nanoTime(), fileToUpload, filename);
-        call.enqueue(new Callback<Model>() {
-            @Override
-            public void onResponse(Call call, Response response) {
-                log("success sending file");
-                log("code " + response.code());
-                log("message " + response.message());
-                Model model = (Model) response.body();
-                if(model != null)
-                    log("senderFio: " + model.toString());
-                else
-                    log("null response");
-            }
-
-            @Override
-            public void onFailure(Call call, Throwable t) {
-                loge("failure sending file: " + t.toString());
-            }
-        });*/
     }
-
-    // private static void sendFile(Uri uri, int threadId, String text){
-//        File file = new File(uri.getPath());
-//        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
-//        try {
-//*//*//    implementation files('С:/Android Studio/Project/sch/libs/org.apache.httpcomponents.httpclient_4.2.6.v201311072007.jar')
-//    implementation 'org.apache.httpcomponents:httpcore:4.4.11'
-////    implementation 'org.apache.httpcomponents:httpmime:4.5.8'
-//    implementation('org.apache.httpcomponents:httpmime:4.3.6') {
-//        exclude module: "httpclient"
-//    }/*
-//            HttpClient client = new DefaultHttpClient();
-//            HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
-//            post.addHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-//            post.addHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary5uljBdgmqcUaMUOM");
-//            MultipartEntity entity = new MultipartEntity();
-//            entity.addPart("threadId", new StringBody(threadId + ""));
-//            entity.addPart("msgText", new StringBody(text));
-//            entity.addPart("msgUID", new StringBody(System.nanoTime() + ""));
-//            entity.addPart("file", new FileBody(file));
-//          post.setEntity(entity);
-//             HttpResponse response = client.execute(post);
-//
-//            BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-//            String line;
-//            StringBuilder result = new StringBuilder();
-//            while ((line = rd.readLine()) != null) {
-//                result.append(line);
-//            }
-//            rd.close();
-//            log("response to file: " +  result.toString());
-//
-//        } catch (Exception e) {
-//            loge(e.toString());
-//        }
-//        log("files sent");
-    //  }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
             "октября", "ноября", "декабря"};

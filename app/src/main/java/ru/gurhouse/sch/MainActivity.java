@@ -50,6 +50,8 @@ import java.net.URL;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
+import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -129,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     login(login, hash);
                 } catch (Exception e) {
-                    LoginActivity.loge("login: " + e.toString());}
+                    loge("login: " + e.toString());}
             }
         }.start();
 
@@ -193,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         auth_receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                LoginActivity.log("auth received");
+                log("auth received");
                 MainActivity.this.setResult(239, new Intent().putExtra("auth", "true"));
                 finish();
             }
@@ -213,9 +215,9 @@ public class MainActivity extends AppCompatActivity {
         /*View badge = */getLayoutInflater().inflate(R.layout.badge, itemView, true);
 
         if(getIntent().getBooleanExtra("notif", false)) {
-            LoginActivity.log("notif");
+            log("notif");
             if(getIntent().getStringExtra("type").equals("msg")) {
-                LoginActivity.log("type - msg");
+                log("type - msg");
                 bottomnav.setSelectedItemId(R.id.navigation_messages);
                 Toolbar toolbar = findViewById(R.id.toolbar);
                 toolbar.setTitle("Сообщения");
@@ -263,14 +265,14 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getSharedPreferences("pref", 0);
         if(pref.getInt("userId", -1) == -1) {
          //if(true) {
-            LoginActivity.log("userId not found, calling state");
+            log("userId not found, calling state");
             url = new URL("https://app.eschool.center/ec-server/state?menu=false");
             con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
             con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
             con.connect();
             result = new StringBuilder();
-            LoginActivity.log(con.getResponseMessage());
+            log(con.getResponseMessage());
 
             rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
 
@@ -279,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
             }
             rd.close();
 
-            LoginActivity.log("state: " + result.toString());
+            log("state: " + result.toString());
             JSONObject obj = new JSONObject(result.toString());
             if (obj.has("userId"))
                 userId = obj.getInt("userId");
@@ -292,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
             prsId = pref.getInt("prsId", -1);
             name = pref.getString("name", "");
         }
-        LoginActivity.log("userId: " + userId + ", prsId: " + prsId + ", name: " + name);
+        log("userId: " + userId + ", prsId: " + prsId + ", name: " + name);
         TheSingleton.getInstance().setUSER_ID(userId);
         TheSingleton.getInstance().setPERSON_ID(prsId);
         new Thread() {
@@ -301,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     scheduleFragment.start();
                 } catch (Exception e) {
-                    LoginActivity.loge(e.toString());
+                    loge(e.toString());
                 }
             }
         }.start();
@@ -321,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case 1:
                 bundle.putString(FirebaseAnalytics.Param.METHOD, "auto");
-                LoginActivity.log("auto");
+                log("auto");
                 break;
             case 2:
                 bundle.putString(FirebaseAnalytics.Param.METHOD, "password");
@@ -341,12 +343,12 @@ public class MainActivity extends AppCompatActivity {
         con.connect();
         OutputStream os = con.getOutputStream();
         os.write(("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()).getBytes());
-        LoginActivity.log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
+        log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
 
         if(con.getResponseCode() == 200)
-            LoginActivity.log("heroku login ok");
+            log("heroku login ok");
         else {
-            LoginActivity.loge("heroku login failed (" + con.getResponseCode() + "), msg: " + con.getResponseMessage());
+            loge("heroku login failed (" + con.getResponseCode() + "), msg: " + con.getResponseMessage());
         }
     }
 
@@ -402,10 +404,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void saveFile(String url, String name, boolean useCookies) {
-        LoginActivity.log("saving " + name);
+        log("saving " + name);
         int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
         if (permissionCheck < 0) {
-            LoginActivity.log("requesting permission to save file");
+            log("requesting permission to save file");
             this.url = url;
             this.name = name;
             this.useCookies = useCookies;
@@ -415,7 +417,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 request.setDescription("Downloading file from " + new URL(url).getHost());
             } catch (MalformedURLException e) {
-                LoginActivity.loge(e.toString());
+                loge(e.toString());
                 request.setDescription("Some Description");
             }
             request.setTitle(name);
@@ -438,19 +440,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if(url != null && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            LoginActivity.log("permission granted: " + permissions[0]);
+            log("permission granted: " + permissions[0]);
             saveFile(url, name, useCookies);
         } else
-            LoginActivity.log("permission denied: " + permissions[0]);
+            log("permission denied: " + permissions[0]);
         url = null;
     }
 
     @Override
     public void onBackPressed() {
-        LoginActivity.log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
+        log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
         List<Fragment> a = getSupportFragmentManager().getFragments();
         for (int i = 0; i < a.size(); i++) {
-            LoginActivity.log(a.get(i).toString());
+            log(a.get(i).toString());
         }
         //log("top: " + getStackTop());
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
@@ -474,12 +476,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        LoginActivity.log("onResume MainActivity");
-        try {            registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
+        log("onResume MainActivity");
+        try {
+            registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
             registerReceiver(internet_receiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
             registerReceiver(auth_receiver, new IntentFilter("ru.gurhouse.sch.auth"));
         } catch (Exception e) {
-            LoginActivity.loge(e.toString());
+            loge(e.toString());
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
         if (state == 1) {
@@ -493,13 +496,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        LoginActivity.log("onPause");
+        log("onPause");
         try {
             unregisterReceiver(receiver);
             unregisterReceiver(internet_receiver);
             unregisterReceiver(auth_receiver);
         } catch (Exception e) {
-            LoginActivity.loge(e.toString());
+            loge(e.toString());
         }
     }
 
@@ -516,10 +519,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
-                    LoginActivity.connect("https://still-cove-90434.herokuapp.com/logout",
+                    connect("https://still-cove-90434.herokuapp.com/logout",
                             "firebase_id=" + TheSingleton.getInstance().getFb_id(), getApplicationContext());
                 } catch (Exception e) {
-                    LoginActivity.loge("logout: " + e.toString());
+                    loge("logout: " + e.toString());
                 }
             }
         }.start();
