@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.net.http.AndroidHttpClient;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +32,8 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.json.JSONArray;
@@ -76,7 +79,7 @@ public class ChatFragment extends Fragment {
     private int last_msg = -1;
     private ArrayList<Integer> first_msgs;
     private ScrollView scroll;
-    private ArrayList<Uri> attach;
+    private ArrayList<File> attach = new ArrayList<>();
     private boolean scrolled = false, first_time = true;
     private MenuItem itemToEnable = null;
 
@@ -131,13 +134,12 @@ public class ChatFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            pinned = new File(data.getData().getPath().replace("/document/raw:", ""));
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
+            pinned = new File(ImageFilePath.getPath(getContext(), data.getData()));
         } else {
             System.out.println("result");
-            uploadFile(new File(data.getData().getPath().replace("/document/raw:", "")));
+            uploadFile(new File(ImageFilePath.getPath(getContext(), data.getData())));
         }
-
     }
 
     @Override
@@ -636,7 +638,7 @@ public class ChatFragment extends Fragment {
 
                     view.findViewById(R.id.btn_send).setOnClickListener(v -> {
                         final String text = et.getText().toString();
-                        final ArrayList<Uri> files = attach;
+                        final ArrayList<File> files = attach;
                         //attach = null;
                         et.setText("");
                         new Thread() {
@@ -655,10 +657,11 @@ public class ChatFragment extends Fragment {
                                         container.addView(item1);
                                         //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
                                     });
-                                    if(files != null) {
+                                    if(!files.isEmpty()) {
                                         try {
 //                                            sendFile(files.get(0), threadId, text);
                                             uploadFile(new File(files.get(0).getPath()));
+                                            ChatFragment.this.sendMessage(threadId, text);
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                             loge("sendFile: " + e.toString());
@@ -764,28 +767,26 @@ public class ChatFragment extends Fragment {
 
     // testing, trying to send a file (not working)
     public void uploadFile(File file) {
-        new Thread(()-> {
-            try {
-                System.out.println(file.getAbsolutePath());
-                HttpURLConnection connection = (HttpURLConnection) new URL("https://app.eschool.center/ec-server/chat/sendNew").openConnection();
-                connection.setDoOutput(true);
-                connection.setRequestMethod("POST");
+        attach.add(file);
+    }
 
+    private void sendMessage(int threadId, String text) {
+        new Thread(() -> {
+            try {
+                HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
+                HttpClient httpAsyncClient = AndroidHttpClient.newInstance("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393", getContext());
                 MultipartEntityBuilder reqEntity = MultipartEntityBuilder.create();
                 reqEntity.setBoundary("----WebKitFormBoundaryfgXAnWy3pntveyQZ");
-                reqEntity.addBinaryBody("file", file, ContentType.create("image/jpeg"), file.getName());
+                for (File f : attach)
+                    reqEntity.addBinaryBody("file", f, ContentType.create("image/jpeg"), f.getName());
+                attach.clear();
                 reqEntity.addTextBody("threadId", "" + threadId);
                 reqEntity.addTextBody("msgUID", "" + System.currentTimeMillis());
-                reqEntity.addTextBody("msgText", "");
-
-                connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
-                connection.connect();
-                reqEntity.build().writeTo(connection.getOutputStream());
-                reqEntity.build().writeTo(System.out);
-                if(connection.getErrorStream() != null) IoUtils.copy(connection.getErrorStream(), System.err);
-                if(connection.getInputStream() != null) IoUtils.copy(connection.getInputStream(), System.out);
-                System.out.println(connection.getResponseCode() + " " + connection.getResponseMessage());
+                reqEntity.addTextBody("msgText", text, ContentType.parse("text/plain; charset=utf-8"));
+                post.setHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                post.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
+                post.setEntity(reqEntity.build());
+                System.out.println(httpAsyncClient.execute(post).getStatusLine().getStatusCode());
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (ProtocolException e) {
@@ -797,7 +798,6 @@ public class ChatFragment extends Fragment {
             }
         }).start();
     }
-
     private void sendFile(Uri uri, int threadId, String text) throws IOException {
 
         log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);

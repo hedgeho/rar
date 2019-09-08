@@ -161,7 +161,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             daymsec = periods[pernum].days.get(y).daymsec;
                         }
                     }
-                    log("daymsec " + new Date(pageFragments.get(i).c.getTimeInMillis()).toString() + "; " + new Date(daymsec).toString());
+//                    log("daymsec " + new Date(pageFragments.get(i).c.getTimeInMillis()).toString() + "; " + new Date(daymsec).toString());
                 }
                 log("y: " + y);
             } catch (Exception e) {

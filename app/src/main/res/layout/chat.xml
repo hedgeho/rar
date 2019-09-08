@@ -154,7 +154,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginBottom="8dp"
             android:src="@drawable/attach"
-            android:visibility="gone"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="@+id/et"
             app:layout_constraintStart_toStartOf="parent" />
     </android.support.constraint.ConstraintLayout>

@@ -42,7 +42,7 @@ import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 
-public class MessagesFragment extends Fragment {
+public class    MessagesFragment extends Fragment {
 
     private int PERSON_ID;
     private String[] senders, topics;
