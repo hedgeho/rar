@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
-    useLibrary 'org.apache.http.legacy'
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.example.sch"
@@ -66,10 +65,6 @@ dependencies {
 
     implementation 'com.neovisionaries:nv-websocket-client:2.9'
     api 'com.neovisionaries:nv-websocket-client:2.9'
-    compile 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
-    compile('org.apache.httpcomponents:httpmime:4.3') {
-        exclude module: "httpclient"
-    }
 }
 
 apply plugin: 'com.google.gms.google-services'
