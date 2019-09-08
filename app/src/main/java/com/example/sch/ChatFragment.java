@@ -7,7 +7,6 @@ import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.net.http.AndroidHttpClient;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,40 +26,28 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.util.EntityUtils;
-import org.apache.http.util.EntityUtilsHC4;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-
-import io.grpc.internal.IoUtils;
 
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
 import static android.view.View.GONE;
@@ -77,6 +64,7 @@ public class ChatFragment extends Fragment {
     private int PERSON_ID;
     private LayoutInflater inflater;
     private LinearLayout container;
+    HttpClient httpAsyncClient = AndroidHttpClient.newInstance("RAR", getContext());
 
     private Msg[] messages;
     private Handler h;
@@ -550,8 +538,6 @@ public class ChatFragment extends Fragment {
                     Msg msg;
                     for (int i = messages.length-1; i >= 0; i--) {
                         msg = messages[i];
-                        if (msg.text.equals(""))
-                            continue;
                         if(i != messages.length-1) {
                             cal.setTime(msg.time);//tg
                             cal1.setTime(messages[i+1].time);
@@ -616,7 +602,7 @@ public class ChatFragment extends Fragment {
                         }
                         container.addView(item);
                     }
-                    view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
+                    view.findViewById(R.id.scroll_container).setBackgroundColor(getActivity().getResources().getColor(R.color.six));
 
                     if(scroll == null)
                         scroll = view.findViewById(R.id.scroll);
@@ -768,34 +754,53 @@ public class ChatFragment extends Fragment {
     }
 
     private void sendMessage(int threadId, String text) {
+        Date d = new Date(System.currentTimeMillis());
+        drawOwnMSG(text, d);
         new Thread(()-> {
             try {
                 HttpPost post = new HttpPost("https://app.eschool.center/ec-server/chat/sendNew");
-                HttpClient httpAsyncClient = AndroidHttpClient.newInstance("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393", getContext());
+
 
                 MultipartEntityBuilder reqEntity = MultipartEntityBuilder.create();
                 reqEntity.setBoundary("----WebKitFormBoundaryfgXAnWy3pntveyQZ");
-                for(File f : attach)
+                for (File f : attach)
                     reqEntity.addBinaryBody("file", f, ContentType.create("image/jpeg"), f.getName());
                 attach.clear();
                 reqEntity.addTextBody("threadId", "" + threadId);
-                reqEntity.addTextBody("msgUID", "" + System.currentTimeMillis());
+                reqEntity.addTextBody("msgUID", "" + d.getTime());
                 reqEntity.addTextBody("msgText", text, ContentType.parse("text/plain; charset=utf-8"));
                 post.setHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
                 post.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
                 post.setEntity(reqEntity.build());
-                System.out.println(httpAsyncClient.execute(post).getStatusLine().getStatusCode());
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (ProtocolException e) {
-                e.printStackTrace();
-            } catch (MalformedURLException e) {
+                httpAsyncClient.execute(post);
+            } catch (ClientProtocolException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }).start();
+    }
 
+    private void drawOwnMSG(String text, Date date){
+        System.out.println("drawing...");
+//        View item1 = inflater.inflate(R.layout.chat_item, container, false);
+//        TextView tv1 = item1.findViewById(R.id.tv_text);
+//        tv1.setText(Html.fromHtml(text));
+//        tv1 = item1.findViewById(R.id.tv_time);
+//        tv1.setText();
+//        container.addView(item1);
+//        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+//        Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.send_anim);
+//        item1.startAnimation(anim);
+        View item = inflater.inflate(R.layout.chat_item, container, false);
+        TextView tv = item.findViewById(R.id.tv_text);
+        tv.setText(text);
+        tv = item.findViewById(R.id.tv_time);
+        tv.setText(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
+        container.addView(item);
+        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+        Animation anim = AnimationUtils.loadAnimation(getActivity(), R.anim.send_anim);
+        item.startAnimation(anim);
     }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",

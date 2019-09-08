@@ -66,7 +66,7 @@ dependencies {
 
     implementation 'com.neovisionaries:nv-websocket-client:2.9'
     api 'com.neovisionaries:nv-websocket-client:2.9'
-    compile 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
+    implementation 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
     compile('org.apache.httpcomponents:httpmime:4.3') {
         exclude module: "httpclient"
     }

@@ -242,15 +242,12 @@ public class MainActivity extends AppCompatActivity {
             if(getStackTop() instanceof MessagesFragment)
                 messagesFragment.show();
             else
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                            TextView tv = itemView.findViewById(R.id.tv_badge);
-                            if(msg.arg1 == 0)
-                                tv.setVisibility(View.INVISIBLE);
-                            else
-                                tv.setText(msg.arg1 + "");
-                    }
+                runOnUiThread(() -> {
+                        TextView tv = itemView.findViewById(R.id.tv_badge);
+                        if(msg.arg1 == 0)
+                            tv.setVisibility(View.INVISIBLE);
+                        else
+                            tv.setText(msg.arg1 + "");
                 });
         }
     };
