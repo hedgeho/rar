@@ -27,7 +27,6 @@ import java.util.Locale;
 
 public class PeriodFragment1 extends Fragment {
 
-
     ArrayList<TextView> txts;
     String[] period;
     ScheduleFragment.Period[] periods;
