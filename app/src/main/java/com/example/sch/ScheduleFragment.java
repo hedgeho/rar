@@ -147,10 +147,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             try {
                 log("size: " +  periods[pernum].days.size());
                 long daymsec = periods[pernum].days.get(y).daymsec;
-                boolean z = false;
                 for (int i = 0; i < pageCount; i++) {
                     //log("page " + periods[pernum].days.get(y));
-                    if (pageFragments.get(i).c.getTimeInMillis() == daymsec || z) {
+                    if (pageFragments.get(i).c.getTimeInMillis() == daymsec) {
                         //z = true;
                         pageFragments.get(i).day = periods[pernum].days.get(y);
                         if (y + 1 - periods[pernum].days.size() == 0) {
@@ -921,7 +920,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-        Calendar c1 = pageFragments.get(pager.getCurrentItem()).c;
+        Calendar c1 = (Calendar)pageFragments.get(pager.getCurrentItem()).c.clone();
         Calendar c2 = Calendar.getInstance();
         c1.setTime(datenow);
         c1.set(Calendar.YEAR, year);

@@ -68,7 +68,7 @@ public class DayFragment extends Fragment {
                 Linkify.addLinks(tv1, Linkify.WEB_URLS);
                 tv1.setLinksClickable(true);
             } catch (Exception e) {
-                System.out.println(e.toString());
+                e.printStackTrace();
             }
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
