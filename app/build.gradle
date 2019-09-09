@@ -5,7 +5,7 @@ android {
     useLibrary 'org.apache.http.legacy'
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.example.sch"
+        applicationId 'ru.gurhouse.sch'
         minSdkVersion 16
         targetSdkVersion 28
         versionCode 2
@@ -64,12 +64,13 @@ dependencies {
 //    implementation 'com.squareup.retrofit2:retrofit:2.6.1'
 //    implementation 'com.squareup.retrofit2:converter-gson:2.6.1'
 
-    implementation 'com.neovisionaries:nv-websocket-client:2.9'
-    api 'com.neovisionaries:nv-websocket-client:2.9'
-    implementation 'org.apache.httpcomponents:httpclient-android:4.3.5.1'
+    implementation'org.apache.httpcomponents:httpclient-android:4.3.5.1'
     compile('org.apache.httpcomponents:httpmime:4.3') {
         exclude module: "httpclient"
     }
+
+    implementation 'com.neovisionaries:nv-websocket-client:2.9'
+    api 'com.neovisionaries:nv-websocket-client:2.9'
 }
 
 apply plugin: 'com.google.gms.google-services'
