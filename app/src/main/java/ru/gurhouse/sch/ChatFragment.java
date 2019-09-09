@@ -53,7 +53,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import io.grpc.internal.IoUtils;
 
@@ -153,14 +155,24 @@ public class ChatFragment extends Fragment {
             MenuItem ref = menu.add(0, 2, 0, "Refresh");
             ref.setIcon(getResources().getDrawable(R.drawable.refresh));
             ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            menu.add(0, 1, 0,
+                    (TheSingleton.getInstance().muted_threads.contains(threadId)?"Включить уведомления":"Отключить уведомления"))
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
         }
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == 1) {
-            ((MainActivity) getActivity()).quit();
+        if (item.getItemId() == 1 && getContext() != null) {
+            if(item.getTitle().equals("Отключить уведомления")) {
+                TheSingleton.getInstance().muted_threads.add(threadId);
+                item.setTitle("Включить уведомления");
+            } else {
+                int i = TheSingleton.getInstance().muted_threads.indexOf(threadId);
+                TheSingleton.getInstance().muted_threads.remove(i);
+                item.setTitle("Отключить уведомления");
+            }
         } else if (item.getItemId() == 2) {
             log("refreshing chat");
             item.setEnabled(false);
@@ -795,21 +807,6 @@ public class ChatFragment extends Fragment {
                 e.printStackTrace();
             }
         }).start();
-    }
-    private void sendFile(Uri uri, int threadId, String text) throws IOException {
-
-        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
-        File file = new File(getActivity().getCacheDir(), "test.png");
-        OutputStream outputStream = new FileOutputStream(file);
-        InputStream is = context.getContentResolver().openInputStream(uri);
-
-        int read;
-        byte[] bytes = new byte[1024];
-        while ((read = is.read(bytes)) != -1) {
-            outputStream.write(bytes, 0, read);
-        }
-
-        log("file path: " + file.getAbsolutePath());
     }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
