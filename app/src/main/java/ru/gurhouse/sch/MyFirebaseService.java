@@ -85,6 +85,10 @@ public class MyFirebaseService extends FirebaseMessagingService {
                 break;
             case "msg":
                 final int thread_id = Integer.parseInt(remoteMessage.toIntent().getStringExtra("threadId"));
+                if(TheSingleton.getInstance().muted_threads.contains(thread_id)) {
+                    log("received muted thread message, sender: " + remoteMessage.toIntent().getStringExtra("senderFio"));
+                    break;
+                }
                 log("new message");
                 log("sender: " + remoteMessage.toIntent().getStringExtra("senderFio"));
                 log("text: " + remoteMessage.toIntent().getStringExtra("text"));
