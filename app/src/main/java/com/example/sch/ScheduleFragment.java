@@ -2,7 +2,6 @@ package com.example.sch;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -29,6 +28,7 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.content.Context;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -442,6 +442,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
                     if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
                         Download2(periods[3].id, 3, true, true);
+                        sasha("тутутутутутутуутутт");
                     } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
                         Download2(periods[4].id, 4, true, true);
                     } else if (datenow.getTime() >= periods[5].datestart && datenow.getTime() <= periods[5].datefinish) {
