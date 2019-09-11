@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.net.http.AndroidHttpClient;
@@ -53,12 +54,15 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 import io.grpc.internal.IoUtils;
 
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
 import static android.view.View.GONE;
+import static java.util.Calendar.getAvailableCalendarTypes;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
@@ -150,18 +154,52 @@ public class ChatFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if(getContext() != null) {
             menu.clear();
-            MenuItem ref = menu.add(0, 2, 0, "Refresh");
+            MenuItem ref = menu.add(0, 3, 0, "Refresh");
             ref.setIcon(getResources().getDrawable(R.drawable.refresh));
             ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+            menu.add(0, 1, 0,
+                    getContext().getSharedPreferences("pref", 0).getString("muted", "[]")
+                            .contains("" + threadId)?"Включить уведомления":"Отключить уведомления")
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+            menu.add(0, 2, 1, "Покинуть беседу");
         }
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == 1) {
-            ((MainActivity) getActivity()).quit();
-        } else if (item.getItemId() == 2) {
+        if (item.getItemId() == 1 && getContext() != null) {
+            SharedPreferences pref = getContext().getSharedPreferences("pref", 0);
+            if(item.getTitle().equals("Отключить уведомления")) {
+                try {
+                    JSONArray array = new JSONArray(pref.getString("muted", "[]"));
+                    array.put(threadId);
+                    pref.edit().putString("muted", array.toString()).apply();
+                } catch (Exception e) {loge(e.toString());}
+                item.setTitle("Включить уведомления");
+            } else {
+                try {
+                    JSONArray array = new JSONArray(pref.getString("muted", "[]")), a = new JSONArray();
+                    for (int i = 0; i < array.length(); i++) {
+                        if(!(array.getInt(i) == threadId)) {
+                            a.put(array.getInt(i));
+                        }
+                    }
+                    pref.edit().putString("muted", a.toString()).apply();
+                    item.setTitle("Отключить уведомления");
+                } catch (Exception e) {loge(e.toString());}
+            }
+        } else if(item.getItemId() == 2) {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        connect("https://app.eschool.center/ec-server/chat/leave?threadId=" + threadId, null, getContext());
+                    } catch (Exception e) {loge(e);}
+                }
+            }.start();
+            getActivity().onBackPressed();
+        } else if (item.getItemId() == 3) {
             log("refreshing chat");
             item.setEnabled(false);
             itemToEnable = item;
@@ -652,7 +690,7 @@ public class ChatFragment extends Fragment {
                                         tv1 = item1.findViewById(R.id.tv_time);
                                         tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
                                         container.addView(item1);
-                                        //scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+                                        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
                                     });
                                     if(!files.isEmpty()) {
                                         try {
@@ -795,21 +833,6 @@ public class ChatFragment extends Fragment {
                 e.printStackTrace();
             }
         }).start();
-    }
-    private void sendFile(Uri uri, int threadId, String text) throws IOException {
-
-        log("sending file, uri: " + uri.toString() + ", threadId: " + threadId + ", text: " + text);
-        File file = new File(getActivity().getCacheDir(), "test.png");
-        OutputStream outputStream = new FileOutputStream(file);
-        InputStream is = context.getContentResolver().openInputStream(uri);
-
-        int read;
-        byte[] bytes = new byte[1024];
-        while ((read = is.read(bytes)) != -1) {
-            outputStream.write(bytes, 0, read);
-        }
-
-        log("file path: " + file.getAbsolutePath());
     }
 
     private static final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
