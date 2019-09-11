@@ -229,15 +229,12 @@ public class MainActivity extends AppCompatActivity {
             if(getStackTop() instanceof MessagesFragment)
                 messagesFragment.show();
             else
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                            TextView tv = itemView.findViewById(R.id.tv_badge);
-                            if(msg.arg1 == 0)
-                                tv.setVisibility(View.INVISIBLE);
-                            else
-                                tv.setText(msg.arg1 + "");
-                    }
+                runOnUiThread(() -> {
+                        TextView tv = itemView.findViewById(R.id.tv_badge);
+                        if(msg.arg1 == 0)
+                            tv.setVisibility(View.INVISIBLE);
+                        else
+                            tv.setText(msg.arg1 + "");
                 });
         }
     };
@@ -444,6 +441,7 @@ public class MainActivity extends AppCompatActivity {
             log(a.get(i).toString());
         }
         //log("top: " + getStackTop());
+        boolean chat = getStackTop() instanceof ChatFragment;
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
@@ -460,6 +458,10 @@ public class MainActivity extends AppCompatActivity {
                     || getStackTop() instanceof ScheduleFragment// || getStackTop() instanceof ScheduleFragment1
                     || getStackTop() instanceof MessagesFragment))
                 getSupportFragmentManager().popBackStack();
+        if(getStackTop() instanceof ChatFragment && a.get(a.size()-2) instanceof MessagesFragment)
+            ((MessagesFragment) a.get(a.size()-2)).refresh();
+        else
+            log("lol " + chat + getStackTop());
     }
 
     @Override

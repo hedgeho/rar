@@ -11,7 +11,6 @@ class TheSingleton {
     int notification_id = 1;
     private ArrayList<Notification> notifications = new ArrayList<>();
     android.app.Notification summary = null;
-    ArrayList<Integer> muted_threads = new ArrayList<>();
     long t1 = 0;
 
     static TheSingleton getInstance() {
