@@ -47,6 +47,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
@@ -164,10 +165,14 @@ public class MainActivity extends AppCompatActivity {
                     ((MessagesFragment) getStackTop()).newMessage(intent.getStringExtra("text"),
                             intent.getLongExtra("time", 0), intent.getIntExtra("sender_id", 0),
                             intent.getIntExtra("thread_id", 0));
-                } else if (getStackTop() instanceof ChatFragment) {
-                    ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
-                            intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
-                            intent.getStringExtra("sender_fio"), intent.getStringExtra("attach"));
+                } else if (getStackTop() instanceof chat1Fragment) {
+                    chat1Fragment.Msg msg = new chat1Fragment.Msg();
+                    msg.text = intent.getStringExtra("text");
+                    msg.time = new Date(intent.getLongExtra("time", 0));
+                    msg.sender = intent.getStringExtra("sender_fio");
+                    msg.user_id = intent.getIntExtra("thread_id",0);
+                    ((chat1Fragment) getStackTop()).DrawMsg(msg);
+
                 } else {
                     BottomNavigationMenuView bottomNavigationMenuView =
                             (BottomNavigationMenuView) bottomnav.getChildAt(0);
@@ -452,10 +457,10 @@ public class MainActivity extends AppCompatActivity {
             log(a.get(i).toString());
         }
         //log("top: " + getStackTop());
-        if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
+        if(getStackTop() instanceof chat1Fragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
-            if (getStackTop() instanceof ChatFragment || getStackTop() instanceof KnockFragment) {
+            if (getStackTop() instanceof chat1Fragment || getStackTop() instanceof KnockFragment) {
                 getSupportActionBar().setTitle("Сообщения");
                 getSupportActionBar().setSubtitle("");
             }

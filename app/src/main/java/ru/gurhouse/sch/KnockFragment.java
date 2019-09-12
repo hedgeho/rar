@@ -410,7 +410,7 @@ public class KnockFragment extends Fragment {
                                         ((MainActivity) getActivity()).saveFile(link, name, true);
                                     }
                                 });
-                                ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
+//                                ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                             }
                         }
                         tv = item.findViewById(R.id.tv_time);

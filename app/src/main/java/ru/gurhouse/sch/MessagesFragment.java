@@ -1121,7 +1121,7 @@ public class    MessagesFragment extends Fragment {
     private void loadChat(int threadId, String threadName, int searchId, boolean group) {
         fromNotification = false;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        ChatFragment fragment = new ChatFragment();
+        chat1Fragment fragment = new chat1Fragment();
         LoginActivity.log("chat thread " + threadId);
         fragment.threadId = threadId;//f_threadIds.get(j);
         fragment.threadName = threadName;//f_senders.get(j);
