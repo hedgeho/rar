@@ -6,11 +6,11 @@
     android:layout_height="match_parent"
     android:gravity="top"
     android:orientation="vertical"
-    tools:context=".chat1Fragment">
+    tools:context=".Chat">
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list"
-        android:name="ru.gurhouse.sch.chat1Fragment"
+        android:name="ru.gurhouse.sch.Chat"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="10"

@@ -165,13 +165,13 @@ public class MainActivity extends AppCompatActivity {
                     ((MessagesFragment) getStackTop()).newMessage(intent.getStringExtra("text"),
                             intent.getLongExtra("time", 0), intent.getIntExtra("sender_id", 0),
                             intent.getIntExtra("thread_id", 0));
-                } else if (getStackTop() instanceof chat1Fragment) {
-                    chat1Fragment.Msg msg = new chat1Fragment.Msg();
+                } else if (getStackTop() instanceof Chat) {
+                    Chat.Msg msg = new Chat.Msg();
                     msg.text = intent.getStringExtra("text");
                     msg.time = new Date(intent.getLongExtra("time", 0));
                     msg.sender = intent.getStringExtra("sender_fio");
                     msg.user_id = intent.getIntExtra("thread_id",0);
-                    ((chat1Fragment) getStackTop()).DrawMsg(msg);
+                    ((Chat) getStackTop()).DrawMsg(msg);
 
                 } else {
                     BottomNavigationMenuView bottomNavigationMenuView =
@@ -457,10 +457,10 @@ public class MainActivity extends AppCompatActivity {
             log(a.get(i).toString());
         }
         //log("top: " + getStackTop());
-        if(getStackTop() instanceof chat1Fragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
+        if(getStackTop() instanceof Chat || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
-            if (getStackTop() instanceof chat1Fragment || getStackTop() instanceof KnockFragment) {
+            if (getStackTop() instanceof Chat || getStackTop() instanceof KnockFragment) {
                 getSupportActionBar().setTitle("Сообщения");
                 getSupportActionBar().setSubtitle("");
             }

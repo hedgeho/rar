@@ -9,10 +9,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.ListFragment;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,11 +19,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Adapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.apache.http.client.HttpClient;
@@ -35,26 +31,23 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import ru.gurhouse.sch.dummy.DummyContent;
-import ru.gurhouse.sch.dummy.DummyContent.DummyItem;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
 import static android.view.View.GONE;
+import static java.util.Calendar.YEAR;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
-import static ru.gurhouse.sch.LoginActivity.loge;
 
-public class chat1Fragment extends Fragment {
+public class Chat extends Fragment {
 
     private static final String ARG_COLUMN_COUNT = "column-count";
     private int mColumnCount = 1;
@@ -66,13 +59,13 @@ public class chat1Fragment extends Fragment {
     private int PERSON_ID;
     List<File> attach = new ArrayList<>();
 
-    public chat1Fragment() {
+    public Chat() {
     }
 
     // TODO: Customize parameter initialization
     @SuppressWarnings("unused")
-    public static chat1Fragment newInstance(int columnCount) {
-        chat1Fragment fragment = new chat1Fragment();
+    public static Chat newInstance(int columnCount) {
+        Chat fragment = new Chat();
         Bundle args = new Bundle();
         args.putInt(ARG_COLUMN_COUNT, columnCount);
         fragment.setArguments(args);
@@ -94,96 +87,38 @@ public class chat1Fragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_chatfragment, container, false);
+        View view = inflater.inflate(R.layout.fragment_chat, container, false);
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
 
+        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar.setTitle(threadName);
+        setHasOptionsMenu(true);
 
-        new Thread(()-> {
-            try {
-                JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&" +
-                        "rowStart=1&rowsCount=25&threadId=" + threadId, null, getContext()));
-                for (int i = 0; i < array.length(); i++) {
-                    Msg msg = new Msg();
-                    JSONObject tmp = array.getJSONObject(i);
-                    msg.time = new Date(tmp.getLong("sendDate"));
-//                    if (tmp.getInt("attachCount") <= 0) {
-//                        msg.files = null;
-//                    } else {
-//                        msg.files = new ArrayList<>();
-//                        for (int j = 0; j < tmp.getInt("attachCount"); j++) {
-//                            JSONObject tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-//                            msg.files.set(j, new ChatFragment.Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-//                                    tmp1.getString("fileName"), tmp1.getString("fileType")));
-//                        }
-//                    }
-                    if(tmp.has("senderId")) msg.user_id = tmp.getInt("senderId");
-                    if(tmp.has("msgNum")) msg.msg_id = tmp.getInt("msgNum");
-                    if(tmp.has("senderFio")) msg.sender = tmp.getString("senderFio");
-                    if(tmp.has("msg")) msg.text = tmp.getString("msg");
-                    adapter.addMsg(msg);
-                }
-                getActivity().runOnUiThread(()->adapter.update());
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        ((MainActivity)getActivity()).setSupActionBar(toolbar);
+        ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
 
         Context context = view.getContext();
         recyclerView = view.findViewById(R.id.list);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
         adapter = new DataAdapter();
         recyclerView.setAdapter(adapter);
-        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-                if(newState == 0 && adapter.getItemCount() != 0){
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            try {
-                                JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                        "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + adapter.getMsg(0), null, context));
-                                for (int i = 0; i < array.length(); i++) {
-                                    Msg msg = new Msg();
-                                    JSONObject tmp = array.getJSONObject(i);
-                                    msg.time = new Date(tmp.getLong("sendDate"));
-//                    if (tmp.getInt("attachCount") <= 0) {
-//                        msg.files = null;
-//                    } else {
-//                        msg.files = new ArrayList<>();
-//                        for (int j = 0; j < tmp.getInt("attachCount"); j++) {
-//                            JSONObject tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-//                            msg.files.set(j, new ChatFragment.Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-//                                    tmp1.getString("fileName"), tmp1.getString("fileType")));
-//                        }
-//                    }
-                                    if(tmp.has("senderId")) msg.user_id = tmp.getInt("senderId");
-                                    if(tmp.has("msgNum")) msg.msg_id = tmp.getInt("msgNum");
-                                    if(tmp.has("senderFio")) msg.sender = tmp.getString("senderFio");
-                                    if(tmp.has("msg")) msg.text = tmp.getString("msg");
-                                    adapter.addMsg(msg);
-                                }
-                                getActivity().runOnUiThread(()->adapter.update());
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }.start();
-                }
-            }
-        });
+//        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+//            @Override
+//            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+//                super.onScrollStateChanged(recyclerView, newState);
+//                if(newState == 0 && adapter.getItemCount() != 0 && !adapter.scrolling){
+//                    syncMessages();
+//                }
+//            }
+//        });
+        syncMessages();
 
         ImageView btn_send = view.findViewById(R.id.btn_send);
         btn_send.setOnClickListener(v->{
             EditText et = view.findViewById(R.id.et);
             final String text = et.getText().toString();
             //attach = null;
-            chat1Fragment.this.sendMessage(threadId, text);
+            Chat.this.sendMessage(threadId, text);
             et.setText("");
         });
 
@@ -213,15 +148,21 @@ public class chat1Fragment extends Fragment {
         if (item.getItemId() == 1) {
             ((MainActivity) getActivity()).quit();
         } else if (item.getItemId() == 2) {
-            new Thread(()-> {
-                try {
-                    adapter.clear();
-                    JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&" +
-                            "rowStart=1&rowsCount=25&threadId=" + threadId, null, getContext()));
-                    for (int i = 0; i < array.length(); i++) {
-                        Msg msg = new Msg();
-                        JSONObject tmp = array.getJSONObject(i);
-                        msg.time = new Date(tmp.getLong("sendDate"));
+
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public void syncMessages(){
+        new Thread(()-> {
+            try {
+                Msg d = adapter.getMsg();
+                JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&" +
+                        "rowStart=1&rowsCount=25&threadId=" + threadId + (d != null ? "&msgStart=" + d.msg_id : ""), null, getContext()));
+                for (int i = 0; i < array.length(); i++) {
+                    Msg msg = new Msg();
+                    JSONObject tmp = array.getJSONObject(i);
+                    msg.time = new Date(tmp.getLong("sendDate"));
 //                    if (tmp.getInt("attachCount") <= 0) {
 //                        msg.files = null;
 //                    } else {
@@ -232,21 +173,19 @@ public class chat1Fragment extends Fragment {
 //                                    tmp1.getString("fileName"), tmp1.getString("fileType")));
 //                        }
 //                    }
-                        if(tmp.has("senderId")) msg.user_id = tmp.getInt("senderId");
-                        if(tmp.has("msgNum")) msg.msg_id = tmp.getInt("msgNum");
-                        if(tmp.has("senderFio")) msg.sender = tmp.getString("senderFio");
-                        if(tmp.has("msg")) msg.text = tmp.getString("msg");
-                        adapter.addMsg(msg);
-                    }
-                    getActivity().runOnUiThread(()->adapter.update());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    if(tmp.has("senderId")) msg.user_id = tmp.getInt("senderId");
+                    if(tmp.has("msgNum")) msg.msg_id = tmp.getInt("msgNum");
+                    if(tmp.has("senderFio")) msg.sender = tmp.getString("senderFio");
+                    if(tmp.has("msg")) msg.text = tmp.getString("msg");
+                    adapter.addDated(msg);
                 }
-            }).start();
-        }
-        return super.onOptionsItemSelected(item);
+                getActivity().runOnUiThread(()->adapter.update());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     File pinned = null;
@@ -273,8 +212,8 @@ public class chat1Fragment extends Fragment {
         attach.add(file);
     }
 
-    void DrawMsg(chat1Fragment.Msg msg){
-        adapter.addMsg(msg);
+    void DrawMsg(Chat.Msg msg){
+        adapter.addDated(msg);
         adapter.update();
         recyclerView.smoothScrollToPosition(adapter.getItemCount()-1);
     }
@@ -325,64 +264,103 @@ public class chat1Fragment extends Fragment {
         super.onDetach();
     }
 
-    public static class Msg {
-        Date time;
+    public static class Msg extends Dated {
         ArrayList<DataAdapter.Attach> files;
         int user_id, msg_id;
         String text="", sender;
-        enum MsgType{my, other}
     }
 
-    class DataAdapter extends RecyclerView.Adapter<chat1Fragment.DataAdapter.ViewHolder> {
-        private List<Msg> msgList;
+    public static class Dated{
+        Date time;
+        enum MsgType{my, other, bubble}
+    }
+
+    public static class Bubble extends Dated{
+        Bubble(Date time){
+            this.time = time;
+        }
+    }
+
+    class DataAdapter extends RecyclerView.Adapter<Chat.DataAdapter.ViewHolder> {
+        private List<Dated> msgList;
 
         DataAdapter() {
             msgList = new ArrayList<>();
         }
 
-        public void addMsg(Msg msg){
-            msgList.add(msg);
+        public boolean scrolling = false;
+
+        public void addDated(Dated dated){
+            msgList.add(dated);
         }
 
-        public Msg getMsg(int i){
+        public Msg getMsg(){
+            for(Dated d : msgList){
+                if(d instanceof Msg)
+                    return (Msg)d;
+            }
+            return null;
+        }
+
+        public Dated getDated(int i){
             return msgList.get(i);
         }
 
         public void clear(){msgList.clear();}
 
         public void update(){
+            if(msgList.isEmpty()) return;
             Collections.sort(msgList, (o1, o2) -> o1.time.compareTo(o2.time));
+            addBubbles();
             notifyDataSetChanged();
 
+            scrolling = true;
+            recyclerView.scrollToPosition(adapter.getItemCount()-1);
+            scrolling = false;
+        }
+
+        public void addBubbles(){
+            msgList.add(0,new Bubble(msgList.get(0).time));
+            for(int i = 1; i < msgList.size(); i++){
+                if(msgList.get(i).time.getDay() != msgList.get(i-1).time.getDay()){
+                    msgList.add(i,new Bubble(msgList.get(i).time));
+                }
+            }
         }
 
         @Override
         public DataAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             if(viewType == Msg.MsgType.my.ordinal())
                 return new DataAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item, parent, false));
-            return new DataAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item_left, parent, false));
+            else if(viewType == Msg.MsgType.other.ordinal())
+                return new DataAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item_left, parent, false));
+            return new DataAdapter.ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.date_divider, parent, false));
         }
 
         @Override
         public int getItemViewType(int position) {
-            if(msgList.get(position).user_id == PERSON_ID){
-                return Msg.MsgType.my.ordinal();
-            } else {
-                return Msg.MsgType.other.ordinal();
+            if (msgList.get(position) instanceof Msg) {
+                if(((Msg)msgList.get(position)).user_id == PERSON_ID){
+                    return Msg.MsgType.my.ordinal();
+                } else {
+                    return Msg.MsgType.other.ordinal();
+                }
             }
+            return Msg.MsgType.bubble.ordinal();
         }
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            Msg thsMsg = msgList.get(position);
-            if(holder.chat_sender != null) {
-                holder.chat_sender.setVisibility(GONE);
-            } else if(holder.chat_sender != null) {
-            holder.chat_sender.setText(thsMsg.sender);
-            holder.chat_sender.setVisibility(View.VISIBLE);
-            }
-            holder.text.setText(Html.fromHtml(thsMsg.text));
-            holder.time.setText(String.format(Locale.UK, "%02d:%02d", thsMsg.time.getHours(), thsMsg.time.getMinutes()));
+            if(msgList.get(position) instanceof Msg) {
+                Msg thsMsg = (Msg) msgList.get(position);
+                if (holder.chat_sender != null) {
+                    holder.chat_sender.setVisibility(GONE);
+                } else if (holder.chat_sender != null) {
+                    holder.chat_sender.setText(thsMsg.sender);
+                    holder.chat_sender.setVisibility(View.VISIBLE);
+                }
+                holder.text.setText(Html.fromHtml(thsMsg.text));
+                holder.time.setText(String.format(Locale.UK, "%02d:%02d", thsMsg.time.getHours(), thsMsg.time.getMinutes()));
 
 //            if (thsMsg.files != null) {
 //                for (final ChatFragment.Attach a : thsMsg.files) {
@@ -407,6 +385,22 @@ public class chat1Fragment extends Fragment {
 //                }
 //            } else
 //                holder.attach.setVisibility(GONE);
+            }else{
+                final String[] months = {"января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября",
+                        "октября", "ноября", "декабря"};
+
+                int day = msgList.get(position).time.getDay(),
+                        month = msgList.get(position).time.getMonth(),
+                        year = msgList.get(position).time.getYear();
+                Calendar current = Calendar.getInstance();
+                if(current.get(YEAR) != year)
+                    holder.time.setText(String.format(Locale.getDefault(), "%02d.%02d.%02d", day, month+1, year));
+                if(current.get(Calendar.DAY_OF_MONTH) == day)
+                    holder.time.setText("Сегодня");
+                else if(current.get(Calendar.DAY_OF_MONTH) + 1 == day)
+                    holder.time.setText("Вчера");
+                holder.time.setText(String.format(Locale.getDefault(), "%d " + months[month], day));
+            }
         }
 
         @Override
