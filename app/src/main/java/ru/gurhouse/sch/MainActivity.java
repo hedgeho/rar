@@ -10,8 +10,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,14 +21,12 @@ import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
 import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -40,10 +36,7 @@ import com.google.firebase.analytics.FirebaseAnalytics;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -59,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     private PeriodFragment1 periodFragment1;
     private MessagesFragment messagesFragment;
     private ConstraintLayout main, chat;
-    private String[] period;
     private int state = 2;
     private BroadcastReceiver receiver,  auth_receiver;
     private BottomNavigationView bottomnav;
@@ -129,6 +121,10 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     login(login, hash);
+                } catch (LoginActivity.NoInternetException e) {
+                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
+                    findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
+                    findViewById(R.id.frame).setVisibility(View.INVISIBLE);
                 } catch (Exception e) {
                     loge("login: " + e.toString());}
             }
@@ -220,6 +216,31 @@ public class MainActivity extends AppCompatActivity {
             loadFragment(scheduleFragment);
             bottomnav.setSelectedItemId(R.id.navigation_diary);
         }
+        new Thread(() -> {
+            try {
+                Thread.sleep(100);
+            } catch (Exception ignore) {}
+                runOnUiThread(() -> {
+                    if(findViewById(R.id.refresh) != null) {
+                        findViewById(R.id.refresh).setOnClickListener((view) -> {
+                            view.setVisibility(View.INVISIBLE);
+                            findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
+                            findViewById(R.id.frame).setVisibility(View.VISIBLE);
+                            try {
+                                if (getIntent().getStringExtra("login") != null) {
+                                    login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
+                                }
+                            } catch (LoginActivity.NoInternetException e) {
+                                view.setVisibility(View.VISIBLE);
+                                findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
+                                findViewById(R.id.frame).setVisibility(View.INVISIBLE);
+                            } catch (Exception e) {
+                                loge(e.toString());
+                            }
+                        });
+                    }
+                });
+        }).start();
     }
 
     @SuppressLint("HandlerLeak")
@@ -239,12 +260,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void login(String login, String hash) throws IOException, JSONException {
+    private void login(String login, String hash) throws IOException, JSONException, LoginActivity.NoInternetException {
         URL url;
         HttpURLConnection con;
-        StringBuilder result;
-        BufferedReader rd;
-        String line;
 
         int userId = -1, prsId;
         String name;
@@ -252,23 +270,10 @@ public class MainActivity extends AppCompatActivity {
         if(pref.getInt("userId", -1) == -1) {
          //if(true) {
             log("userId not found, calling state");
-            url = new URL("https://app.eschool.center/ec-server/state?menu=false");
-            con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-            con.connect();
-            result = new StringBuilder();
-            log(con.getResponseMessage());
+            String result = connect("https://app.eschool.center/ec-server/state?menu=false", null);
 
-            rd = new BufferedReader(new InputStreamReader(con.getInputStream()));
-
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
-            }
-            rd.close();
-
-            log("state: " + result.toString());
-            JSONObject obj = new JSONObject(result.toString());
+            log("state: " + result);
+            JSONObject obj = new JSONObject(result);
             if (obj.has("userId"))
                 userId = obj.getInt("userId");
             prsId = obj.getJSONObject("user").getInt("prsId");
@@ -322,29 +327,13 @@ public class MainActivity extends AppCompatActivity {
         }
         analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
 
-        url = new URL("https://still-cove-90434.herokuapp.com/login");
-        con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
-        con.setDoOutput(true);
-        con.connect();
-        OutputStream os = con.getOutputStream();
-        os.write(("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()).getBytes());
+        KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
+                "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
         log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
-
-        if(con.getResponseCode() == 200)
-            log("heroku login ok");
-        else {
-            loge("heroku login failed (" + con.getResponseCode() + "), msg: " + con.getResponseMessage());
-        }
-    }
-
-    private void sasha(String s) {
-        Log.v("sasha", s);
     }
 
     void set(ScheduleFragment.Period[] periods, int pernum, int t) {
-        sasha(" PeriodFragment1");
-        period = scheduleFragment.period;
+        String[] period = scheduleFragment.period;
         if (t == 1) {
             periodFragment1 = new PeriodFragment1();
             periodFragment1.period = period;
@@ -353,7 +342,6 @@ public class MainActivity extends AppCompatActivity {
             if (state == 1 && !mode0)
                 loadFragment(periodFragment1);
         } else {
-            sasha("hhhhhhh");
             periodFragment = new PeriodFragment();
             periodFragment.period = period;
             periodFragment.pernum = pernum;
@@ -441,7 +429,6 @@ public class MainActivity extends AppCompatActivity {
             log(a.get(i).toString());
         }
         //log("top: " + getStackTop());
-        boolean chat = getStackTop() instanceof ChatFragment;
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
@@ -460,8 +447,6 @@ public class MainActivity extends AppCompatActivity {
                 getSupportFragmentManager().popBackStack();
         if(getStackTop() instanceof ChatFragment && a.get(a.size()-2) instanceof MessagesFragment)
             ((MessagesFragment) a.get(a.size()-2)).refresh();
-        else
-            log("lol " + chat + getStackTop());
     }
 
     @Override
@@ -496,6 +481,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        try {
+            LoginActivity.login();
+        } catch (LoginActivity.NoInternetException e) {
+            TextView tv = findViewById(R.id.tv_error);
+            tv.setText("Нет доступа к интернету");
+            tv.setVisibility(View.VISIBLE);
+            findViewById(R.id.refresh).setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
@@ -509,7 +507,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     connect("https://still-cove-90434.herokuapp.com/logout",
-                            "firebase_id=" + TheSingleton.getInstance().getFb_id(), getApplicationContext());
+                            "firebase_id=" + TheSingleton.getInstance().getFb_id());
                 } catch (Exception e) {
                     loge("logout: " + e.toString());
                 }
@@ -530,7 +528,7 @@ public class MainActivity extends AppCompatActivity {
         return a.get(a.size() - 1);
     }
 
-    public static boolean hasConnection(final Context context) {
+    /*public static boolean hasConnection(final Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         if (wifiInfo != null && wifiInfo.isConnected())
@@ -544,5 +542,5 @@ public class MainActivity extends AppCompatActivity {
         }
         wifiInfo = cm.getActiveNetworkInfo();
         return wifiInfo != null && wifiInfo.isConnected();
-    }
+    }*/
 }
