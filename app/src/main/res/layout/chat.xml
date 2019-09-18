@@ -6,6 +6,29 @@
     android:layout_height="match_parent"
     tools:context=".ChatFragment">
 
+    <TextView
+        android:id="@+id/tv_error"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Error"
+        android:textSize="18sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/sender"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/btn_refresh"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/refresh"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@+id/tv_error"
+        app:layout_constraintStart_toStartOf="@+id/tv_error"
+        app:layout_constraintTop_toBottomOf="@+id/l_new" />
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/l_new"
         android:layout_width="wrap_content"
@@ -74,6 +97,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/textView9" />
+
     </android.support.constraint.ConstraintLayout>
 
     <LinearLayout
@@ -97,11 +121,11 @@
                 android:id="@+id/main_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingBottom="8dp"
-
                 android:focusable="true"
-                android:focusableInTouchMode="true"/>
+                android:focusableInTouchMode="true"
+
+                android:orientation="vertical"
+                android:paddingBottom="8dp" />
             <!--;[;-->
         </ScrollView>
 
