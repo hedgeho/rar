@@ -261,9 +261,6 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private void login(String login, String hash) throws IOException, JSONException, LoginActivity.NoInternetException {
-        URL url;
-        HttpURLConnection con;
-
         int userId = -1, prsId;
         String name;
         SharedPreferences pref = getSharedPreferences("pref", 0);
@@ -483,14 +480,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        try {
-            LoginActivity.login();
-        } catch (LoginActivity.NoInternetException e) {
-            TextView tv = findViewById(R.id.tv_error);
-            tv.setText("Нет доступа к интернету");
-            tv.setVisibility(View.VISIBLE);
-            findViewById(R.id.refresh).setVisibility(View.VISIBLE);
-        }
+        new Thread(() -> {
+            try {
+                LoginActivity.login();
+            } catch (LoginActivity.NoInternetException e) {
+                runOnUiThread(() -> {
+                    TextView tv = findViewById(R.id.tv_error);
+                    tv.setText("Нет доступа к интернету");
+                    tv.setVisibility(View.VISIBLE);
+                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
     }
 
     @Override

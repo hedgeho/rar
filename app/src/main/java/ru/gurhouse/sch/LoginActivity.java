@@ -370,11 +370,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             log(con.getResponseMessage());
             Map<String, List<String>> a = con.getHeaderFields();
             Object[] b = a.entrySet().toArray();
-            String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
-            String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
-            TheSingleton.getInstance().setROUTE(route);
-            TheSingleton.getInstance().setCOOKIE(COOKIE2);
-            log("route: " + route + ", cookie: " + COOKIE2);
+            if(String.valueOf(b[8]).split("route=").length < 2) {
+                loge("bad cookie: \n" + b[8]);
+                login(login, password);
+            } else {
+                String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
+                String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
+                TheSingleton.getInstance().setROUTE(route);
+                TheSingleton.getInstance().setCOOKIE(COOKIE2);
+                log("route: " + route + ", cookie: " + COOKIE2);
+            }
         } catch (UnknownHostException e) {
             throw new NoInternetException();
         } catch (IOException e) {loge(e.toString());}
@@ -383,7 +388,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         login(TheSingleton.getInstance().login, TheSingleton.getInstance().hash);
     }
 
-    // todo отложенные запросы
     static String connect(String url, @Nullable String query, boolean put) throws IOException, NoInternetException {
         log("connect " + url.replaceAll("https://app.eschool.center", "") + ", query: " + query);
         try {
