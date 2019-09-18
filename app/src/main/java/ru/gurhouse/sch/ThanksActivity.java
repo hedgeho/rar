@@ -18,7 +18,7 @@ public class ThanksActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_thanks);
 
-        ImageView smile = findViewById(R.id.img_smile);
+        /*ImageView smile = findViewById(R.id.img_smile);
         smile.setOnClickListener(v -> {
             SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
             if(!pref.getBoolean("easteregg1", false)) {
@@ -30,7 +30,7 @@ public class ThanksActivity extends AppCompatActivity {
                 }
             } else
                 log("пасхалка уже открыта");
-        });
+        });*/
         Button esc = findViewById(R.id.btn_ok);
         esc.setOnClickListener(v -> finish());
     }

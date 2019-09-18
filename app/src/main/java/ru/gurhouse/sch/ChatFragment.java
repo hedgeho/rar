@@ -462,7 +462,7 @@ public class ChatFragment extends Fragment {
                         final Handler h = new Handler() {
                             @Override
                             public void handleMessage(Message yoyoy) {
-                                final LinearLayout container = view.findViewById(R.id.container);
+                                final LinearLayout container = view.findViewById(R.id.main_container);
                                 View item;
                                 TextView tv, tv_attach;
                                 Calendar cal = getInstance(), cal1 = getInstance();
@@ -524,7 +524,6 @@ public class ChatFragment extends Fragment {
                                         item.findViewById(R.id.attach).setVisibility(GONE);
                                     container.addView(item);
                                 }
-                                // todo scroll ?
                                 uploading = false;
                                 first_msgs.remove(first_msgs.size() - 1);
                             }
@@ -666,6 +665,7 @@ public class ChatFragment extends Fragment {
                         scroll = view.findViewById(R.id.scroll);
                     if(scroll == null)
                         scroll = ChatFragment.this.view.findViewById(R.id.scroll);
+
                     scroll.post(() -> {
                         if(searchMsgId == -1)
                             scroll.fullScroll(ScrollView.FOCUS_DOWN);

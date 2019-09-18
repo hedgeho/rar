@@ -348,7 +348,6 @@ public class KnockFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         final ScrollView scroll = view.findViewById(R.id.scroll);
         ViewTreeObserver.OnScrollChangedListener listener = () -> {
-            // todo подгрузка
             if (scroll.getScrollY() == 0 && !uploading) {
                 log("top!!");
                 uploading = true;
@@ -417,12 +416,7 @@ public class KnockFragment extends Fragment {
                             tv.setText(name);
                             tv.setTextColor(getResources().getColor(R.color.two));
                             final String link = object.getString("text");
-                            tv.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    ((MainActivity) getActivity()).saveFile(link, name, true);
-                                }
-                            });
+                            tv.setOnClickListener(v -> ((MainActivity) getActivity()).saveFile(link, name, true));
                             ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                         }
                     }
@@ -433,23 +427,19 @@ public class KnockFragment extends Fragment {
                     else
                         container.addView(item);
                     final ScrollView scroll = view.findViewById(R.id.scroll);
-                    scroll.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            /*if(uploading && umsg_num%30 == 29) {
-                                int s = ((ViewGroup) scroll.getChildAt(0)).getChildAt(24).getBottom();
-                                log("scroll " + s);
-                                scroll.scrollTo(0, s);
-                            } else*/ if(!uploading)
-                                scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
-                        }
+                    scroll.post(() -> {
+                        /*if(uploading && umsg_num%30 == 29) {
+                            int s = ((ViewGroup) scroll.getChildAt(0)).getChildAt(24).getBottom();
+                            log("scroll " + s);
+                            scroll.scrollTo(0, s);
+                        } else*/ if(!uploading)
+                            scroll.scrollTo(0, scroll.getChildAt(0).getBottom());
                     });
                     log("text: " + object.getString("text"));
                 } catch (Exception e) {
                     loge("m: " + e.toString());}
             });
         }
-        // todo
         // case ping
         else if(object.getString("system").equals("true") && object.has("event")) {
             if(object.getString("event").equals("ping")) {

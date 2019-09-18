@@ -121,6 +121,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         USER_ID = TheSingleton.getInstance().getUSER_ID();
         Download1();
     }
+    void refresh(){
+        Download2(periods[pernum].id, pernum, true, false);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -453,6 +456,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     JSONObject object1 = null;
     boolean first_downl = true;
     void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
+
         log("Download2()");
         if(first_downl && TheSingleton.getInstance().t1 == 0) {
             log("start");
@@ -979,6 +983,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         item = menu.add(0, 3, 0, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        item = menu.add(0, 4, 2, "Refresh");
+        item.setIcon(R.drawable.refresh);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -992,6 +999,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
                 break;
+            case 4:
+                refresh();
         }
         return super.onOptionsItemSelected(item);
     }
