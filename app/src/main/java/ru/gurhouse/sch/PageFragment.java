@@ -1,13 +1,10 @@
 package ru.gurhouse.sch;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-//import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -63,8 +60,8 @@ public class PageFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
-//            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
-//            refreshL.setOnRefreshListener(() -> refreshL.setRefreshing(false));
+            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
+            refreshL.setOnRefreshListener(() -> refreshL.setRefreshing(false));
         }
         return v;
     }

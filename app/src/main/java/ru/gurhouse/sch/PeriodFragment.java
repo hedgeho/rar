@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,94 +25,123 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Locale;
 
-import static ru.gurhouse.sch.LoginActivity.log;
-
 public class PeriodFragment extends Fragment {
 
     ArrayList<TextView> txts;
     View view;
     String[] period;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
-    int pernum = 6;
+    int pernum = 0;
     Toolbar toolbar;
     AlertDialog.Builder alr;
     boolean shown = false;
     String periodname;
     boolean first_time = true;
-
-    public PeriodFragment() {
-        txts = new ArrayList<>();
-    }
-
-    static void sasha(String s) {
-        Log.v("sasha", s);
-    }
-
-    static void sasha(Boolean s) {
-        Log.v("sasha", String.valueOf(s));
-    }
-
-    static void sasha(Long s) {
-        Log.v("sasha", String.valueOf(s));
-    }
-
-    LinearLayout layout1, layout2, layout3, layout;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
+    boolean nullsub = false;
+    TextView txtnull;
+    boolean mode;
+    SwipeRefreshLayout refreshL;
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
             ListView lv = ((AlertDialog) dialog).getListView();
             if (which == Dialog.BUTTON_POSITIVE) {
                 TheSingleton.getInstance().t1 = System.currentTimeMillis();
-                log("start");
                 pernum = lv.getCheckedItemPosition();
                 if (periods[pernum].subjects == null) {
+                    normallog("PerF: change of period and downloud (" + pernum + "), name - " + periods[pernum].name + ", id - " + periods[pernum].id);
                     ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
                     view.findViewById(R.id.progress).setVisibility(View.VISIBLE);
                     view.findViewById(R.id.scrollView2).setVisibility(View.INVISIBLE);
+                    view.findViewById(R.id.txtnull).setVisibility(View.INVISIBLE);
                 } else {
+                    normallog("PerF: change of period (" + pernum + "), name - " + periods[pernum].name);
                     periodname = periods[pernum].name;
-                    ((MainActivity) getActivity()).set(periods, pernum, 2);
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
-
-                    show();
+                    if (periods[pernum].nullsub) {
+                        normallog("PerF: nullshow()");
+                        ((MainActivity) getActivity()).nullsub(periods, pernum);
+                    } else {
+                        normallog("PerF: show()");
+                        if (((MainActivity) getActivity()).getMode0()) {
+                            normallog("PerF");
+                            ((MainActivity) getActivity()).set(periods, pernum, 2);
+                        } else {
+                            normallog("PerF1");
+                            ((MainActivity) getActivity()).set(periods, pernum, 1);
+                        }
+                    }
                 }
-                sasha("------------------------");
-            } /*else {
-            }*/
+            }
         }
     };
+    LinearLayout layout1, layout2, layout3, layout;
+
+    public PeriodFragment() {
+        txts = new ArrayList<>();
+    }
+
+    static void normallog(String s) {
+        Log.v("normallog", s);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        normallog("PerF/OnCreateView (alternative)");
         first_time = false;
         if (view == null)
             view = inflater.inflate(R.layout.diary, container, false);
-        if (period == null)
+        if (period == null && !nullsub)
             return view;
         toolbar = getActivity().findViewById(R.id.toolbar);
-        periodname = period[pernum];
         alr = new AlertDialog.Builder(getContext());
         alr.create();
+        periodname = period[pernum];
+        toolbar.setTitle(periodname);
         alr.setSingleChoiceItems(period, pernum, myClickListener);
         alr.setTitle("Выберите период");
         alr.setPositiveButton("ok", myClickListener);
-        toolbar.setTitle(periodname);
-        toolbar.setOnClickListener(v -> alr.show());
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alr.show();
+            }
+        });
         setHasOptionsMenu(true);
+
+        refreshL = view.findViewById(R.id.refr);
+        refreshL.setOnRefreshListener(() -> {
+            refresh();
+        });
+
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
-        sasha("sasa");
+        if (nullsub) {
+            nullshow();
+            return view;
+        }
         if (periods[pernum] != null && !shown)
             show();
         return view;
+    }
+
+    void nullshow() {
+        txtnull = view.findViewById(R.id.txtnull);
+        txtnull.setTextSize(8 * getResources().getDisplayMetrics().density);
+        txtnull.setTextColor(Color.LTGRAY);
+        txtnull.setText("А оценочек то нет. Че съел?  Ну давай быкани быкани! Ты че решил ко мне лезть? Ублюдок, мать твою, а ну иди сюда говно собачье, решил ко мне лезть? Ты, засранец вонючий, мать твою, а? Ну иди сюда, попробуй меня трахнуть, я тебя сам трахну ублюдок, онанист чертов, будь ты проклят, иди идиот, трахать тебя и всю семью, говно собачье, жлоб вонючий, дерьмо, сука, падла, иди сюда, мерзавец, негодяй, гад, иди сюда ты - говно, ЖОПА!");
+        txtnull.setPadding(90, 0, 90, 0);
+        view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
+        txtnull.setVisibility(View.VISIBLE);
+        view.findViewById(R.id.scrollView2).setVisibility(View.INVISIBLE);
+        normallog("PerF/OnCreateView: nullsub");
     }
 
     void show() {
@@ -122,8 +152,11 @@ public class PeriodFragment extends Fragment {
         layout2.removeAllViews();
         layout3 = view.findViewById(R.id.linear3);
         layout3.removeAllViews();
-        sasha("subjects: " + periods[pernum].subjects.size());
-        for (int i = 0; i < periods[pernum].subjects.size() - 1; i++) {
+        normallog("PerF/show: names of subjects");
+        for (int i = 0; i < periods[pernum].subjects.size(); i++) {
+            normallog((i + 1) + ". " + periods[pernum].subjects.get(i).shortname);
+        }
+        for (int i = 0; i < periods[pernum].subjects.size(); i++) {
             TextView txt1 = new TextView(getActivity());
             TextView txt2 = new TextView(getActivity());
             LinearLayout linearLayout = new LinearLayout(getActivity());
@@ -141,7 +174,6 @@ public class PeriodFragment extends Fragment {
             if (periods[pernum].subjects.get(i).avg > 0) {
                 txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
             } else {
-                sasha(periods[pernum].subjects.get(i).shortname + " " + periods[pernum].subjects.get(i).cells.size());
                 periods[pernum].subjects.get(i).avg = 0;
                 Double d = 0.;
                 Double f = 0.;
@@ -155,15 +187,12 @@ public class PeriodFragment extends Fragment {
                             c++;
                         }
                 }
-                sasha("here1 " + c);
                 if (c > 0) {
-                    sasha("here2");
                     String s = String.valueOf(d / f);
                     if (s.length() > 4) {
                         s = String.format(Locale.UK, "%.2f", d / f);
                     }
                     periods[pernum].subjects.get(i).avg = Double.valueOf(s);
-                    sasha("here3");
                     txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
                 } else
                     txt2.setText(" ");
@@ -173,10 +202,11 @@ public class PeriodFragment extends Fragment {
             txt1.setOnClickListener(v -> SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark));
             layout2.addView(txt2);
             layout1.addView(txt1);
-            if (periods[pernum].subjects.get(i).cells == null)
-                continue;
+
+            int g = 0;
             for (int j = 0; j < periods[pernum].subjects.get(i).cells.size(); j++) {
-                if (periods[pernum].subjects.get(i).cells.get(j).markvalue != null && !periods[pernum].subjects.get(i).cells.get(j).markvalue.equals("")) {
+                if (periods[pernum].subjects.get(i).cells.get(j).markvalue != null && periods[pernum].subjects.get(i).cells.get(j).markvalue != "") {
+                    g++;
                     double d = periods[pernum].subjects.get(i).cells.get(j).mktWt;
                     txts.add(new TextView(getActivity()));
                     LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -236,11 +266,27 @@ public class PeriodFragment extends Fragment {
                     linearLayout.addView(txts.get(txts.size() - 1));
                 }
             }
+            if (g == 0) {
+                TextView txtnull = new TextView(getActivity());
+                txtnull.setText("7");
+                LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                lp1.setMargins(0, 0, 10, 10);
+                txtnull.setLayoutParams(lp1);
+                txtnull.setTextSize(9 * getResources().getDisplayMetrics().density);
+                txtnull.setTextColor(Color.TRANSPARENT);
+                txtnull.setPadding(15, 0, 15, 0);
+                linearLayout.addView(txtnull);
+            }
             layout3.addView(linearLayout);
         }
 
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.txtnull).setVisibility(View.INVISIBLE);
+    }
+
+    void refresh() {
+        ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<Cell> cells, String name, String rating, String totalmark) {
@@ -265,6 +311,9 @@ public class PeriodFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
+        item = menu.add(0, 2, 0, "TotalMarks");
+        item.setIcon(R.drawable.results);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 3, 0, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -352,6 +401,7 @@ public class PeriodFragment extends Fragment {
             case 2:
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 TotalMarks fragment = new TotalMarks();
+                fragment.start();
                 transaction.replace(R.id.frame, fragment);
                 transaction.addToBackStack(null);
                 transaction.commit();

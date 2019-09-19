@@ -74,7 +74,7 @@ public class DayFragment extends Fragment {
             } catch (Exception e) {
                 System.out.println(e.toString());
             }
-            tv1.setPadding(50, 50, 50, 10);
+            tv1.setPadding(50, 50, 50, 0);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
         }
@@ -98,7 +98,7 @@ public class DayFragment extends Fragment {
                     ((MainActivity) getActivity()).saveFile(url, file.name, true);
                 } catch (Exception e) {loge(e.toString());}
             });
-            tv1.setPadding(50, 10, 50, 10);
+            tv1.setPadding(50, 10, 50, 0);
             linearLayout.addView(tv1);
         }
         if (marks.size() != 0) {

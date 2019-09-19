@@ -3,26 +3,29 @@ package ru.gurhouse.sch;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 import android.widget.Toolbar;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+
+import static ru.gurhouse.sch.LoginActivity.connect;
+import static ru.gurhouse.sch.LoginActivity.log;
 
 /** under construction - screen showing total marks of the user*/
 public class TotalMarks extends Fragment {
 
-    ArrayList<String>[] s;
+    ArrayList<String> s = new ArrayList<>();
     TableLayout tableLayout;
     Toolbar toolbar;
+    int yearid;
 
     public TotalMarks() {
     }
@@ -32,32 +35,14 @@ public class TotalMarks extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
+    private int USER_ID;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_total_marks, container, false);
         tableLayout = v.findViewById(R.id.table);
-        if (((MainActivity) getActivity()).scheduleFragment.s != null && ((MainActivity) getActivity()).scheduleFragment.s[0].size() > 1) {
-            s = ((MainActivity) getActivity()).scheduleFragment.s;
-        } else {
-            ((MainActivity) getActivity()).scheduleFragment.Download3();
-        }
-
-        for (int i = 0; i < s[0].size(); i++) {
-            TableRow tableRow = new TableRow(getContext());
-            for (ArrayList<String> strings : s) {
-                TextView txt = new TextView(getContext());
-                if (i == 0) {
-                    txt.setText(strings.get(i));
-                    txt.setLineSpacing(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5.0f, getResources().getDisplayMetrics()), 0.4f);
-                } else {
-                    txt.setText(strings.get(i));
-                }
-                txt.setGravity(Gravity.CENTER);
-                tableRow.addView(txt);
-            }
-            tableLayout.addView(tableRow);
-        }
+        Download3();
         return v;
     }
 
@@ -69,6 +54,66 @@ public class TotalMarks extends Fragment {
                 f += "\n";
         }
         return f;
+    }
+
+    void start() {
+        USER_ID = TheSingleton.getInstance().getUSER_ID();
+    }
+
+    void Download3() {
+        log("Dowload3()");
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    JSONArray array1 = new JSONArray(
+                            connect("https://app.eschool.center/ec-server/yearplan/academyears",
+                                    null));
+                    JSONObject object1;
+                    for (int i = 0; i < array1.length(); i++) {
+                        object1 = array1.getJSONObject(i);
+                        if (object1.getInt("y1") == 2018) {
+                            yearid = object1.getInt("yearId");
+                            break;
+                        }
+                    }
+                    JSONObject object = new JSONObject(
+                            connect("https://app.eschool.center/ec-server/student/getTotalMarks?yearid=" + yearid + "&userid=" + USER_ID + "&json=true",
+                                    null));
+                    object = object.getJSONObject("RegisterOfClass");
+                    object = object.getJSONObject("User");
+                    JSONArray array = object.getJSONArray("Result");
+//                    String lastname = " ";
+//                    for (int i = 0; i < array.length(); i++) {
+//                        object = array.getJSONObject(i);
+//                        if (!object.getString("UnitName").equals(lastname)) {
+//                            s[0].add(object.getString("UnitName"));
+//                            lastname = object.getString("UnitName");
+//                            for (int j = 1; j < s.length; j++) {
+//                                s[j].add("");
+//                            }
+//                        } else {
+//                            for (int j = 1; j < s.length; j++) {
+//                                if (s[j].get(0).equals(object.getString("PeriodName"))) {
+//                                    s[j].set(s[j].size() - 1, String.valueOf(object.getInt("Value5")));
+//                                }
+//                            }
+//                        }
+//                    }
+                } catch (Exception e) {
+                }
+            }
+        }.start();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
     }
 
     @Override
