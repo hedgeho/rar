@@ -37,7 +37,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private PeriodFragment1 periodFragment1;
     private MessagesFragment messagesFragment;
     private ConstraintLayout main, chat;
+    private String[] period;
     private int state = 2;
     private BroadcastReceiver receiver,  auth_receiver;
     private BottomNavigationView bottomnav;
@@ -121,10 +121,6 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     login(login, hash);
-                } catch (LoginActivity.NoInternetException e) {
-                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
-                    findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
-                    findViewById(R.id.frame).setVisibility(View.INVISIBLE);
                 } catch (Exception e) {
                     loge("login: " + e.toString());}
             }
@@ -330,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void set(ScheduleFragment.Period[] periods, int pernum, int t) {
-        String[] period = scheduleFragment.period;
+        period = scheduleFragment.period;
         if (t == 1) {
             periodFragment1 = new PeriodFragment1();
             periodFragment1.period = period;
@@ -343,11 +339,16 @@ public class MainActivity extends AppCompatActivity {
             periodFragment.period = period;
             periodFragment.pernum = pernum;
             periodFragment.periods = periods;
+            periodFragment.mode = !mode0;
             if (state == 1 && mode0)
                 loadFragment(periodFragment);
         }
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
        // TheSingleton.getInstance().setDays(days);
+    }
+
+    boolean getMode0() {
+        return mode0;
     }
 
     private void loadFragment(Fragment fragment) {
@@ -418,6 +419,18 @@ public class MainActivity extends AppCompatActivity {
         url = null;
     }
 
+    void nullsub(ScheduleFragment.Period[] periods, int pernum) {
+        period = scheduleFragment.period;
+        periodFragment = new PeriodFragment();
+        periodFragment.period = period;
+        periodFragment.periods = periods;
+        periodFragment.pernum = pernum;
+        periodFragment.nullsub = true;
+        periodFragment.mode = !mode0;
+        if (state == 1)
+            loadFragment(periodFragment);
+        TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
+    }
     @Override
     public void onBackPressed() {
         log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
@@ -475,23 +488,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             loge(e.toString());
         }
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        new Thread(() -> {
-            try {
-                LoginActivity.login();
-            } catch (LoginActivity.NoInternetException e) {
-                runOnUiThread(() -> {
-                    TextView tv = findViewById(R.id.tv_error);
-                    tv.setText("Нет доступа к интернету");
-                    tv.setVisibility(View.VISIBLE);
-                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
-                });
-            }
-        }).start();
     }
 
     @Override

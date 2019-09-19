@@ -166,25 +166,17 @@ public class Countcoff extends Fragment {
             alr1.setView(item);
             final AlertDialog show = alr1.show();
             btn1.setVisibility(View.INVISIBLE);
-            btn2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v1) {
-                    show.dismiss();
-                }
-            });
-            btn3.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v1) {
-                    Spannable spans1 = new SpannableString(newMark[0]);
-                    spans1.setSpan(new RelativeSizeSpan(1.7f), 0, newMark[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                    spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                    PeriodFragment.Cell cell = new PeriodFragment.Cell();
-                    cell.markvalue = newMark[0];
-                    cell.mktWt = f[0];
-                    cells.add(cell);
-                    makeMarks();
-                    show.dismiss();
-                }
+            btn2.setOnClickListener(v11 -> show.dismiss());
+            btn3.setOnClickListener(v112 -> {
+                Spannable spans1 = new SpannableString(newMark[0]);
+                spans1.setSpan(new RelativeSizeSpan(1.7f), 0, newMark[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                PeriodFragment.Cell cell = new PeriodFragment.Cell();
+                cell.markvalue = newMark[0];
+                cell.mktWt = f[0];
+                cells.add(cell);
+                makeMarks();
+                show.dismiss();
             });
         });
 
@@ -314,16 +306,13 @@ public class Countcoff extends Fragment {
                 });
                 alr1.setView(item);
                 final AlertDialog show = alr1.show();
-                btn1.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        cells.remove(finalI);
-                        makeMarks();
-                        show.dismiss();
-                    }
+                btn1.setOnClickListener(v1 -> {
+                    cells.remove(finalI);
+                    makeMarks();
+                    show.dismiss();
                 });
-                btn2.setOnClickListener(v1 -> show.dismiss());
-                btn3.setOnClickListener(v12 -> {
+                btn2.setOnClickListener(v12 -> show.dismiss());
+                btn3.setOnClickListener(v13 -> {
                     Spannable spans11 = new SpannableString(newMark[0]);
                     spans11.setSpan(new RelativeSizeSpan(1.7f), 0, newMark[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     spans11.setSpan(new ForegroundColorSpan(Color.WHITE), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);

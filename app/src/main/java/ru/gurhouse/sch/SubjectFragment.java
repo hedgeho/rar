@@ -1,6 +1,5 @@
 package ru.gurhouse.sch;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,6 +10,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,8 +21,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.text.DateFormatSymbols;
-
-import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class SubjectFragment extends Fragment {
 
@@ -40,12 +38,18 @@ public class SubjectFragment extends Fragment {
         }
 
     };
+
+    String periodname = ""; // пока так
+
     String subname;
-    String periodname = "4 четверть"; // пока так
+    int pernum = 0;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     Double avg;
     String[] period;
-    int pernum = 6;
+
+    static void normallog(String s) {
+        Log.v("normallog", s);
+    }
     String rating;
     String totalmark;
 
@@ -64,10 +68,9 @@ public class SubjectFragment extends Fragment {
         periodname = period[pernum];
         linearLayout.setBaselineAligned(false);
         if(subname == null) {
-            loge("subname null!");
             subname = "strange subname";
         }
-        if (!subname.equals(" ") && !subname.equals("")) {
+        if (subname != " " && subname != "") {
             TextView tv1 = new TextView(getActivity());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -87,13 +90,14 @@ public class SubjectFragment extends Fragment {
         if (avg != null && avg != 0) {
             sum++;
         }
-        if (rating != " " && rating != "" && rating != null) {
+        if (rating != null && !rating.equals(" ") && !rating.equals("")) {
             sum++;
         }
-        if (totalmark != " " && totalmark != "" && totalmark != null) {
+        if (totalmark != null && !totalmark.equals(" ") && !totalmark.equals("")) {
             sum++;
         }
         if (avg != null && avg != 0) {
+            normallog("SubF/avg: " + avg);
             TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
@@ -108,7 +112,7 @@ public class SubjectFragment extends Fragment {
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
             tv1.setOnClickListener(v1 -> {
-
+                normallog("SubF: onClick(avg)");
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 Countcoff fragment = new Countcoff();
                 transaction.replace(R.id.frame, fragment);
@@ -118,13 +122,17 @@ public class SubjectFragment extends Fragment {
                     fragment.avg = avg;
                     fragment.period = period;
                     fragment.pernum = pernum;
-                } catch (Exception ignore) {}
+                } catch (Exception ignore) {
+                }
                 transaction.addToBackStack(null);
                 transaction.commit();
             });
             ln1.addView(tv1);
+        } else {
+            normallog("SubF/avg: NAN");
         }
-        if (totalmark != " " && totalmark != "" && totalmark != null) {
+        if (totalmark != null && !totalmark.equals(" ") && !totalmark.equals("")) {
+            normallog("SubF/totalmark: " + totalmark);
             TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
@@ -139,8 +147,11 @@ public class SubjectFragment extends Fragment {
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
             ln1.addView(tv1);
+        } else {
+            normallog("SubF/totalmark: NAN");
         }
         if (rating != " " && rating != "" && rating != null) {
+            normallog("SubF/rating: " + rating);
             TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
@@ -155,6 +166,8 @@ public class SubjectFragment extends Fragment {
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
             ln1.addView(tv1);
+        } else {
+            normallog("SubF/rating: NAN");
         }
         linearLayout.addView(ln1);
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
