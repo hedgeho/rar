@@ -6,11 +6,11 @@
     android:background="#00FFFFFF"
     android:orientation="vertical">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/refresh"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="visible">
+<!--    <android.support.v4.widget.SwipeRefreshLayout-->
+<!--        android:id="@+id/refresh"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:visibility="visible">-->
 
         <ScrollView
             android:layout_width="match_parent"
@@ -30,6 +30,6 @@
                     android:layout_marginRight="10dp" />
             </LinearLayout>
         </ScrollView>
-    </android.support.v4.widget.SwipeRefreshLayout>
+<!--    </android.support.v4.widget.SwipeRefreshLayout>-->
 
 </LinearLayout>

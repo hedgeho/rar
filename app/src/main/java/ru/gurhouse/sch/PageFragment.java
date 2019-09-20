@@ -60,8 +60,11 @@ public class PageFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
-            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
-            refreshL.setOnRefreshListener(() -> refreshL.setRefreshing(false));
+//            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
+//            refreshL.setOnRefreshListener(() -> {
+//                ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
+//                refreshL.setRefreshing(false);
+//            });
         }
         return v;
     }

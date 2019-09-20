@@ -302,8 +302,8 @@ public class MessagesFragment extends Fragment {
                                             getActivity().runOnUiThread(() -> loadChat(threadId, fio, -1, false));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
-                                        Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
-
+                                        getActivity().runOnUiThread(() ->
+                                                Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
                                     } catch (Exception e) {
                                         loge(e.toString());}
                                 }
@@ -674,7 +674,7 @@ public class MessagesFragment extends Fragment {
                     registerForContextMenu(item);
                     item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
                             contextMenu.add(0, 0, 0,
-                                    getContext().getSharedPreferences("pref", 0).getString("muted", "[]")
+                                    context.getSharedPreferences("pref", 0).getString("muted", "[]")
                                         .contains("" + f_threadIds.get(j))?"Включить уведомления":"Отключить уведомления")
                                     .setIntent(new Intent().putExtra("threadId", f_threadIds.get(j)));
                             if(users > 2)
@@ -903,7 +903,8 @@ public class MessagesFragment extends Fragment {
                                             h.sendMessage(h.obtainMessage(1, array.length() == 25 ? 0 : 1, 0));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
-                                        Toast.makeText(getContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show();
+                                        getActivity().runOnUiThread(() ->
+                                                Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                                     } catch (Exception e) {
                                         loge(e.toString());
                                     }
@@ -973,7 +974,7 @@ public class MessagesFragment extends Fragment {
                                 item.getIntent().getIntExtra("threadId", -1), null);
                         refresh();
                     } catch (LoginActivity.NoInternetException e) {
-                        Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {loge(e);}
                 }).start();
         }
@@ -1173,7 +1174,7 @@ public class MessagesFragment extends Fragment {
                             registerForContextMenu(item);
                             item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
                                     contextMenu.add(0, 0, 0,
-                                            getContext().getSharedPreferences("pref", 0).getString("muted", "[]")
+                                            context.getSharedPreferences("pref", 0).getString("muted", "[]")
                                                     .contains("" + f_threadIds.get(j))?"Включить уведомления":"Отключить уведомления")
                                             .setIntent(new Intent().putExtra("threadId", f_threadIds.get(j)));
                                 if(users > 2)
@@ -1193,7 +1194,7 @@ public class MessagesFragment extends Fragment {
                     download(h);
                 } catch (LoginActivity.NoInternetException e) {
                     getActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
+                            Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                     refreshL.setRefreshing(false);
                 } catch (Exception e) {
                     loge("refreshing: " + e.toString());}

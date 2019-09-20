@@ -36,6 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -200,8 +201,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(getSharedPreferences("pref", 0).getBoolean("first_time", true) && !flag_shown) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setPositiveButton("OK", (dialog, id) -> onClick(v));
-            builder.setMessage("Продолжая использовать данное приложение" +
-                    " вы соглашаетесь, что ваши данные, имеющиеся у платформы eschool.center теоретически будут доступны " +
+            builder.setMessage("Продолжая использовать данное приложение," +
+                    " вы соглашаетесь, что ваши данные, имеющиеся у платформы eschool.center, теоретически будут доступны " +
                     "третьим лицам (т. е. разработчикам данного приложения)")
                     .setTitle("Политика конфиденциальности");
             AlertDialog dialog = builder.create();
@@ -357,6 +358,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     static void login(String login, String password) throws NoInternetException {
         try {
+//            connect("https://app.eschool.center/ec-server/logout_me", null);
             URL Url = new URL("https://app.eschool.center/ec-server/login");
             HttpURLConnection con = (HttpURLConnection) Url.openConnection();
             con.setRequestMethod("POST");
@@ -371,6 +373,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             Map<String, List<String>> a = con.getHeaderFields();
             Object[] b = a.entrySet().toArray();
             if(String.valueOf(b[8]).split("route=").length < 2) {
+                loge(Arrays.toString(b));
                 loge("bad cookie: \n" + b[8]);
                 login(login, password);
             } else {

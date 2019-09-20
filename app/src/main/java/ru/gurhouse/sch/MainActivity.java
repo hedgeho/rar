@@ -216,26 +216,26 @@ public class MainActivity extends AppCompatActivity {
             try {
                 Thread.sleep(100);
             } catch (Exception ignore) {}
-                runOnUiThread(() -> {
-                    if(findViewById(R.id.refresh) != null) {
-                        findViewById(R.id.refresh).setOnClickListener((view) -> {
-                            view.setVisibility(View.INVISIBLE);
-                            findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
-                            findViewById(R.id.frame).setVisibility(View.VISIBLE);
-                            try {
-                                if (getIntent().getStringExtra("login") != null) {
-                                    login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
-                                }
-                            } catch (LoginActivity.NoInternetException e) {
-                                view.setVisibility(View.VISIBLE);
-                                findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
-                                findViewById(R.id.frame).setVisibility(View.INVISIBLE);
-                            } catch (Exception e) {
-                                loge(e.toString());
+            runOnUiThread(() -> {
+                if(findViewById(R.id.refresh) != null) {
+                    findViewById(R.id.refresh).setOnClickListener((view) -> {
+                        view.setVisibility(View.INVISIBLE);
+                        findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
+                        findViewById(R.id.frame).setVisibility(View.VISIBLE);
+                        try {
+                            if (getIntent().getStringExtra("login") != null) {
+                                login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
                             }
-                        });
-                    }
-                });
+                        } catch (LoginActivity.NoInternetException e) {
+                            view.setVisibility(View.VISIBLE);
+                            findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
+                            findViewById(R.id.frame).setVisibility(View.INVISIBLE);
+                        } catch (Exception e) {
+                            loge(e.toString());
+                        }
+                    });
+                }
+            });
         }).start();
     }
 
@@ -457,6 +457,14 @@ public class MainActivity extends AppCompatActivity {
                 getSupportFragmentManager().popBackStack();
         if(getStackTop() instanceof ChatFragment && a.get(a.size()-2) instanceof MessagesFragment)
             ((MessagesFragment) a.get(a.size()-2)).refresh();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (data!=null)
+            if(data.hasExtra("goal"))
+                if(data.getStringExtra("goal").equals("quit"))
+                    quit();
     }
 
     @Override
