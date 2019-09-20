@@ -12,6 +12,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -29,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -166,8 +168,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 loge("show " + e);
             }
             pager = v.findViewById(R.id.pager);
-            pagerAdapter = new MyFragmentPagerAdapter(getFragmentManager());
-            pager.setAdapter(pagerAdapter);
+            if(pager.getAdapter() == null) {
+                pagerAdapter = new MyFragmentPagerAdapter(getFragmentManager());
+                pager.setAdapter(pagerAdapter);
+            }
             pager.setCurrentItem(pageCount / 2 + 1);
             lastposition = pager.getCurrentItem();
 
@@ -191,8 +195,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     for (int i = w - 2; i > -1; i--) {
                         week[i] = pager.getCurrentItem() - 1 + i - w + 1 + 1;
-                    }
-                    for (int i = 0; i < 7; i++) {
                     }
                     Calendar date = Calendar.getInstance();
                     date.add(Calendar.DATE, position-lastposition);
@@ -246,15 +248,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         } catch (Exception e) {
             e.printStackTrace();
             loge("show: " + e.toString());
-            getActivity().runOnUiThread(() -> {
-                Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-                toolbar.setTitle("Дневник");
-                toolbar.setClickable(false);
-                setHasOptionsMenu(true);
-                ((MainActivity) getActivity()).setSupportActionBar(toolbar);
-                v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-                v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
-            });
+            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            toolbar.setTitle("Дневник");
+            toolbar.setClickable(false);
+            setHasOptionsMenu(true);
+            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+            v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+            v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
         }
     }
 
@@ -378,11 +378,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         Download2(periods[6].id, 6, true, true);
                     }
                 } catch (LoginActivity.NoInternetException e) {
-                    getActivity().runOnUiThread(()->{
-                        TextView tv = getView().findViewById(R.id.tv_error);
-                        tv.setText("Нет соединения с интернетом");
-                        tv.setVisibility(View.VISIBLE);
-                    });
+                    getActivity().runOnUiThread(() ->
+                            Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     loge("Download1() " + e.toString());
                 }
@@ -393,6 +390,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     JSONObject object1 = null;
     boolean first_downl = true;
     void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
+        shown = false;
         normallog("SchF: Download2()");
         if(first_downl && TheSingleton.getInstance().t1 == 0) {
             log("start");
@@ -400,7 +398,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             first_downl = false;
         }
         if(periods.length == 0)
-            normallog("SchF/Duwnloud2: periods are empty");
+            normallog("SchF/Download2: periods are empty");
         pernum = h;
         periods[pernum].days = new ArrayList<>();
         periods[pernum].subjects = new ArrayList<>();
@@ -606,284 +604,285 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         day1 = date1;
                     }
 
-                        log(1);
-                        for (int i = 0; i < periods[pernum].days.size(); i++) {
-                            for (int j = 0; j < periods[pernum].cells.size(); j++) {
-                                PeriodFragment.Cell cell = periods[pernum].cells.get(j);
-                                s1 = cell.date;
-                                format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
-                                d1 = format.parse(s1).getTime();
-                                if (cell.mktWt != 0) {
-                                    if (periods[pernum].days.get(i).daymsec - d1 == 0 || periods[pernum].days.get(i).daymsec.equals(d1)) {
-                                        for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
-                                            if (periods[pernum].days.get(i).lessons.get(k).id.equals(cell.lessonid)) {
-                                                PeriodFragment.Mark mark = new PeriodFragment.Mark();
-                                                mark.cell = cell;
-                                                mark.idlesson = cell.lessonid;
-                                                mark.coefficient = cell.mktWt;
-                                                if (cell.markvalue != null)
-                                                    mark.value = cell.markvalue;
-                                                else
-                                                    mark.value = "";
-                                                mark.teachFio = cell.teachFio;
-                                                mark.markdate = cell.markdate;
-                                                mark.date = cell.date;
+                    log(1);
+                    for (int i = 0; i < periods[pernum].days.size(); i++) {
+                        for (int j = 0; j < periods[pernum].cells.size(); j++) {
+                            PeriodFragment.Cell cell = periods[pernum].cells.get(j);
+                            s1 = cell.date;
+                            format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
+                            d1 = format.parse(s1).getTime();
+                            if (cell.mktWt != 0) {
+                                if (periods[pernum].days.get(i).daymsec - d1 == 0 || periods[pernum].days.get(i).daymsec.equals(d1)) {
+                                    for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
+                                        if (periods[pernum].days.get(i).lessons.get(k).id.equals(cell.lessonid)) {
+                                            PeriodFragment.Mark mark = new PeriodFragment.Mark();
+                                            mark.cell = cell;
+                                            mark.idlesson = cell.lessonid;
+                                            mark.coefficient = cell.mktWt;
+                                            if (cell.markvalue != null)
+                                                mark.value = cell.markvalue;
+                                            else
+                                                mark.value = "";
+                                            mark.teachFio = cell.teachFio;
+                                            mark.markdate = cell.markdate;
+                                            mark.date = cell.date;
 
-                                                mark.topic = cell.lptname;
-                                                mark.unitid = cell.unitid;
-                                                for (int l = 0; l < periods[pernum].subjects.size(); l++) {
-                                                    if (periods[pernum].subjects.get(l).unitid == mark.unitid) {
-                                                        periods[pernum].subjects.get(l).cells.add(cell);
-                                                    }
-                                                    if (periods[pernum].subjects.get(l).shortname == null || periods[pernum].subjects.get(l).shortname.isEmpty()) {
-                                                        PeriodFragment.Subject subject = periods[pernum].subjects.get(l);
-                                                        switch (subject.name) {
-                                                            case "Физика":
-                                                            case "Химия":
-                                                            case "История":
-                                                            case "Алгебра":
-                                                                subject.shortname = subject.name;
-                                                                break;
-                                                            case "БЕСЕДЫ КЛ РУК":
-                                                                subject.shortname = "Кл. Час";
-                                                                break;
-                                                            case "Иностранный язык":
-                                                                subject.shortname = "Ин. Яз.";
-                                                                break;
-                                                            case "Алгебра и начала анализа":
-                                                                subject.shortname = "Алгебра";
-                                                                break;
-                                                            case "Информатика и ИКТ":
-                                                                subject.shortname = "Информ.";
-                                                                break;
-                                                            case "Биология":
-                                                                subject.shortname = "Биолог.";
-                                                                break;
-                                                            case "География":
-                                                                subject.shortname = "Геогр.";
-                                                                break;
-                                                            case "Геометрия":
-                                                                subject.shortname = "Геометр.";
-                                                                break;
-                                                            case "Литература":
-                                                                subject.shortname = "Лит-ра";
-                                                                break;
-                                                            case "Обществознание":
-                                                                subject.shortname = "Общ.";
-                                                                break;
-                                                            case "Русский язык":
-                                                                subject.shortname = "Рус. Яз.";
-                                                                break;
-                                                            case "Физическая культура":
-                                                                subject.shortname = "Физ-ра";
-                                                                break;
-                                                            default:
-                                                                periods[pernum].subjects.get(l).shortname = periods[pernum].subjects.get(l).name.substring(0, 3);
-                                                        }
-
-                                                    }
-//                                                    if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
-//                                                        periods[pernum].subjects.get(l).shortname = "Общест.";
-//                                                    else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
-//                                                        periods[pernum].subjects.get(l).shortname = "Физ-ра";
-//                                                    else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
-//                                                        periods[pernum].subjects.get(l).shortname = "Информ.";
-//                                                    else if (periods[pernum].subjects.get(l).shortname != null)
-//                                                        periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
-//                                                    else
-//                                                        periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
-//                                                }
+                                            mark.topic = cell.lptname;
+                                            mark.unitid = cell.unitid;
+                                            for (int l = 0; l < periods[pernum].subjects.size(); l++) {
+                                                if (periods[pernum].subjects.get(l).unitid == mark.unitid) {
+                                                    periods[pernum].subjects.get(l).cells.add(cell);
                                                 }
-                                                periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
+                                                if (periods[pernum].subjects.get(l).shortname == null || periods[pernum].subjects.get(l).shortname.isEmpty()) {
+                                                    PeriodFragment.Subject subject = periods[pernum].subjects.get(l);
+                                                    switch (subject.name) {
+                                                        case "Физика":
+                                                        case "Химия":
+                                                        case "История":
+                                                        case "Алгебра":
+                                                            subject.shortname = subject.name;
+                                                            break;
+                                                        case "БЕСЕДЫ КЛ РУК":
+                                                            subject.shortname = "Кл. Час";
+                                                            break;
+                                                        case "Иностранный язык":
+                                                            subject.shortname = "Ин. Яз.";
+                                                            break;
+                                                        case "Алгебра и начала анализа":
+                                                            subject.shortname = "Алгебра";
+                                                            break;
+                                                        case "Информатика и ИКТ":
+                                                            subject.shortname = "Информ.";
+                                                            break;
+                                                        case "Биология":
+                                                            subject.shortname = "Биолог.";
+                                                            break;
+                                                        case "География":
+                                                            subject.shortname = "Геогр.";
+                                                            break;
+                                                        case "Геометрия":
+                                                            subject.shortname = "Геометр.";
+                                                            break;
+                                                        case "Литература":
+                                                            subject.shortname = "Лит-ра";
+                                                            break;
+                                                        case "Обществознание":
+                                                            subject.shortname = "Общ.";
+                                                            break;
+                                                        case "Русский язык":
+                                                            subject.shortname = "Рус. Яз.";
+                                                            break;
+                                                        case "Физическая культура":
+                                                            subject.shortname = "Физ-ра";
+                                                            break;
+                                                        default:
+                                                            periods[pernum].subjects.get(l).shortname = periods[pernum].subjects.get(l).name.substring(0, 3);
+                                                    }
+
+                                                }
+//                                                if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
+//                                                    periods[pernum].subjects.get(l).shortname = "Общест.";
+//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
+//                                                    periods[pernum].subjects.get(l).shortname = "Физ-ра";
+//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
+//                                                    periods[pernum].subjects.get(l).shortname = "Информ.";
+//                                                else if (periods[pernum].subjects.get(l).shortname != null)
+//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
+//                                                else
+//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
+//                                            }
                                             }
+                                            periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
                                         }
                                     }
                                 }
                             }
                         }
-                        ready = true;
+                    }
+                    ready = true;
 
-                        if (getActivity() != null) {
-                            if (((MainActivity) getActivity()).getStackTop() instanceof ScheduleFragment)
-                                getActivity().runOnUiThread(() -> show());
-                        }
+                    if (getActivity() != null) {
+                        if (((MainActivity) getActivity()).getStackTop() instanceof ScheduleFragment)
+                            getActivity().runOnUiThread(() -> show());
+                    }
 
-                        // цикл на ~3 секунд
-                        log(2);
-                        long matvey = 0, a = 0, b = 0, c = 0, de = 0, ef = 0, t1;
-                        TextView txt, txt1;
-                        LinearLayout.LayoutParams lp, lp3;
-                        LinearLayout lin, lin1, lin2;
-                        String s;
-                        for (int i = 0; i < periods[pernum].days.size(); i++) {
-                            if (periods[pernum].days.get(i) != null) {
-                                lin = new LinearLayout(getContext());
-                                boolean ask = true;
-                                lin.setOrientation(LinearLayout.VERTICAL);
-                                lin.setGravity(Gravity.CENTER);
-                                if (i + 1 - periods[pernum].days.size() != 0) {
-                                    if (i == 0) {
-                                        lin.setBackground(getResources().getDrawable(R.drawable.cell_phone6));
-                                    } else {
-                                        lin.setBackground(getResources().getDrawable(R.drawable.cell_phone4));
-                                    }
+                    // цикл на ~3 секунд
+                    log(2);
+                    long matvey = 0, a = 0, b = 0, c = 0, de = 0, ef = 0, t1;
+                    TextView txt, txt1;
+                    LinearLayout.LayoutParams lp, lp3;
+                    LinearLayout lin, lin1, lin2;
+                    String s;
+                    for (int i = 0; i < periods[pernum].days.size(); i++) {
+                        if (periods[pernum].days.get(i) != null) {
+                            lin = new LinearLayout(getContext());
+                            boolean ask = true;
+                            lin.setOrientation(LinearLayout.VERTICAL);
+                            lin.setGravity(Gravity.CENTER);
+                            if (i + 1 - periods[pernum].days.size() != 0) {
+                                if (i == 0) {
+                                    lin.setBackground(getResources().getDrawable(R.drawable.cell_phone6));
                                 } else {
-                                    lin.setBackground(getResources().getDrawable(R.drawable.cell_phone5));
+                                    lin.setBackground(getResources().getDrawable(R.drawable.cell_phone4));
                                 }
-                                lin.setPadding(30, 0, 30, 0);
+                            } else {
+                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone5));
+                            }
+                            lin.setPadding(30, 0, 30, 0);
 
-                                lin2 = new LinearLayout(getContext());
-                                lin2.setOrientation(LinearLayout.HORIZONTAL);
-                                lin2.setGravity(Gravity.CENTER);
-                                txt = new TextView(getContext());
-                                txt.setGravity(Gravity.CENTER);
-                                txt.setTextSize(20);
-                                s = "";
-                                lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                lp.setMargins(0, 0, 0, 10);
-                                txt.setLayoutParams(lp);
-                                try {
-                                    date = new Date();
-                                    date.setTime(periods[pernum].days.get(i).daymsec);
-                                    format = new SimpleDateFormat("dd.MM", Locale.ENGLISH);
-                                    s = format.format(date);
-                                } catch (Exception e) {
+                            lin2 = new LinearLayout(getContext());
+                            lin2.setOrientation(LinearLayout.HORIZONTAL);
+                            lin2.setGravity(Gravity.CENTER);
+                            txt = new TextView(getContext());
+                            txt.setGravity(Gravity.CENTER);
+                            txt.setTextSize(20);
+                            s = "";
+                            lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                            lp.setMargins(0, 0, 0, 10);
+                            txt.setLayoutParams(lp);
+                            try {
+                                date = new Date();
+                                date.setTime(periods[pernum].days.get(i).daymsec);
+                                format = new SimpleDateFormat("dd.MM", Locale.ENGLISH);
+                                s = format.format(date);
+                            } catch (Exception e) {
+                            }
+                            txt.setText(s);
+                            txt.setTextColor(Color.LTGRAY);
+                            lin2.addView(txt);
+                            lin.addView(lin2);
+                            for (int j = 0; j < periods[pernum].subjects.size() - 1; j++) {
+                                lin1 = new LinearLayout(getContext());
+                                lin1.setOrientation(LinearLayout.HORIZONTAL);
+                                lin1.setGravity(Gravity.CENTER);
+                                for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
+                                    final PeriodFragment.Lesson less = periods[pernum].days.get(i).lessons.get(k);
+                                    if (periods[pernum].subjects.get(j).unitid - less.unitId == 0) {
+                                        if (less.marks != null) {
+                                            for (int l = 0; l < less.marks.size(); l++) {
+                                                t1 = System.currentTimeMillis();
+                                                matvey++;
+
+//                                            txt1 = new TextView(getActivity().getApplicationContext());
+//                                            txt1.setGravity(Gravity.CENTER);
+//                                            txt1.setTextColor(Color.WHITE);
+//                                            txt1.setPadding(15, 0, 15, 0);
+                                                txt1 = new Kletka(getContext());
+                                                a += System.currentTimeMillis() - t1;
+                                                t1 = System.currentTimeMillis();
+                                                final double d = less.marks.get(l).coefficient;
+                                                if (d <= 0.5)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff1));
+                                                else if (d <= 1)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff2));
+                                                else if (d <= 1.25)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff3));
+                                                else if (d <= 1.35)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff4));
+                                                else if (d <= 1.5)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff5));
+                                                else if (d <= 1.75)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff6));
+                                                else if (d <= 2)
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff7));
+                                                else
+                                                    txt1.setBackgroundColor(getResources().getColor(R.color.coff8));
+                                                txt1.setTextSize(20);
+                                                b += System.currentTimeMillis() - t1;
+                                                t1 = System.currentTimeMillis();
+                                                try {
+                                                    final int finalJ = j;
+                                                    final int finalL = l;
+                                                    txt1.setOnClickListener(v -> {
+                                                        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                                                        MarkFragment fragment = new MarkFragment();
+                                                        transaction.replace(R.id.frame, fragment);
+                                                        try {
+                                                            fragment.coff = d;
+                                                            fragment.data = less.marks.get(finalL).date;
+                                                            fragment.markdata = less.marks.get(finalL).markdate;
+                                                            fragment.teachname = less.marks.get(finalL).teachFio;
+                                                            fragment.topic = less.marks.get(finalL).topic;
+                                                            fragment.value = less.marks.get(finalL).value;
+                                                            fragment.subject = periods[pernum].subjects.get(finalJ).name;
+                                                        } catch (Exception ignore) {
+                                                        }
+                                                        transaction.addToBackStack(null);
+                                                        transaction.commit();
+                                                    });
+                                                } catch (Exception ignore) {
+                                                }
+                                                c += System.currentTimeMillis() - t1;
+                                                t1 = System.currentTimeMillis();
+                                                ask = false;
+                                                lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                                lp3.setMargins(0, 0, 0, 10);
+                                                txt1.setLayoutParams(lp3);
+                                                if (less.marks.get(l).value == null || less.marks.get(l).value.equals("")) {
+                                                    txt1.setText("  ");
+                                                } else {
+                                                    txt1.setText(less.marks.get(l).value);
+                                                }
+                                                lin1.addView(txt1);
+                                                de += System.currentTimeMillis() - t1;
+                                            }
+                                        }
+                                    }
                                 }
-                                txt.setText(s);
-                                txt.setTextColor(Color.LTGRAY);
-                                lin2.addView(txt);
-                                lin.addView(lin2);
-                                for (int j = 0; j < periods[pernum].subjects.size() - 1; j++) {
+                                t1 = System.currentTimeMillis();
+                                if (ask) {
                                     lin1 = new LinearLayout(getContext());
                                     lin1.setOrientation(LinearLayout.HORIZONTAL);
                                     lin1.setGravity(Gravity.CENTER);
-                                    for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
-                                        final PeriodFragment.Lesson less = periods[pernum].days.get(i).lessons.get(k);
-                                        if (periods[pernum].subjects.get(j).unitid - less.unitId == 0) {
-                                            if (less.marks != null) {
-                                                for (int l = 0; l < less.marks.size(); l++) {
-                                                    t1 = System.currentTimeMillis();
-                                                    matvey++;
-
-//                                                txt1 = new TextView(getActivity().getApplicationContext());
-//                                                txt1.setGravity(Gravity.CENTER);
-//                                                txt1.setTextColor(Color.WHITE);
-//                                                txt1.setPadding(15, 0, 15, 0);
-                                                    txt1 = new Kletka(getContext());
-                                                    a += System.currentTimeMillis() - t1;
-                                                    t1 = System.currentTimeMillis();
-                                                    final double d = less.marks.get(l).coefficient;
-                                                    if (d <= 0.5)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff1));
-                                                    else if (d <= 1)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff2));
-                                                    else if (d <= 1.25)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff3));
-                                                    else if (d <= 1.35)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff4));
-                                                    else if (d <= 1.5)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff5));
-                                                    else if (d <= 1.75)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff6));
-                                                    else if (d <= 2)
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff7));
-                                                    else
-                                                        txt1.setBackgroundColor(getResources().getColor(R.color.coff8));
-                                                    txt1.setTextSize(20);
-                                                    b += System.currentTimeMillis() - t1;
-                                                    t1 = System.currentTimeMillis();
-                                                    try {
-                                                        final int finalJ = j;
-                                                        final int finalL = l;
-                                                        txt1.setOnClickListener(v -> {
-                                                            FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                                                            MarkFragment fragment = new MarkFragment();
-                                                            transaction.replace(R.id.frame, fragment);
-                                                            try {
-                                                                fragment.coff = d;
-                                                                fragment.data = less.marks.get(finalL).date;
-                                                                fragment.markdata = less.marks.get(finalL).markdate;
-                                                                fragment.teachname = less.marks.get(finalL).teachFio;
-                                                                fragment.topic = less.marks.get(finalL).topic;
-                                                                fragment.value = less.marks.get(finalL).value;
-                                                                fragment.subject = periods[pernum].subjects.get(finalJ).name;
-                                                            } catch (Exception ignore) {
-                                                            }
-                                                            transaction.addToBackStack(null);
-                                                            transaction.commit();
-                                                        });
-                                                    } catch (Exception ignore) {
-                                                    }
-                                                    c += System.currentTimeMillis() - t1;
-                                                    t1 = System.currentTimeMillis();
-                                                    ask = false;
-                                                    lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                                    lp3.setMargins(0, 0, 0, 10);
-                                                    txt1.setLayoutParams(lp3);
-                                                    if (less.marks.get(l).value == null || less.marks.get(l).value.equals("")) {
-                                                        txt1.setText("  ");
-                                                    } else {
-                                                        txt1.setText(less.marks.get(l).value);
-                                                    }
-                                                    lin1.addView(txt1);
-                                                    de += System.currentTimeMillis() - t1;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    t1 = System.currentTimeMillis();
-                                    if (ask) {
-                                        lin1 = new LinearLayout(getContext());
-                                        lin1.setOrientation(LinearLayout.HORIZONTAL);
-                                        lin1.setGravity(Gravity.CENTER);
-                                        txt1 = new TextView(getContext());
-                                        txt1.setGravity(Gravity.CENTER);
-                                        txt1.setTextSize(20);
-                                        lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-                                        lp3.setMargins(0, 0, 0, 10);
-                                        txt1.setLayoutParams(lp3);
-                                        txt1.setText("—");
-                                        txt1.setTextColor(Color.LTGRAY);
-                                        lin1.addView(txt1);
-                                        lin.addView(lin1);
-                                    }
-                                    ef += System.currentTimeMillis() - t1;
-                                    ask = true;
-                                    if (lin1.getParent() != null)
-                                        ((ViewGroup) lin1.getParent()).removeView(lin1);
+                                    txt1 = new TextView(getContext());
+                                    txt1.setGravity(Gravity.CENTER);
+                                    txt1.setTextSize(20);
+                                    lp3 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                                    lp3.setMargins(0, 0, 0, 10);
+                                    txt1.setLayoutParams(lp3);
+                                    txt1.setText("—");
+                                    txt1.setTextColor(Color.LTGRAY);
+                                    lin1.addView(txt1);
                                     lin.addView(lin1);
                                 }
-                                periods[pernum].lins.add(lin);
+                                ef += System.currentTimeMillis() - t1;
+                                ask = true;
+                                if (lin1.getParent() != null)
+                                    ((ViewGroup) lin1.getParent()).removeView(lin1);
+                                lin.addView(lin1);
                             }
+                            periods[pernum].lins.add(lin);
                         }
-                        log("a " + a);
-                        log("b " + b);
-                        log("c " + c);
-                        log("e " + de);
-                        log("f " + ef);
-                        log(3);
-                        log("matvey: " + matvey);
-                        if (isone)
-                            ((MainActivity) getActivity()).set(periods, pernum, 1);
-                        if (istwo)
-                            ((MainActivity) getActivity()).set(periods, pernum, 2);
-                        READY = true;
+                    }
+                    log("a " + a);
+                    log("b " + b);
+                    log("c " + c);
+                    log("e " + de);
+                    log("f " + ef);
+                    log(3);
+                    log("matvey: " + matvey);
+                    if (isone)
+                        ((MainActivity) getActivity()).set(periods, pernum, 1);
+                    if (istwo)
+                        ((MainActivity) getActivity()).set(periods, pernum, 2);
+                    READY = true;
 
-                        log("Download2() ended");
-                        if (TheSingleton.getInstance().t1 > 0) {
-                            final long t = System.currentTimeMillis() - TheSingleton.getInstance().t1;
-                            log("loading ended in " + t + " ms");
-                            TheSingleton.getInstance().t1 = 0;
-                        }
-                        first_downl = true;
+                    log("Download2() ended");
+                    if (TheSingleton.getInstance().t1 > 0) {
+                        final long t = System.currentTimeMillis() - TheSingleton.getInstance().t1;
+                        log("loading ended in " + t + " ms");
+                        TheSingleton.getInstance().t1 = 0;
+                    }
+                    first_downl = true;
                     }
 
 
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (LoginActivity.NoInternetException e) {
-                    TextView tv = getView().findViewById(R.id.tv_error);
-                    tv.setVisibility(View.VISIBLE);
-                    tv.setText("Нет интернета");
+                    getActivity().runOnUiThread(() -> {
+                         Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
+                        ((SwipeRefreshLayout) v.findViewById(R.id.refresh)).setRefreshing(false);
+                    });
                 } catch (Exception e) {
                     e.printStackTrace();
                     loge("Download2() " + e.toString());
@@ -928,9 +927,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         item = menu.add(0, 3, 0, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-//        item = menu.add(0, 4, 2, "Refresh");
-//        item.setIcon(R.drawable.refresh);
-//        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+        item = menu.add(0, 4, 2, "Refresh");
+        item.setIcon(R.drawable.refresh);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -945,18 +944,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 startActivityForResult(intent, 0);
                 break;
             case 4:
-                //refresh();
+                Download2(periods[pernum].id, pernum, false, true);
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data!=null)
-            if(data.hasExtra("goal"))
-                if(data.getStringExtra("goal").equals("quit"))
-                    ((MainActivity) getActivity()).quit();
-    }
+
 
     @Override
     public void onResume() {

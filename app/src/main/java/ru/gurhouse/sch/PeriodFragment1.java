@@ -103,18 +103,13 @@ public class PeriodFragment1 extends Fragment {
         alr.setTitle("Выберите период");
         alr.setPositiveButton("ok", myClickListener);
         toolbar.setTitle(periodname);
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alr.show();
-            }
-        });
+        toolbar.setOnClickListener(v -> alr.show());
         setHasOptionsMenu(true);
 
-        refreshL = view.findViewById(R.id.refr1);
-        refreshL.setOnRefreshListener(() -> {
-            refresh();
-        });
+//        refreshL = view.findViewById(R.id.refr1);
+//        refreshL.setOnRefreshListener(() -> {
+//            refresh();
+//        });
 
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         if(periods[pernum] != null && !shown)
@@ -224,11 +219,6 @@ public class PeriodFragment1 extends Fragment {
         transaction.commit();
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-    }
-
     void F() {
         if (pernum != 4) {
             ((MainActivity) getActivity()).scheduleFragment.Download2(periods[4].id, 4, false, false);
@@ -243,12 +233,15 @@ public class PeriodFragment1 extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
-        item = menu.add(0, 2, 0, "TotalMarks");
-        item.setIcon(R.drawable.results);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 0, "Settings");
+//        item = menu.add(0, 2, 0, "TotalMarks");
+//        item.setIcon(R.drawable.results);
+//        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        item = menu.add(0, 3, 1, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        item = menu.add(0, 4, 0, "Refresh");
+        item.setIcon(R.drawable.refresh);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -268,6 +261,8 @@ public class PeriodFragment1 extends Fragment {
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
                 break;
+            case 4:
+                refresh();
         }
         return super.onOptionsItemSelected(item);
     }

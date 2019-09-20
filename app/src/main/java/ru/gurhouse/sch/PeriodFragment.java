@@ -89,11 +89,6 @@ public class PeriodFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         normallog("PerF/OnCreateView (alternative)");
         first_time = false;
@@ -109,18 +104,8 @@ public class PeriodFragment extends Fragment {
         alr.setSingleChoiceItems(period, pernum, myClickListener);
         alr.setTitle("Выберите период");
         alr.setPositiveButton("ok", myClickListener);
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alr.show();
-            }
-        });
+        toolbar.setOnClickListener(v -> alr.show());
         setHasOptionsMenu(true);
-
-        refreshL = view.findViewById(R.id.refr);
-        refreshL.setOnRefreshListener(() -> {
-            refresh();
-        });
 
         ((MainActivity) getActivity()).setSupportActionBar(toolbar);
         if (nullsub) {
@@ -136,7 +121,8 @@ public class PeriodFragment extends Fragment {
         txtnull = view.findViewById(R.id.txtnull);
         txtnull.setTextSize(8 * getResources().getDisplayMetrics().density);
         txtnull.setTextColor(Color.LTGRAY);
-        txtnull.setText("А оценочек то нет. Че съел?  Ну давай быкани быкани! Ты че решил ко мне лезть? Ублюдок, мать твою, а ну иди сюда говно собачье, решил ко мне лезть? Ты, засранец вонючий, мать твою, а? Ну иди сюда, попробуй меня трахнуть, я тебя сам трахну ублюдок, онанист чертов, будь ты проклят, иди идиот, трахать тебя и всю семью, говно собачье, жлоб вонючий, дерьмо, сука, падла, иди сюда, мерзавец, негодяй, гад, иди сюда ты - говно, ЖОПА!");
+        //txtnull.setText("А оценочек то нет. Че съел?  Ну давай быкани быкани! Ты че решил ко мне лезть? Ублюдок, мать твою, а ну иди сюда говно собачье, решил ко мне лезть? Ты, засранец вонючий, мать твою, а? Ну иди сюда, попробуй меня трахнуть, я тебя сам трахну ублюдок, онанист чертов, будь ты проклят, иди идиот, трахать тебя и всю семью, говно собачье, жлоб вонючий, дерьмо, сука, падла, иди сюда, мерзавец, негодяй, гад, иди сюда ты - говно, ЖОПА!");
+        txtnull.setText("Нет оценок за выбранный период");
         txtnull.setPadding(90, 0, 90, 0);
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         txtnull.setVisibility(View.VISIBLE);
@@ -311,12 +297,15 @@ public class PeriodFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
-        item = menu.add(0, 2, 0, "TotalMarks");
-        item.setIcon(R.drawable.results);
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 0, "Settings");
+//        item = menu.add(0, 2, 0, "TotalMarks");
+//        item.setIcon(R.drawable.results);
+//        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        item = menu.add(0, 3, 1, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        item = menu.add(0, 4, 0, "Refresh");
+        item.setIcon(R.drawable.refresh);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -410,6 +399,8 @@ public class PeriodFragment extends Fragment {
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
                 break;
+            case 4:
+                refresh();
         }
         return super.onOptionsItemSelected(item);
     }
