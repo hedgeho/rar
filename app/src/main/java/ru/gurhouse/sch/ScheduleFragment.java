@@ -39,6 +39,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -185,6 +186,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         loge("current item is -1");
                         return;
                     }
+                    if(pager.getCurrentItem() == 0)
+                        pager.setCurrentItem(pageCount/2 + 1);
                     if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {
                         w = 7;
                     } else
