@@ -1,5 +1,6 @@
 package ru.gurhouse.sch;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -34,8 +35,18 @@ import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
+
+import static ru.gurhouse.sch.LoginActivity.connect;
+import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class Countcoff extends Fragment {
 
@@ -47,10 +58,11 @@ public class Countcoff extends Fragment {
     String[] period;
     int pernum = 6;
     Double avg;
+    Toolbar toolbar;
     boolean newm = false;
     String[] strings;
     TextView txt1, txt0, txt, txt2;
-    AlertDialog.Builder alr, alr1;
+    AlertDialog.Builder alr, alr1, alr2;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     String[] marks = {"1", "2", "3", "4", "5"};
 
@@ -88,6 +100,41 @@ public class Countcoff extends Fragment {
                 countNewCoff();
             } /*else {
             }*/
+        }
+    };
+
+    DialogInterface.OnClickListener myClickListener2 = new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int which) {
+            ListView lv = ((AlertDialog) dialog).getListView();
+            if (which == Dialog.BUTTON_POSITIVE) {
+                TheSingleton.getInstance().t1 = System.currentTimeMillis();
+                pernum = lv.getCheckedItemPosition();
+                if (periods[pernum].subjects == null) {
+                    periodname = periods[pernum].name;
+                    toolbar.setTitle(periodname);
+                    Download2(() -> {
+                        cells = new ArrayList<>();
+                        for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                            cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                        }
+                        avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
+                        alr2.setSingleChoiceItems(period, pernum, myClickListener);
+                        makeMarks();
+                        countNewCoff();
+                    });
+                } else {
+                    periodname = periods[pernum].name;
+                    toolbar.setTitle(periodname);
+                    cells = new ArrayList<>();
+                    for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                        cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                    }
+                    avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
+                    alr2.setSingleChoiceItems(period, pernum, myClickListener);
+                    makeMarks();
+                    countNewCoff();
+                }
+            }
         }
     };
 
@@ -206,11 +253,19 @@ public class Countcoff extends Fragment {
         alr.setPositiveButton("ok", myClickListener);
         txt2.setText(subname);
         txt2.setOnClickListener(v12 -> alr.show());
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+
+        toolbar = getActivity().findViewById(R.id.toolbar);
+        alr2 = new AlertDialog.Builder(getContext());
+        alr2.create();
+        periodname = period[pernum];
         toolbar.setTitle(periodname);
+        alr2.setSingleChoiceItems(period, pernum, myClickListener2);
+        alr2.setTitle("Выберите период");
+        alr2.setPositiveButton("ok", myClickListener2);
+        toolbar.setOnClickListener(v2 -> alr2.show());
         setHasOptionsMenu(true);
+        toolbar.setTitle(periodname);
         ((MainActivity) getActivity()).setSupActionBar(toolbar);
-        ((MainActivity) getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         return v;
     }
 
@@ -247,7 +302,7 @@ public class Countcoff extends Fragment {
                 final String[] newMark = new String[1];
                 final Double[] f = new Double[1];
                 alr1 = new AlertDialog.Builder(getContext());
-                alr1.setTitle("Измините оценку");
+                alr1.setTitle("Измените оценку");
                 View item;
                 LayoutInflater inflater = getLayoutInflater();
                 item = inflater.inflate(R.layout.mark_item, cont, false);
@@ -418,5 +473,328 @@ public class Countcoff extends Fragment {
     @Override
     public Context getContext() {
         return context;
+    }
+
+    void Download2(Runnable onFinish) {
+        if(TheSingleton.getInstance().t1 == 0) {
+            log("start");
+            TheSingleton.getInstance().t1 = System.currentTimeMillis();
+        }
+        int id = periods[pernum].id;
+        periods[pernum].days = new ArrayList<>();
+        periods[pernum].subjects = new ArrayList<>();
+        periods[pernum].lins = new ArrayList<>();
+        periods[pernum].cells = new ArrayList<>();
+        new Thread() {
+            JSONObject object1;
+            int USER_ID = TheSingleton.getInstance().getUSER_ID();
+
+            @SuppressLint("SimpleDateFormat")
+            @Override
+            public void run() {
+                try {
+
+                    //------------------------------------------------------------------------------------------------
+
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            try {
+                                object1 = new JSONObject(
+                                        connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
+                                                null));
+                            } catch (LoginActivity.NoInternetException ignore) {
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                loge(e.toString());
+                            }
+                        }
+                    }.start();
+
+                    JSONObject object = new JSONObject(
+                            connect("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=" + id,
+                                    null));
+                    if(!object.has("result"))
+                        log("lol no result: " + object.toString());
+                    JSONArray array = object.getJSONArray("result");
+                    for (int i = 0; i < array.length(); i++) {
+                        PeriodFragment.Subject subject = new PeriodFragment.Subject();
+                        JSONObject obj = array.getJSONObject(i);
+                        if (obj.has("overMark")) {
+                            double d = obj.getDouble("overMark");
+                            String s = String.valueOf(d);
+                            if (s.length() > 4) {
+                                s = String.format(Locale.UK, "%.2f", d);
+                            }
+                            subject.avg = Double.valueOf(s);
+                        }
+                        if (obj.has("totalMark"))
+                            subject.totalmark = obj.getString("totalMark");
+                        if (obj.has("unitName"))
+                            subject.name = obj.getString("unitName");
+                        if (obj.has("rating"))
+                            subject.rating = obj.getString("rating");
+                        if (obj.has("unitId"))
+                            subject.unitid = obj.getInt("unitId");
+                        subject.cells = new ArrayList<>();
+                        periods[pernum].subjects.add(subject);
+                    }
+
+                    while (object1 == null) {
+                        Thread.sleep(10);
+                    }
+
+                    JSONArray arraydaylessons = object1.getJSONArray("result");
+                    for (int i = 0; i < arraydaylessons.length(); i++) {
+                        object1 = arraydaylessons.getJSONObject(i);
+                        PeriodFragment.Cell cell = new PeriodFragment.Cell();
+                        if (object1.has("lptName"))
+                            cell.lptname = object1.getString("lptName");
+                        if (object1.has("markDate"))
+                            cell.markdate = object1.getString("markDate");
+                        if (object1.has("lessonId"))
+                            cell.lessonid = object1.getLong("lessonId");
+                        if (object1.has("markVal"))
+                            cell.markvalue = object1.getString("markVal");
+                        if (object1.has("mktWt"))
+                            cell.mktWt = object1.getDouble("mktWt");
+                        if (object1.has("teachFio"))
+                            cell.teachFio = object1.getString("teachFio");
+                        if (object1.has("startDt"))
+                            cell.date = object1.getString("startDt");
+                        if (object1.has("unitId"))
+                            cell.unitid = object1.getInt("unitId");
+                        periods[pernum].cells.add(cell);
+                    }
+                    Date date = new Date();
+                    if (periods[pernum].cells.size() == 0) {
+                        if (periods[pernum].datestart <= date.getTime() && periods[pernum].datefinish >= date.getTime()) {
+                            periods[pernum].days = new ArrayList<>();
+                            periods[pernum].subjects = new ArrayList<>();
+                            periods[pernum].lins = new ArrayList<>();
+                            periods[pernum].cells = new ArrayList<>();
+                            Download2(onFinish);
+                        } else {
+                            periods[pernum].nullsub = true;
+                        }
+                    } else {
+
+                        String s1 = periods[pernum].cells.get(0).date;
+                        String s2 = periods[pernum].cells.get(periods[pernum].cells.size() - 1).date;
+                        DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
+                        long d1 = format.parse(s1).getTime();
+                        long d2 = format.parse(s2).getTime();
+                        JSONObject object2 = new JSONObject(
+                                connect("https://app.eschool.center/ec-server/student/diary?" +
+                                        "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2, null));
+                        JSONArray array2 = object2.getJSONArray("lesson");
+
+                        Long day1 = 0L;
+                        Long date1;
+                        int isODOD;
+                        int index = -1;
+                        log(0);
+                        for (int i = 0; i < array2.length(); i++) {
+                            object2 = array2.getJSONObject(i);
+                            date1 = Long.valueOf(String.valueOf(object2.getString("date")));
+                            isODOD = object2.getInt("isODOD");
+                            if (isODOD == 0) {
+                                if (!date1.equals(day1)) {
+                                    index++;
+                                    date = new Date(date1);
+                                    date.setHours(0);
+                                    date.setMinutes(0);
+                                    date1 = date.getTime();
+                                    PeriodFragment.Day thisday = new PeriodFragment.Day();
+                                    thisday.day = String.valueOf(date);
+                                    thisday.daymsec = date1;
+                                    Date datathis = new Date();
+                                    datathis.setTime(date1);
+                                    SimpleDateFormat dateFormat2 = new SimpleDateFormat("EEE", Locale.ENGLISH);
+                                    String dayOfTheWeek = dateFormat2.format(datathis);
+                                    switch (dayOfTheWeek) {
+                                        case "Mon":
+                                            thisday.numday = 1;
+                                            break;
+                                        case "Tue":
+                                            thisday.numday = 2;
+                                            break;
+                                        case "Wed":
+                                            thisday.numday = 3;
+                                            break;
+                                        case "Thu":
+                                            thisday.numday = 4;
+                                            break;
+                                        case "Fri":
+                                            thisday.numday = 5;
+                                            break;
+                                        case "Sat":
+                                            thisday.numday = 6;
+                                            break;
+                                        case "Sun":
+                                            thisday.numday = 7;
+                                            break;
+                                    }
+                                    thisday.lessons = new ArrayList<>();
+//                                log("added day " + date.toString());
+                                    periods[pernum].days
+                                            .add(thisday);
+                                }
+                                PeriodFragment.Lesson lesson = new PeriodFragment.Lesson();
+                                lesson.id = object2.getLong("id");
+                                lesson.numInDay = object2.getInt("numInDay");
+                                if (object2.getJSONObject("unit").has("id"))
+                                    lesson.unitId = object2.getJSONObject("unit").getLong("id");
+                                if (object2.getJSONObject("unit").has("name"))
+                                    lesson.name = object2.getJSONObject("unit").getString("name");
+                                if (object2.getJSONObject("unit").has("short"))
+                                    lesson.shortname = object2.getJSONObject("unit").getString("short");
+                                if (object2.getJSONObject("tp").has("topicName"))
+                                    lesson.topic = object2.getJSONObject("tp").getString("topicName");
+                                if (object2.getJSONObject("teacher").has("factTeacherIN"))
+                                    lesson.teachername = object2.getJSONObject("teacher").getString("factTeacherIN");
+                                JSONArray ar = object2.getJSONArray("part");
+                                lesson.homeWork = new PeriodFragment.HomeWork();
+                                lesson.homeWork.stringwork = "";
+                                lesson.homeWork.files = new ArrayList<>();
+                                for (int j = 0; j < ar.length(); j++) {
+                                    if (ar.getJSONObject(j).getString("cat").equals("DZ")) {
+                                        if (ar.getJSONObject(j).has("variant")) {
+                                            JSONArray ar1 = ar.getJSONObject(j).getJSONArray("variant");
+                                            for (int k = 0; k < ar1.length(); k++) {
+                                                if (ar1.getJSONObject(k).has("text")) {
+                                                    lesson.homeWork.stringwork += ar1.getJSONObject(k).getString("text") + "\n";
+                                                }
+                                                if (ar1.getJSONObject(k).has("file")) {
+                                                    JSONArray ar2 = ar1.getJSONObject(k).getJSONArray("file");
+                                                    PeriodFragment.File file;
+                                                    for (int l = 0; l < ar2.length(); l++) {
+                                                        file = new PeriodFragment.File();
+                                                        file.name = ar2.getJSONObject(l).getString("fileName");
+                                                        file.id = ar2.getJSONObject(l).getInt("id");
+                                                        lesson.homeWork.files.add(file);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                periods[pernum].days.get(index).lessons.add(lesson);
+                            }
+                            day1 = date1;
+                        }
+
+                        log(1);
+                        for (int i = 0; i < periods[pernum].days.size(); i++) {
+                            for (int j = 0; j < periods[pernum].cells.size(); j++) {
+                                PeriodFragment.Cell cell = periods[pernum].cells.get(j);
+                                s1 = cell.date;
+                                format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
+                                d1 = format.parse(s1).getTime();
+                                if (cell.mktWt != 0) {
+                                    if (periods[pernum].days.get(i).daymsec - d1 == 0 || periods[pernum].days.get(i).daymsec.equals(d1)) {
+                                        for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
+                                            if (periods[pernum].days.get(i).lessons.get(k).id.equals(cell.lessonid)) {
+                                                PeriodFragment.Mark mark = new PeriodFragment.Mark();
+                                                mark.cell = cell;
+                                                mark.idlesson = cell.lessonid;
+                                                mark.coefficient = cell.mktWt;
+                                                if (cell.markvalue != null)
+                                                    mark.value = cell.markvalue;
+                                                else
+                                                    mark.value = "";
+                                                mark.teachFio = cell.teachFio;
+                                                mark.markdate = cell.markdate;
+                                                mark.date = cell.date;
+
+                                                mark.topic = cell.lptname;
+                                                mark.unitid = cell.unitid;
+                                                for (int l = 0; l < periods[pernum].subjects.size(); l++) {
+                                                    if (periods[pernum].subjects.get(l).unitid == mark.unitid) {
+                                                        periods[pernum].subjects.get(l).cells.add(cell);
+                                                    }
+                                                    if (periods[pernum].subjects.get(l).shortname == null || periods[pernum].subjects.get(l).shortname.isEmpty()) {
+                                                        PeriodFragment.Subject subject = periods[pernum].subjects.get(l);
+                                                        switch (subject.name) {
+                                                            case "Физика":
+                                                            case "Химия":
+                                                            case "История":
+                                                            case "Алгебра":
+                                                                subject.shortname = subject.name;
+                                                                break;
+                                                            case "БЕСЕДЫ КЛ РУК":
+                                                                subject.shortname = "Кл. Час";
+                                                                break;
+                                                            case "Иностранный язык":
+                                                                subject.shortname = "Ин. Яз.";
+                                                                break;
+                                                            case "Алгебра и начала анализа":
+                                                                subject.shortname = "Алгебра";
+                                                                break;
+                                                            case "Информатика и ИКТ":
+                                                                subject.shortname = "Информ.";
+                                                                break;
+                                                            case "Биология":
+                                                                subject.shortname = "Биолог.";
+                                                                break;
+                                                            case "География":
+                                                                subject.shortname = "Геогр.";
+                                                                break;
+                                                            case "Геометрия":
+                                                                subject.shortname = "Геометр.";
+                                                                break;
+                                                            case "Литература":
+                                                                subject.shortname = "Лит-ра";
+                                                                break;
+                                                            case "Обществознание":
+                                                                subject.shortname = "Общ.";
+                                                                break;
+                                                            case "Русский язык":
+                                                                subject.shortname = "Рус. Яз.";
+                                                                break;
+                                                            case "Физическая культура":
+                                                                subject.shortname = "Физ-ра";
+                                                                break;
+                                                            default:
+                                                                periods[pernum].subjects.get(l).shortname = periods[pernum].subjects.get(l).name.substring(0, 3);
+                                                        }
+
+                                                    }
+//                                                if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
+//                                                    periods[pernum].subjects.get(l).shortname = "Общест.";
+//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
+//                                                    periods[pernum].subjects.get(l).shortname = "Физ-ра";
+//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
+//                                                    periods[pernum].subjects.get(l).shortname = "Информ.";
+//                                                else if (periods[pernum].subjects.get(l).shortname != null)
+//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
+//                                                else
+//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
+//                                            }
+                                                }
+                                                periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+
+                    getActivity().runOnUiThread(onFinish);
+                    //---------------------------------------------------------------------------------------------------------------------------------
+                } catch (LoginActivity.NoInternetException ignored) {
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    loge("Download2() " + e.toString());
+                    periods[pernum].days = new ArrayList<>();
+                    periods[pernum].subjects = new ArrayList<>();
+                    periods[pernum].lins = new ArrayList<>();
+                    periods[pernum].cells = new ArrayList<>();
+                    Download2(onFinish);
+                }
+            }
+        }.start();
     }
 }

@@ -40,6 +40,8 @@ public class MyFirebaseService extends FirebaseMessagingService {
         Intent data = remoteMessage.toIntent();
 
 //        long time = System.currentTimeMillis();
+        if(!data.hasExtra("type"))
+            return;
         switch (data.getStringExtra("type")) {
             case "mark":
                 log("new mark");
