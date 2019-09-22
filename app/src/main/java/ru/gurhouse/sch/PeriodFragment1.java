@@ -236,6 +236,9 @@ public class PeriodFragment1 extends Fragment {
 //        item = menu.add(0, 2, 0, "TotalMarks");
 //        item.setIcon(R.drawable.results);
 //        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        item = menu.add(0, 5, 0, "Calculator");
+        item.setIcon(R.drawable.calculator);
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 3, 1, "Settings");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
@@ -263,6 +266,20 @@ public class PeriodFragment1 extends Fragment {
                 break;
             case 4:
                 refresh();
+                break;
+            case 5:
+                transaction = getFragmentManager().beginTransaction();
+                Countcoff fragment2 = new Countcoff();
+                transaction.replace(R.id.frame, fragment2);
+                try {
+                    fragment2.periods = periods;
+                    fragment2.period = period;
+                    fragment2.pernum = pernum;
+                    fragment2.subname = periods[pernum].subjects.get(0).name;
+                    fragment2.avg = periods[pernum].subjects.get(0).avg;
+                } catch (Exception ignore) {}
+                transaction.addToBackStack(null);
+                transaction.commit();
         }
         return super.onOptionsItemSelected(item);
     }
