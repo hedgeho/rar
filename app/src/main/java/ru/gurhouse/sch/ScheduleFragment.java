@@ -924,13 +924,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        MenuItem item = menu.add(0, 2, 0, "Calendar");
+        MenuItem item = menu.add(0, 2, 0, "Календарь");
         item.setIcon(R.drawable.calendar);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 0, "Settings");
+        item = menu.add(0, 3, 0, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 4, 2, "Refresh");
+        item = menu.add(0, 4, 2, "Перезагрузить");
         item.setIcon(R.drawable.refresh);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
