@@ -78,10 +78,10 @@ public class MessagesFragment extends Fragment {
     private ActionMode.Callback actionCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
-            MenuItem item = menu.add(0, 0, 0, "Leave");
+            MenuItem item = menu.add(0, 0, 0, "Выйти");
             item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
             item.setIcon(R.drawable.logout);
-//            item = menu.add(0, 1, 0, "Mute");
+//            item = menu.add(0, 1, 0, "Отключить уведомления");
 //            item.setIcon()
             return true;
         }

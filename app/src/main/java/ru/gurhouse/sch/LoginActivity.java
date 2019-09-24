@@ -20,7 +20,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,7 +57,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         TheSingleton.getInstance().t1 = System.currentTimeMillis();
 
@@ -137,6 +139,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             }
         });
+        et_password.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_GO) {
+                this.onClick(fab);
+                return true;
+            }
+            return false;
+        });
 
         FirebaseInstanceId.getInstance().getInstanceId()
                 .addOnCompleteListener(task -> {
@@ -183,7 +192,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     boolean flag_shown = false;
     public void onClick(final View v) {
-        String logi = et_login.getText().toString();
+        String logi = et_login.getText().toString().trim();
         String password = et_password.getText().toString();
         if(logi.replaceAll(" ", "").equals("")) {
             et_login.getBackground().mutate().setColorFilter(getResources().getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
