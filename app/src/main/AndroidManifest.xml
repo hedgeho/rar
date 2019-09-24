@@ -21,6 +21,7 @@
         android:testOnly="false"-->
         <activity
             android:name=".ThanksActivity"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/Theme.AppCompat.Dialog" />
         <activity android:name=".SettingsActivity" />
 
@@ -34,8 +35,11 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
+            android:configChanges="orientation|screenSize"
             android:parentActivityName=".LoginActivity" />
-        <activity android:name=".LoginActivity">
+        <activity
+            android:name=".LoginActivity"
+            android:configChanges="orientation|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
