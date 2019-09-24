@@ -178,10 +178,14 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             lastposition = pager.getCurrentItem();
 
             Calendar date = Calendar.getInstance();
-            if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
+            if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16) {
                 date.add(Calendar.DATE, 1);
-            if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+                pager.setCurrentItem(++lastposition);
+            }
+            if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
                 date.add(Calendar.DATE, 1);
+                pager.setCurrentItem(++lastposition);
+            }
             datePickerDialog = new DatePickerDialog(getContext(), ScheduleFragment.this, date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
             ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
                 @Override
