@@ -66,6 +66,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     ViewPager pager;
     PagerAdapter pagerAdapter;
     int lastposition;
+    boolean autoChangingDate = true;
     ArrayList<PageFragment> pageFragments;
     View v;
     DatePickerDialog datePickerDialog;
@@ -177,6 +178,14 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             lastposition = pager.getCurrentItem();
 
             Calendar date = Calendar.getInstance();
+            if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16) {
+                date.add(Calendar.DATE, 1);
+                pager.setCurrentItem(++lastposition);
+            }
+            if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+                date.add(Calendar.DATE, 1);
+                pager.setCurrentItem(++lastposition);
+            }
             datePickerDialog = new DatePickerDialog(getContext(), ScheduleFragment.this, date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
             ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
                 @Override
@@ -201,6 +210,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     Calendar date = Calendar.getInstance();
                     date.add(Calendar.DATE, position-lastposition);
+                    if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
+                        date.add(Calendar.DATE, 1);
+                    if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+                        date.add(Calendar.DATE, 1);
                     datePickerDialog.updateDate(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
                     Calendar MaxOrMinDate = Calendar.getInstance();
                     MaxOrMinDate.add(Calendar.YEAR,1);
@@ -924,13 +937,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
-        MenuItem item = menu.add(0, 2, 0, "Calendar");
+        MenuItem item = menu.add(0, 2, 0, "Календарь");
         item.setIcon(R.drawable.calendar);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 0, "Settings");
+        item = menu.add(0, 3, 0, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 4, 2, "Refresh");
+        item = menu.add(0, 4, 2, "Перезагрузить");
         item.setIcon(R.drawable.refresh);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);

@@ -145,7 +145,7 @@ public class ChatFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         if(getContext() != null) {
             menu.clear();
-            MenuItem ref = menu.add(0, 3, 0, "Refresh");
+            MenuItem ref = menu.add(0, 3, 0, "Перезагрузить");
             ref.setIcon(getResources().getDrawable(R.drawable.refresh));
             ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
             menu.add(0, 1, 0,

@@ -233,16 +233,16 @@ public class PeriodFragment1 extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
-//        item = menu.add(0, 2, 0, "TotalMarks");
+//        item = menu.add(0, 2, 0, "Оценки");
 //        item.setIcon(R.drawable.results);
 //        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 5, 0, "Calculator");
+        item = menu.add(0, 5, 0, "Калькулятор");
         item.setIcon(R.drawable.calculator);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 1, "Settings");
+        item = menu.add(0, 3, 1, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 4, 0, "Refresh");
+        item = menu.add(0, 4, 0, "Перезагрузить");
         item.setIcon(R.drawable.refresh);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
