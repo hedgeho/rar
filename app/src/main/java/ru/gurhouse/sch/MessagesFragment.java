@@ -323,6 +323,13 @@ public class MessagesFragment extends Fragment {
                         tv = item.findViewById(R.id.tv_topic);
                         mess = Html.fromHtml(s_messages.get(i));
 
+                        ImageView muted = item.findViewById(R.id.muted);
+                        if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                                .contains("" + f_threadIds.get(i)))
+                            muted.setVisibility(View.VISIBLE);
+                        else
+                            muted.setVisibility(View.INVISIBLE);
+
                         index = mess.toString().toLowerCase().indexOf(query.toLowerCase());
                         log("index: " + index);
                         int start, end;
@@ -642,6 +649,14 @@ public class MessagesFragment extends Fragment {
                     tv.setText(Html.fromHtml(f_topics.get(i)));
                     tv = item.findViewById(R.id.tv_users);
                     img = item.findViewById(R.id.img);
+
+                    ImageView muted = item.findViewById(R.id.muted);
+                    if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                            .contains("" + f_threadIds.get(i)))
+                        muted.setVisibility(View.VISIBLE);
+                    else
+                        muted.setVisibility(View.INVISIBLE);
+
                     if (f_users.get(i) == 0 || f_users.get(i) == 2) {
                         img.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
                         tv.setText("");
@@ -747,6 +762,14 @@ public class MessagesFragment extends Fragment {
                                             tv1.setText(topics[i]);
                                             tv1 = item1.findViewById(R.id.tv_users);
                                             img1 = item1.findViewById(R.id.img);
+
+                                            ImageView muted = item1.findViewById(R.id.muted);
+                                            if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                                                    .contains("" + f_threadIds.get(i)))
+                                                muted.setVisibility(View.VISIBLE);
+                                            else
+                                                muted.setVisibility(View.INVISIBLE);
+
                                             final int u = users[i];
                                             if (users[i] == 0 || users[i] == 2) {
                                                 img1.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
@@ -789,6 +812,13 @@ public class MessagesFragment extends Fragment {
                                             tv1.setText(s_senders.get(i));
                                             tv1 = item1.findViewById(R.id.tv_topic);
                                             mess = Html.fromHtml(s_messages.get(i));
+
+                                            ImageView muted = item1.findViewById(R.id.muted);
+                                            if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                                                    .contains("" + f_threadIds.get(i)))
+                                                muted.setVisibility(View.VISIBLE);
+                                            else
+                                                muted.setVisibility(View.INVISIBLE);
 
                                             index = mess.toString().toLowerCase().indexOf(s_query.toLowerCase());
                                             log("index: " + index);
@@ -1149,6 +1179,13 @@ public class MessagesFragment extends Fragment {
                             tv.setText(Html.fromHtml(f_topics.get(i)));
                             tv = item.findViewById(R.id.tv_users);
                             img = item.findViewById(R.id.img);
+
+                            ImageView muted = item.findViewById(R.id.muted);
+                            if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                                    .contains("" + f_threadIds.get(i)))
+                                muted.setVisibility(View.VISIBLE);
+                            else
+                                muted.setVisibility(View.INVISIBLE);
 
                             if(f_users.get(i) == 0 || f_users.get(i) == 2) {
                                 img.setImageDrawable(getResources().getDrawable(R.drawable.dialog));

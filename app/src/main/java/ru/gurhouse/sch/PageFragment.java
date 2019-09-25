@@ -1,5 +1,7 @@
 package ru.gurhouse.sch;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -15,6 +17,8 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -78,9 +82,13 @@ public class PageFragment extends Fragment {
 
             tbrow.setBaselineAligned(false);
 
-            TextView tv2 = new TextView(getActivity().getApplicationContext());
-            tv2.setLayoutParams(new TableRow.LayoutParams(
+            TextView tv21 = new TextView(getActivity().getApplicationContext());
+            tv21.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+            TextView tv22 = new TextView(getActivity().getApplicationContext());
+            tv22.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+            LinearLayout linearLayout2 = new LinearLayout(getContext());
 
             TextView tv1 = new TextView(getActivity().getApplicationContext());
             tv1.setLayoutParams(new TableRow.LayoutParams(
@@ -90,13 +98,15 @@ public class PageFragment extends Fragment {
             tv3.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
 
-            tv2.setGravity(Gravity.CENTER_VERTICAL);
+            tv21.setGravity(Gravity.CENTER_VERTICAL);
+            tv22.setGravity(Gravity.CENTER_VERTICAL);
             tv1.setGravity(Gravity.CENTER);
             tv3.setGravity(Gravity.CENTER);
 
             tv1.setId(i);
             tv1.setTextColor(Color.WHITE);
-            tv2.setId(i);
+            tv21.setId(i);
+            tv22.setId(i);
             tv3.setId(i);
 
             try {
@@ -121,28 +131,40 @@ public class PageFragment extends Fragment {
             }
             if (i - day.lessons.size() + 1 == 0) {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
-                tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
+                tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
+                linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
             } else {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-                tv2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+                linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
+                tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone3));
             }
             System.out.println(lesson.numInDay);
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
-                String s = lesson.name + "\n" + lesson.homeWork.stringwork;
+                String s = lesson.name;
                 Spannable spans = new SpannableString(s);
-                spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                tv2.setText(spans);
+                spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                tv21.setText(spans);
+            } catch (Exception ignore) {
+            }
+            try {
+                String s = lesson.homeWork.stringwork;
+                Spannable spans = new SpannableString(s);
+                spans.setSpan(new RelativeSizeSpan(1f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                tv22.setText(spans);
             } catch (Exception ignore) {
             }
             tv1.setPadding(15, 0, 30, 0);
-            tv2.setPadding(30, 30, 30, 30);
+            tv21.setPadding(30, 30, 30, 15);
+            tv22.setPadding(30, 0, 30, 30);
             tv3.setPadding(30, 0, 30, 0);
-            tv2.setMaxLines(2);
-            tv2.setEllipsize(TextUtils.TruncateAt.END);
+            tv21.setMaxLines(1);
+            tv22.setMaxLines(1);
+            tv21.setEllipsize(TextUtils.TruncateAt.END);
+            tv22.setEllipsize(TextUtils.TruncateAt.END);
             try {
                 StringBuilder s1 = new StringBuilder();
                 for (int j = 0; j < lesson.marks.size(); j++) {
@@ -171,7 +193,22 @@ public class PageFragment extends Fragment {
             } catch (Exception ignored) {
             }
             tbrow.addView(tv1);
-            tbrow.addView(tv2);
+            LinearLayout linearLayout = new LinearLayout(getContext());
+            linearLayout.setOrientation(LinearLayout.VERTICAL);
+            linearLayout.addView(tv21);
+
+            linearLayout2.setOrientation(LinearLayout.HORIZONTAL);
+            ImageView image = new ImageView(getContext());
+            image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.attach), 50, 50, true));
+            image.setPadding(30,0,0,10);
+
+            if(lesson.homeWork.files != null && !lesson.homeWork.files.isEmpty()){
+                linearLayout2.addView(image);
+            }
+            linearLayout2.addView(tv22);
+
+            linearLayout.addView(linearLayout2);
+            tbrow.addView(linearLayout);
             tbrow.addView(tv3);
             tableLayout.addView(tbrow);
         }
