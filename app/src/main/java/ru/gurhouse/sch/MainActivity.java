@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity {
                     || getStackTop() instanceof MessagesFragment))
                 getSupportFragmentManager().popBackStack();
         if(getStackTop() instanceof ChatFragment && a.get(a.size()-2) instanceof MessagesFragment)
-            ((MessagesFragment) a.get(a.size()-2)).refresh();
+            ((MessagesFragment) a.get(a.size()-2)).refresh(false);
     }
 
     @Override

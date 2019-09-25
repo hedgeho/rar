@@ -66,7 +66,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     ViewPager pager;
     PagerAdapter pagerAdapter;
     int lastposition;
-    boolean autoChangingDate = true;
     ArrayList<PageFragment> pageFragments;
     View v;
     DatePickerDialog datePickerDialog;
@@ -139,6 +138,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     void show() {
+        boolean autoChangingDate =
+                context.getSharedPreferences("pref", 0).getBoolean("nextday", true);
         shown = true;
         log("show");
         try {

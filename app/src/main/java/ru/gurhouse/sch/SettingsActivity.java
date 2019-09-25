@@ -81,15 +81,15 @@ public class SettingsActivity extends AppCompatActivity {
         Switch auto = findViewById(R.id.switch_auto);
         final SharedPreferences pref = getSharedPreferences("pref", 0);
         auto.setChecked(pref.getBoolean("auto", true));
-        auto.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            log("switch1: " + isChecked);
-            pref.edit().putBoolean("auto", isChecked).apply();
-
-        });
+        auto.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("auto", isChecked).apply());
 
         Switch period = findViewById(R.id.switch_period);
         period.setChecked(pref.getBoolean("period_normal", false));
         period.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("period_normal", isChecked).apply());
+
+        Switch nextday = findViewById(R.id.switch_nextday);
+        nextday.setChecked(pref.getBoolean("nextday", true));
+        nextday.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("nextday", isChecked).apply());
 
         findViewById(R.id.btn_quit).setOnClickListener(v -> {
             setResult(RESULT_OK, new Intent().putExtra("goal", "quit"));

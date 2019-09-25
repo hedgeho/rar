@@ -83,6 +83,7 @@ public class ChatFragment extends Fragment {
     String threadName = "";
     int searchMsgId = -1;
     boolean group = false;
+    String topic = "";
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -108,9 +109,9 @@ public class ChatFragment extends Fragment {
 
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(threadName);
+        if(!topic.equals("") && group)
+            toolbar.setSubtitle(topic);
         setHasOptionsMenu(true);
-        // t/odo toolbar subtitle
-        // toolbar.setSubtitle("subtitle");
 
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
         // Inflate the layout for this fragment``
