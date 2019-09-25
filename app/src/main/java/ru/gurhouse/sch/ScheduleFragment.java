@@ -208,11 +208,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         week[i] = pager.getCurrentItem() - 1 + i - w + 1 + 1;
                     }
                     Calendar date = Calendar.getInstance();
-                    date.add(Calendar.DATE, position-lastposition);
                     if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
                         date.add(Calendar.DATE, 1);
                     else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
                         date.add(Calendar.DATE, 1);
+                    date.add(Calendar.DATE, position-lastposition);
                     datePickerDialog.updateDate(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
                     Calendar MaxOrMinDate = Calendar.getInstance();
                     MaxOrMinDate.add(Calendar.YEAR,1);
