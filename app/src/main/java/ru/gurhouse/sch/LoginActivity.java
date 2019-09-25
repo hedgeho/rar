@@ -2,6 +2,7 @@ package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -23,6 +24,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLException;
+
+import static android.text.InputType.TYPE_NULL;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -142,6 +146,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         et_password.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 this.onClick(fab);
+                InputMethodManager imm = (InputMethodManager) v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 return true;
             }
             return false;

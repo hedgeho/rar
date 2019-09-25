@@ -8,18 +8,33 @@
     android:background="@drawable/thread_background"
     android:padding="10dp">
 
-    <TextView
-        android:id="@+id/tv_sender"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <ImageView
+        android:id="@+id/muted"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginLeft="3dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="13dp"
+        android:layout_marginRight="13dp"
+        android:layout_marginBottom="3dp"
+        android:tint="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@+id/tv_new"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/tv_new"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/mute" />
+
+    <ImageView
+        android:id="@+id/img"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Sender"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toBottomOf="@+id/tv_sender"
+        app:layout_constraintStart_toEndOf="@+id/tv_sender"
+        app:layout_constraintTop_toTopOf="@+id/tv_sender"
+        app:srcCompat="@drawable/group" />
 
     <TextView
         android:id="@+id/tv_topic"
@@ -48,16 +63,18 @@
         app:layout_constraintStart_toEndOf="@+id/img"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/img"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
+    <TextView
+        android:id="@+id/tv_sender"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginLeft="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_sender"
-        app:layout_constraintStart_toEndOf="@+id/tv_sender"
-        app:layout_constraintTop_toTopOf="@+id/tv_sender"
-        app:srcCompat="@drawable/group" />
+        android:layout_marginTop="8dp"
+        android:text="Sender"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_time"
@@ -73,8 +90,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginRight="16dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginRight="32dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/threads_border"
         android:paddingLeft="10dp"
