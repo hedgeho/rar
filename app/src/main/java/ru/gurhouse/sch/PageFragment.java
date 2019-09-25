@@ -199,7 +199,7 @@ public class PageFragment extends Fragment {
 
             linearLayout2.setOrientation(LinearLayout.HORIZONTAL);
             ImageView image = new ImageView(getContext());
-            image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.attach), 50, 50, true));
+            image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.attach), tv22.getLineHeight(), tv22.getLineHeight(), true));
             image.setPadding(30,0,0,10);
 
             if(lesson.homeWork.files != null && !lesson.homeWork.files.isEmpty()){
