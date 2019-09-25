@@ -181,8 +181,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16) {
                 date.add(Calendar.DATE, 1);
                 pager.setCurrentItem(++lastposition);
-            }
-            if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+            } else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
                 date.add(Calendar.DATE, 1);
                 pager.setCurrentItem(++lastposition);
             }
@@ -212,7 +211,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     date.add(Calendar.DATE, position-lastposition);
                     if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
                         date.add(Calendar.DATE, 1);
-                    if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+                    else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
                         date.add(Calendar.DATE, 1);
                     datePickerDialog.updateDate(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
                     Calendar MaxOrMinDate = Calendar.getInstance();
@@ -943,7 +942,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         item = menu.add(0, 3, 0, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 4, 2, "Перезагрузить");
+        item = menu.add(0, 4, 2, "Обновить");
         item.setIcon(R.drawable.refresh);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);

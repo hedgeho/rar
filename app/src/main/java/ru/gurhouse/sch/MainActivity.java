@@ -499,6 +499,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        new Thread(() -> {
+            try {
+                LoginActivity.login();
+            } catch (LoginActivity.NoInternetException e) {
+                runOnUiThread(() -> {
+                    TextView tv = findViewById(R.id.tv_error);
+                    tv.setText("Нет доступа к интернету");
+                    tv.setVisibility(View.VISIBLE);
+                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
+                });
+            }
+        }).start();
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();

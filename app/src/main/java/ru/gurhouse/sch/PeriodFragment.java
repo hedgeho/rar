@@ -306,7 +306,7 @@ public class PeriodFragment extends Fragment {
         item = menu.add(0, 3, 1, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 4, 0, "Перезагрузить");
+        item = menu.add(0, 4, 0, "Обновить");
         item.setIcon(R.drawable.refresh);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
