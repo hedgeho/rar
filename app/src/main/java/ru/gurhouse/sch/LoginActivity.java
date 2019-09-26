@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -21,7 +20,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -45,8 +43,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLException;
-
-import static android.text.InputType.TYPE_NULL;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 

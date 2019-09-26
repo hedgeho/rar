@@ -41,7 +41,6 @@ public class PeriodFragment1 extends Fragment {
     int f = 0;
     boolean shown = false;
     boolean first_time = true;
-    SwipeRefreshLayout refreshL;
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
             ListView lv = ((AlertDialog) dialog).getListView();
@@ -119,7 +118,6 @@ public class PeriodFragment1 extends Fragment {
 
     void show() {
         shown = true;
-        StringBuilder y = new StringBuilder();
         if (getActivity().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
             getActivity().getSharedPreferences("pref", 0).edit().putString("firstperiod", "dvssc").apply();
@@ -174,15 +172,10 @@ public class PeriodFragment1 extends Fragment {
                     } else
                         txt2.setText(" ");
                 }
-                final int finalI1 = i;
-                try {
-                    txt2.setOnClickListener(v -> SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark));
-                } catch (Exception ignore) {
-                }
-                try {
-                    txt1.setOnClickListener(v -> SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark));
-                } catch (Exception ignore) {
-                }
+                final PeriodFragment.Subject sub = periods[pernum].subjects.get(i);
+                txt2.setOnClickListener(v ->
+                        SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
+                txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
             }
             layout2.addView(txt2);
             layout1.addView(txt1);

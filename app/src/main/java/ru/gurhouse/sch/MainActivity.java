@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -33,6 +32,7 @@ import android.widget.TextView;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -260,17 +260,25 @@ public class MainActivity extends AppCompatActivity {
         int userId = -1, prsId;
         String name;
         SharedPreferences pref = getSharedPreferences("pref", 0);
-        if(pref.getInt("userId", -1) == -1) {
+        if(pref.getInt("userId", -1) == -1 || !pref.getBoolean("auto", true)) {
          //if(true) {
             log("userId not found, calling state");
             String result = connect("https://app.eschool.center/ec-server/state?menu=false", null);
 
-            log("state: " + result);
+            log( "state: " + result);
             JSONObject obj = new JSONObject(result);
             if (obj.has("userId"))
                 userId = obj.getInt("userId");
-            prsId = obj.getJSONObject("user").getInt("prsId");
-            name = obj.getJSONObject("profile").getString("firstName");
+            if (!obj.getJSONObject("user").getJSONArray("roles").getString(0).equals("ROLE_STUDENT")) {
+                result = connect("https://app.eschool.center/ec-server/profile/" + userId + "/children", null);
+                obj = new JSONArray(result).getJSONObject(0);
+                userId = obj.getInt("userId");
+                prsId = obj.getInt("prsId");
+                name = obj.getString("fio");
+            } else {
+                prsId = obj.getJSONObject("user").getInt("prsId");
+                name = obj.getJSONObject("profile").getString("firstName");
+            }
             pref.edit().putInt("userId", userId).putInt("prsId", prsId)
                     .putString("name", name).apply();
         } else {
@@ -456,7 +464,7 @@ public class MainActivity extends AppCompatActivity {
                     || getStackTop() instanceof MessagesFragment))
                 getSupportFragmentManager().popBackStack();
         if(getStackTop() instanceof ChatFragment && a.get(a.size()-2) instanceof MessagesFragment)
-            ((MessagesFragment) a.get(a.size()-2)).refresh();
+            ((MessagesFragment) a.get(a.size()-2)).refresh(false);
     }
 
     @Override
@@ -478,7 +486,8 @@ public class MainActivity extends AppCompatActivity {
             loge(e.toString());
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
-        if (state == 1) {
+        if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
+            || getStackTop() instanceof Countcoff)) {
             if (mode0)
                 loadFragment(periodFragment);
             else

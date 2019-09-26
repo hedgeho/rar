@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,13 +14,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Switch;
 
 import static ru.gurhouse.sch.KnockFragment.connect;
-import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -81,15 +78,15 @@ public class SettingsActivity extends AppCompatActivity {
         Switch auto = findViewById(R.id.switch_auto);
         final SharedPreferences pref = getSharedPreferences("pref", 0);
         auto.setChecked(pref.getBoolean("auto", true));
-        auto.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            log("switch1: " + isChecked);
-            pref.edit().putBoolean("auto", isChecked).apply();
-
-        });
+        auto.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("auto", isChecked).apply());
 
         Switch period = findViewById(R.id.switch_period);
         period.setChecked(pref.getBoolean("period_normal", false));
         period.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("period_normal", isChecked).apply());
+
+        Switch nextday = findViewById(R.id.switch_nextday);
+        nextday.setChecked(pref.getBoolean("nextday", true));
+        nextday.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("nextday", isChecked).apply());
 
         findViewById(R.id.btn_quit).setOnClickListener(v -> {
             setResult(RESULT_OK, new Intent().putExtra("goal", "quit"));
