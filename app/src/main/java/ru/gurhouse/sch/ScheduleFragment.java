@@ -40,6 +40,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -713,6 +714,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 //                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
 //                                            }
                                             }
+                                            Collections.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid,o2.unitid));
                                             periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
                                         }
                                     }
