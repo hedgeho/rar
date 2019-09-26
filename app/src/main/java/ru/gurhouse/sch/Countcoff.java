@@ -117,7 +117,10 @@ public class Countcoff extends Fragment {
                         for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
                             cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
                         }
-                        avg = periods[pernum].subjects.get(j).avg;
+                        if(periods[pernum].nullsub)
+                            avg = 0d;
+                        else
+                            avg = periods[pernum].subjects.get(j).avg;
                         log("avg: " + avg);
                         alr2.setSingleChoiceItems(period, pernum, myClickListener);
                         makeMarks();
