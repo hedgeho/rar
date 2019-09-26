@@ -41,6 +41,8 @@ import org.json.JSONObject;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
@@ -547,6 +549,8 @@ public class Countcoff extends Fragment {
                         periods[pernum].subjects.add(subject);
                         log("subject " + subject.name + ", avg: " + subject.avg);
                     }
+
+                    Collections.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid,o2.unitid));
 
                     while (object1 == null) {
                         Thread.sleep(10);
