@@ -312,10 +312,22 @@ public class PeriodFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
+    static class ODOD {
+        Long daymsec;
+        String day, name;
+        int duration;
+        int ODODid;
+        ArrayList<Lesson> lessons;
+
+        ODOD() {
+        }
+    }
+
     static class Day {
         Long daymsec;
-        String day;
+        String day, name;
         int numday;
+        ArrayList<ODOD> odods;
         ArrayList<Lesson> lessons;
 
         Day() {
