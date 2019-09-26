@@ -534,54 +534,59 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Long day1 = 0L;
                     Long date1;
                     int isODOD;
+                    PeriodFragment.Day thisday = new PeriodFragment.Day();
+                    thisday.odods = new ArrayList<>();
                     int index = -1;
                     log(0);
                     for (int i = 0; i < array2.length(); i++) {
                         object2 = array2.getJSONObject(i);
                         date1 = Long.valueOf(String.valueOf(object2.getString("date")));
+                        date = new Date(date1);
+                        Calendar c = Calendar.getInstance();
+                        Calendar c1 = Calendar.getInstance();
+                        c.setTime(date);
+                        date = new Date(day1);
+                        c1.setTime(date);
+                        date1 = c.getTime().getTime();
+                        date = new Date(date1);
                         isODOD = object2.getInt("isODOD");
-                        if (isODOD == 0) {
-                            if (!date1.equals(day1)) {
-                                index++;
-                                date = new Date(date1);
-                                date.setHours(0);
-                                date.setMinutes(0);
-                                date1 = date.getTime();
-                                PeriodFragment.Day thisday = new PeriodFragment.Day();
-                                thisday.day = String.valueOf(date);
-                                thisday.daymsec = date1;
-                                Date datathis = new Date();
-                                datathis.setTime(date1);
-                                SimpleDateFormat dateFormat2 = new SimpleDateFormat("EEE", Locale.ENGLISH);
-                                String dayOfTheWeek = dateFormat2.format(datathis);
-                                switch (dayOfTheWeek) {
-                                    case "Mon":
-                                        thisday.numday = 1;
-                                        break;
-                                    case "Tue":
-                                        thisday.numday = 2;
-                                        break;
-                                    case "Wed":
-                                        thisday.numday = 3;
-                                        break;
-                                    case "Thu":
-                                        thisday.numday = 4;
-                                        break;
-                                    case "Fri":
-                                        thisday.numday = 5;
-                                        break;
-                                    case "Sat":
-                                        thisday.numday = 6;
-                                        break;
-                                    case "Sun":
-                                        thisday.numday = 7;
-                                        break;
+                        if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR) ) {
+                            index++;
+                            thisday = new PeriodFragment.Day();
+                            thisday.odods = new ArrayList<>();
+                            thisday.day = String.valueOf(date);
+                            thisday.daymsec = date1;
+                            Date datathis = new Date();
+                            datathis.setTime(date1);
+                            SimpleDateFormat dateFormat2 = new SimpleDateFormat("EEE", Locale.ENGLISH);
+                            String dayOfTheWeek = dateFormat2.format(datathis);
+                            switch (dayOfTheWeek) {
+                                case "Mon":
+                                    thisday.numday = 1;
+                                    break;
+                                case "Tue":
+                                    thisday.numday = 2;
+                                    break;
+                                case "Wed":
+                                    thisday.numday = 3;
+                                    break;
+                                case "Thu":
+                                    thisday.numday = 4;
+                                    break;
+                                case "Fri":
+                                    thisday.numday = 5;
+                                    break;
+                                case "Sat":
+                                    thisday.numday = 6;
+                                    break;
+                                case "Sun":
+                                    thisday.numday = 7;
+                                    break;
                                 }
-                                thisday.lessons = new ArrayList<>();
-//                                log("added day " + date.toString());
-                                periods[pernum].days
-                                        .add(thisday);
-                            }
+                            thisday.lessons = new ArrayList<>();
+                            periods[pernum].days.add(thisday);
+                        }
+                        if (isODOD == 0) {
                             PeriodFragment.Lesson lesson = new PeriodFragment.Lesson();
                             lesson.id = object2.getLong("id");
                             lesson.numInDay = object2.getInt("numInDay");
@@ -622,6 +627,15 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 }
                             }
                             periods[pernum].days.get(index).lessons.add(lesson);
+                        }
+                        else{
+                            PeriodFragment.ODOD odod = new PeriodFragment.ODOD();
+                            odod.duration = object2.getInt("duration");
+                            odod.ODODid = object2.getInt("isODOD");
+                            odod.daymsec = object2.getLong("date");
+                            odod.day = object2.getString("date_d");
+                            odod.name = object2.getJSONObject("clazz").getString("name");
+                            thisday.odods.add(odod);
                         }
                         day1 = date1;
                     }
@@ -772,10 +786,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             txt.setTextColor(Color.LTGRAY);
                             lin2.addView(txt);
                             lin.addView(lin2);
-                            for (int j = 0; j < periods[pernum].subjects.size() - 1; j++) {
+                            for (int j = 0; j < periods[pernum].subjects.size(); j++) {
                                 lin1 = new LinearLayout(getContext());
                                 lin1.setOrientation(LinearLayout.HORIZONTAL);
                                 lin1.setGravity(Gravity.CENTER);
+                                normallog(periods[pernum].days.get(i).lessons.size() + " " + periods[pernum].subjects.get(j).name);
                                 for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
                                     final PeriodFragment.Lesson less = periods[pernum].days.get(i).lessons.get(k);
                                     if (periods[pernum].subjects.get(j).unitid - less.unitId == 0) {
@@ -783,11 +798,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                             for (int l = 0; l < less.marks.size(); l++) {
                                                 t1 = System.currentTimeMillis();
                                                 matvey++;
-
-//                                            txt1 = new TextView(getContext().getApplicationContext());
-//                                            txt1.setGravity(Gravity.CENTER);
-//                                            txt1.setTextColor(Color.WHITE);
-//                                            txt1.setPadding(15, 0, 15, 0);
                                                 txt1 = new Kletka(getContext());
                                                 a += System.currentTimeMillis() - t1;
                                                 t1 = System.currentTimeMillis();
