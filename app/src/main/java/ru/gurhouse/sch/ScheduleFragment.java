@@ -1,6 +1,7 @@
 package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -55,7 +56,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     String[] period;
     boolean first = true;
     private int USER_ID;
-    private Context context;
+    private Activity context;
 
     TextView []tv = new TextView[7];
     int day;
@@ -123,8 +124,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if(super.getContext() != null)
-            context = super.getContext();
+        if(super.getActivity() != null)
+            context = super.getActivity();
         if(v == null)
             v = inflater.inflate(R.layout.fragment_schedule, container, false);
         if(!READY) {
@@ -196,16 +197,21 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     if(pager.getCurrentItem() == 0)
                         pager.setCurrentItem(pageCount/2 + 1);
+                    if(pageFragments.size() <= pager.getCurrentItem()-1) {
+                        loge("pageFragments.size(): " + pageFragments.size());
+                        loge("pager.getCurrentItem()-1: " + (pager.getCurrentItem()-1));
+                        return;
+                    }
                     if (pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1 == 0) {
                         w = 7;
                     } else
                         w = pageFragments.get(pager.getCurrentItem() - 1).c.get(Calendar.DAY_OF_WEEK) - 1;
 
                     for (int i = w - 1; i < 7; i++) {
-                        week[i] = pager.getCurrentItem() - 1 + i - w + 1 + 1;
+                        week[i] = pager.getCurrentItem() + i - w + 1;
                     }
                     for (int i = w - 2; i > -1; i--) {
-                        week[i] = pager.getCurrentItem() - 1 + i - w + 1 + 1;
+                        week[i] = pager.getCurrentItem() + i - w + 1;
                     }
                     Calendar date = Calendar.getInstance();
                     if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
@@ -249,10 +255,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 //
 //            }
             first = false;
-            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            Toolbar toolbar = getContext().findViewById(R.id.toolbar);
             toolbar.setTitle("Дневник");
             setHasOptionsMenu(true);
-            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+            ((MainActivity) context).setSupportActionBar(toolbar);
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
             if(TheSingleton.getInstance().t1 > 0) {
@@ -263,11 +269,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         } catch (Exception e) {
             e.printStackTrace();
             loge("show: " + e.toString());
-            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            Toolbar toolbar = context.findViewById(R.id.toolbar);
             toolbar.setTitle("Дневник");
             toolbar.setClickable(false);
             setHasOptionsMenu(true);
-            ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+            ((MainActivity) context).setSupportActionBar(toolbar);
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
         }
@@ -393,7 +399,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         Download2(periods[6].id, 6, true, true);
                     }
                 } catch (LoginActivity.NoInternetException e) {
-                    getActivity().runOnUiThread(() ->
+                    getContext().runOnUiThread(() ->
                             Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     loge("Download1() " + e.toString());
@@ -509,7 +515,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             Download2(id, h, isone, istwo);
                         } else {
                             periods[pernum].nullsub = true;
-                            ((MainActivity) getActivity()).nullsub(periods, pernum);
+                            ((MainActivity) getContext()).nullsub(periods, pernum);
                         }
                         normallog("SchF/Download2: nullsub, pernum - " + pernum);
                     } else {
@@ -716,10 +722,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     ready = true;
 
-                    if (getActivity() != null) {
-                        if (((MainActivity) getActivity()).getStackTop() instanceof ScheduleFragment)
-                            getActivity().runOnUiThread(() -> show());
-                    }
+                    if (((MainActivity) getContext()).getStackTop() instanceof ScheduleFragment)
+                        getContext().runOnUiThread(() -> show());
 
                     // цикл на ~3 секунд
                     log(2);
@@ -760,7 +764,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 date.setTime(periods[pernum].days.get(i).daymsec);
                                 format = new SimpleDateFormat("dd.MM", Locale.ENGLISH);
                                 s = format.format(date);
-                            } catch (Exception e) {
+                            } catch (Exception ignore) {
                             }
                             txt.setText(s);
                             txt.setTextColor(Color.LTGRAY);
@@ -778,7 +782,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                 t1 = System.currentTimeMillis();
                                                 matvey++;
 
-//                                            txt1 = new TextView(getActivity().getApplicationContext());
+//                                            txt1 = new TextView(getContext().getApplicationContext());
 //                                            txt1.setGravity(Gravity.CENTER);
 //                                            txt1.setTextColor(Color.WHITE);
 //                                            txt1.setPadding(15, 0, 15, 0);
@@ -877,9 +881,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     log(3);
                     log("matvey: " + matvey);
                     if (isone)
-                        ((MainActivity) getActivity()).set(periods, pernum, 1);
+                        ((MainActivity) getContext()).set(periods, pernum, 1);
                     if (istwo)
-                        ((MainActivity) getActivity()).set(periods, pernum, 2);
+                        ((MainActivity) getContext()).set(periods, pernum, 2);
                     READY = true;
 
                     log("Download2() ended");
@@ -891,10 +895,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     first_downl = true;
                     }
 
-
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (LoginActivity.NoInternetException e) {
-                    getActivity().runOnUiThread(() -> {
+                    getContext().runOnUiThread(() -> {
                          Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
                         ((SwipeRefreshLayout) v.findViewById(R.id.refresh)).setRefreshing(false);
                     });
@@ -977,7 +980,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         super.onResume();
     }
 
-    public Context getContext() {
+    public Activity getContext() {
         return context;
     }
 

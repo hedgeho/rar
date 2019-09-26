@@ -97,7 +97,7 @@ public class Countcoff extends Fragment {
                 }
                 avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
                 makeMarks();
-                countNewCoff();
+//                countNewCoff();
             } /*else {
             }*/
         }
@@ -117,10 +117,11 @@ public class Countcoff extends Fragment {
                         for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
                             cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
                         }
-                        avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
+                        avg = periods[pernum].subjects.get(j).avg;
+                        log("avg: " + avg);
                         alr2.setSingleChoiceItems(period, pernum, myClickListener);
                         makeMarks();
-                        countNewCoff();
+//                        countNewCoff();
                     });
                 } else {
                     periodname = periods[pernum].name;
@@ -129,10 +130,11 @@ public class Countcoff extends Fragment {
                     for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
                         cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
                     }
-                    avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
+                    avg = periods[pernum].subjects.get(j).avg;
+                    log("avg: " + avg);
                     alr2.setSingleChoiceItems(period, pernum, myClickListener);
                     makeMarks();
-                    countNewCoff();
+                    //countNewCoff();
                 }
             }
         }
@@ -159,7 +161,6 @@ public class Countcoff extends Fragment {
         txt1.setText(s);
         img = v.findViewById(R.id.imageView);
         img.setOnClickListener(v1 -> {
-            TextView tv = new TextView(getContext());
             final String[] newMark = new String[1];
             final Double[] f = new Double[1];
             alr1 = new AlertDialog.Builder(getContext());
@@ -416,7 +417,9 @@ public class Countcoff extends Fragment {
                     f += cells.get(i).mktWt;
                 }
         }
-        String s = String.valueOf(d / f);
+        double newAvg = Math.round(d / f*100)/100d;
+        avg = Math.round(avg*100)/100d;
+        String s = String.valueOf(newAvg);
         if (s.length() > 4) {
             s = String.format(Locale.UK, "%.2f", d / f);
         }
@@ -432,15 +435,15 @@ public class Countcoff extends Fragment {
         txt1.setTextSize(9 * getResources().getDisplayMetrics().density);
         txt0.setPadding(30, 0, 30, 0);
         linearLayout.addView(txt1);
-        if (Double.valueOf(s) - avg > 0) {
+        if (newAvg > avg) {
             txt.setText("+" + txt.getText());
             txt.setTextColor(getResources().getColor(R.color.plus));
             linearLayout.addView(txt);
-        } else if (Double.valueOf(s) - avg < 0) {
+        } else if (newAvg < avg) {
             txt.setTextColor(getResources().getColor(R.color.mn));
             linearLayout.addView(txt);
         }
-        if (Double.valueOf(s) - avg != 0)
+        if (newAvg != avg)
             linearLayout.addView(txt0);
     }
 
@@ -464,7 +467,7 @@ public class Countcoff extends Fragment {
                 cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
             }
             makeMarks();
-            countNewCoff();
+//            countNewCoff();
             sasha("rar");
         }
         return super.onOptionsItemSelected(item);
@@ -516,6 +519,7 @@ public class Countcoff extends Fragment {
                                     null));
                     if(!object.has("result"))
                         log("lol no result: " + object.toString());
+                    log(object.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
                         PeriodFragment.Subject subject = new PeriodFragment.Subject();
@@ -538,6 +542,7 @@ public class Countcoff extends Fragment {
                             subject.unitid = obj.getInt("unitId");
                         subject.cells = new ArrayList<>();
                         periods[pernum].subjects.add(subject);
+                        log("subject " + subject.name + ", avg: " + subject.avg);
                     }
 
                     while (object1 == null) {
@@ -578,7 +583,6 @@ public class Countcoff extends Fragment {
                             periods[pernum].nullsub = true;
                         }
                     } else {
-
                         String s1 = periods[pernum].cells.get(0).date;
                         String s2 = periods[pernum].cells.get(periods[pernum].cells.size() - 1).date;
                         DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
@@ -780,7 +784,6 @@ public class Countcoff extends Fragment {
                             }
                         }
                     }
-
 
                     getActivity().runOnUiThread(onFinish);
                     //---------------------------------------------------------------------------------------------------------------------------------

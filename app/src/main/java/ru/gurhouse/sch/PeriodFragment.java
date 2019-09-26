@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,6 +25,8 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Locale;
+
+import static ru.gurhouse.sch.LoginActivity.log;
 
 public class PeriodFragment extends Fragment {
 
@@ -183,9 +186,9 @@ public class PeriodFragment extends Fragment {
                 } else
                     txt2.setText(" ");
             }
-            final int finalI1 = i;
-            txt2.setOnClickListener(v -> SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark));
-            txt1.setOnClickListener(v -> SwitchToSubjectFragment(periods[pernum].subjects.get(finalI1).avg, periods[pernum].subjects.get(finalI1).cells, periods[pernum].subjects.get(finalI1).name, periods[pernum].subjects.get(finalI1).rating, periods[pernum].subjects.get(finalI1).totalmark));
+            final Subject sub = periods[pernum].subjects.get(i);
+            txt2.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
+            txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
             layout2.addView(txt2);
             layout1.addView(txt1);
 
@@ -294,6 +297,15 @@ public class PeriodFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if(getActivity() != null) {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+        }
+    }
+
+    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
@@ -341,7 +353,6 @@ public class PeriodFragment extends Fragment {
         HomeWork() {
         }
     }
-
 
     static class File {
         String name;

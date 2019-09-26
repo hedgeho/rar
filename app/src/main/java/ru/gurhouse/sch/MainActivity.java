@@ -486,7 +486,8 @@ public class MainActivity extends AppCompatActivity {
             loge(e.toString());
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
-        if (state == 1) {
+        if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
+            || getStackTop() instanceof Countcoff)) {
             if (mode0)
                 loadFragment(periodFragment);
             else

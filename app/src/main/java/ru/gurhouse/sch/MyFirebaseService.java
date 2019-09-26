@@ -40,8 +40,9 @@ public class MyFirebaseService extends FirebaseMessagingService {
         Intent data = remoteMessage.toIntent();
 
 //        long time = System.currentTimeMillis();
-        if(!data.hasExtra("type"))
+        if(!data.hasExtra("type")) {
             return;
+        }
         switch (data.getStringExtra("type")) {
             case "mark":
                 log("new mark");
@@ -49,7 +50,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         unitId = Integer.parseInt(data.getStringExtra("unitId"));
                 double coef = Double.parseDouble(data.getStringExtra("coef"));
                 NotificationManager notificationManager;
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)  {
                     notificationManager = getSystemService(NotificationManager.class);
                     if (notificationManager.getNotificationChannel("1") == null) {
                         CharSequence ch_name = "New messages";
