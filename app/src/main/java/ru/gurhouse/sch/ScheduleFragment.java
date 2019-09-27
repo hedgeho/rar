@@ -411,7 +411,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     JSONObject object1 = null;
     boolean first_downl = true;
+    boolean syncing = false;
     void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
+        if(syncing) return;
+        syncing = true;
         shown = false;
         normallog("SchF: Download2()");
         if(first_downl && TheSingleton.getInstance().t1 == 0) {
@@ -513,6 +516,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             periods[pernum].subjects = new ArrayList<>();
                             periods[pernum].lins = new ArrayList<>();
                             periods[pernum].cells = new ArrayList<>();
+                            syncing = false;
                             Download2(id, h, isone, istwo);
                         } else {
                             periods[pernum].nullsub = true;
@@ -896,9 +900,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     first_downl = true;
                     }
+                    syncing = false;
 
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (LoginActivity.NoInternetException e) {
+                    syncing = false;
                     getContext().runOnUiThread(() -> {
                          Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
                         ((SwipeRefreshLayout) v.findViewById(R.id.refresh)).setRefreshing(false);
@@ -910,6 +916,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     periods[pernum].subjects = new ArrayList<>();
                     periods[pernum].lins = new ArrayList<>();
                     periods[pernum].cells = new ArrayList<>();
+                    syncing = false;
                     Download2(id, h, isone, istwo);
                 }
             }
