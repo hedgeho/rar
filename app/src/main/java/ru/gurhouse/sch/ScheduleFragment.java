@@ -138,6 +138,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         return v;
     }
 
+    void show(int i) {
+        show();
+        if(i != -1 && pager != null) pager.setCurrentItem(i);
+    }
+
     void show() {
         boolean autoChangingDate =
                 context.getSharedPreferences("pref", 0).getBoolean("nextday", true);
@@ -729,8 +734,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     ready = true;
 
-                    if (((MainActivity) getContext()).getStackTop() instanceof ScheduleFragment)
-                        getContext().runOnUiThread(() -> show());
+
+                    getContext().runOnUiThread(() -> show(pager != null ? pager.getCurrentItem() : -1));
 
                     // цикл на ~3 секунд
                     log(2);
