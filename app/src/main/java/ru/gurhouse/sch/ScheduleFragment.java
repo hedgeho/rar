@@ -153,6 +153,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         shown = true;
         try {
             for (int i = 0; i < pageCount; i++) {
+                log("i" + i);
                 pageFragments.get(i).subjects = periods[pernum].subjects;
             }
             int y = 0;
@@ -183,6 +184,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 //            pager.setAdapter(null);
             if(pager.getAdapter() == null) {
                 pagerAdapter = new MyFragmentPagerAdapter(getFragmentManager());
+                log("pager adapter created");
                 pager.setAdapter(pagerAdapter);
             }
             pager.setCurrentItem(pageCount / 2 + 1);
@@ -267,7 +269,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 //            }
             first = false;
             Toolbar toolbar = getContext().findViewById(R.id.toolbar);
-            toolbar.setTitle("Дневник");
+            if(((MainActivity) getContext()).getStackTop() instanceof ScheduleFragment) {
+                toolbar.setTitle("Дневник");
+            }
             setHasOptionsMenu(true);
             ((MainActivity) context).setSupportActionBar(toolbar);
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);

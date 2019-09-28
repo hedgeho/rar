@@ -513,7 +513,6 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 log("onRestoreInstanceState");
-
                 LoginActivity.login(
                         getSharedPreferences("pref", 0).getString("login", ""),
                         getSharedPreferences("pref", 0).getString("hash", ""));
@@ -550,9 +549,12 @@ public class MainActivity extends AppCompatActivity {
         }.start();
         TheSingleton.getInstance().setPERSON_ID(-1);
         TheSingleton.getInstance().setUSER_ID(-1);
+        TheSingleton.getInstance().setCOOKIE("");
+        TheSingleton.getInstance().setROUTE("");
         SharedPreferences pref = getSharedPreferences("pref", 0);
         pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "")
-                .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "").apply();
+                .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "")
+                .putString("muted", "[]").putString("login", "").putString("hash", "").apply();
         finish();
     }
 
