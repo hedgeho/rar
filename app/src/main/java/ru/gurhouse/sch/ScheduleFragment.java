@@ -183,7 +183,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16) {
                 date.add(Calendar.DATE, 1);
                 pager.setCurrentItem(++lastposition);
-            } else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+            }
+            if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
                 date.add(Calendar.DATE, 1);
                 pager.setCurrentItem(++lastposition);
             }
@@ -217,7 +218,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Calendar date = Calendar.getInstance();
                     if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
                         date.add(Calendar.DATE, 1);
-                    else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+                    if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
                         date.add(Calendar.DATE, 1);
                     date.add(Calendar.DATE, position-lastposition);
                     datePickerDialog.updateDate(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
