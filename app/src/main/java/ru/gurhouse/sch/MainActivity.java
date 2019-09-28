@@ -512,7 +512,11 @@ public class MainActivity extends AppCompatActivity {
         super.onRestoreInstanceState(savedInstanceState);
         new Thread(() -> {
             try {
-                LoginActivity.login();
+                log("onRestoreInstanceState");
+
+                LoginActivity.login(
+                        getSharedPreferences("pref", 0).getString("login", ""),
+                        getSharedPreferences("pref", 0).getString("hash", ""));
             } catch (LoginActivity.NoInternetException e) {
                 runOnUiThread(() -> {
                     TextView tv = findViewById(R.id.tv_error);

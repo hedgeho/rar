@@ -139,10 +139,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     void show() {
+        log("show SF");
+//        v = context.getLayoutInflater().inflate(R.layout.fragment_schedule,
+//                context.findViewById(R.id.frame), false);
+
         boolean autoChangingDate =
                 context.getSharedPreferences("pref", 0).getBoolean("nextday", true);
         shown = true;
-        log("show");
         try {
             for (int i = 0; i < pageCount; i++) {
                 pageFragments.get(i).subjects = periods[pernum].subjects;
@@ -151,10 +154,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             try {
                 log("size: " +  periods[pernum].days.size());
                 long daymsec = periods[pernum].days.get(y).daymsec;
-                boolean z = false;
                 for (int i = 0; i < pageCount; i++) {
                     //log("page " + periods[pernum].days.get(y));
-                    if (pageFragments.get(i).c.getTimeInMillis() == daymsec || z) {
+                    if (pageFragments.get(i).c.getTimeInMillis() == daymsec) {
                         //z = true;
                         pageFragments.get(i).day = periods[pernum].days.get(y);
                         if (y + 1 - periods[pernum].days.size() == 0) {
@@ -172,6 +174,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 loge("show " + e);
             }
             pager = v.findViewById(R.id.pager);
+//            pager.setSaveFromParentEnabled(false);
+//            pager.setAdapter(null);
             if(pager.getAdapter() == null) {
                 pagerAdapter = new MyFragmentPagerAdapter(getFragmentManager());
                 pager.setAdapter(pagerAdapter);
@@ -183,7 +187,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16) {
                 date.add(Calendar.DATE, 1);
                 pager.setCurrentItem(++lastposition);
-            } else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+            }
+            if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
                 date.add(Calendar.DATE, 1);
                 pager.setCurrentItem(++lastposition);
             }
@@ -217,7 +222,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Calendar date = Calendar.getInstance();
                     if(autoChangingDate && date.get(Calendar.HOUR_OF_DAY) >= 16)
                         date.add(Calendar.DATE, 1);
-                    else if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+                    if(autoChangingDate && date.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
                         date.add(Calendar.DATE, 1);
                     date.add(Calendar.DATE, position-lastposition);
                     datePickerDialog.updateDate(date.get(Calendar.YEAR), date.get(Calendar.MONTH), date.get(Calendar.DATE));
@@ -263,7 +268,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
             v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
             if(TheSingleton.getInstance().t1 > 0) {
-                log("loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms");
+                log("SF: loading ended in " + (System.currentTimeMillis() - TheSingleton.getInstance().t1) + " ms");
                 //TheSingleton.getInstance().t1 = 0;
             }
 
@@ -486,7 +491,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
 
                     JSONArray arraydaylessons = object1.getJSONArray("result");
-                    normallog("SchF/Downloud2: arraydaylessons.length = " + arraydaylessons.length());
+                    normallog("SchF/Download2: arraydaylessons.length = " + arraydaylessons.length());
                         for (int i = 0; i < arraydaylessons.length(); i++) {
                             object1 = arraydaylessons.getJSONObject(i);
                             PeriodFragment.Cell cell = new PeriodFragment.Cell();
@@ -745,7 +750,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     if (((MainActivity) getContext()).getStackTop() instanceof ScheduleFragment)
                         getContext().runOnUiThread(() -> show());
 
-                    // цикл на ~3 секунд
+                    // цикл на ~3 секунды
                     log(2);
                     long matvey = 0, a = 0, b = 0, c = 0, de = 0, ef = 0, t1;
                     TextView txt, txt1;
@@ -981,6 +986,21 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 startActivityForResult(intent, 0);
                 break;
             case 4:
+//                pageFragments = new ArrayList<>();
+//                for (int i = 0; i < pageCount; i++) {
+//                    pageFragments.add(new PageFragment());
+//                    Calendar[] calendar = {Calendar.getInstance()};
+//                    calendar[0] = Calendar.getInstance();
+//                    calendar[0].setTime(datenow);
+//                    calendar[0].add(Calendar.DAY_OF_MONTH, (i - (pageCount / 2) + 1));
+//                    calendar[0].set(Calendar.HOUR_OF_DAY, 0);
+//                    calendar[0].set(Calendar.MINUTE, 0);
+//                    calendar[0].set(Calendar.SECOND, 0);
+//                    calendar[0].set(Calendar.MILLISECOND, 0);
+//                    pageFragments.get(i).c = calendar[0];
+//                    calendar[0].add(Calendar.DAY_OF_WEEK, -1);
+//                    pageFragments.get(i).dayofweek = calendar[0].get(Calendar.DAY_OF_WEEK);
+//                }
                 Download2(periods[pernum].id, pernum, false, true);
         }
         return super.onOptionsItemSelected(item);
@@ -1000,7 +1020,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     public Activity getContext() {
-        return context;
+        return (context==null?getActivity():context);
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {

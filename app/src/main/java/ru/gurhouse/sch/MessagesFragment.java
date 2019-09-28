@@ -175,9 +175,11 @@ public class MessagesFragment extends Fragment {
                     new Thread (() -> {
                         while(true) {
                             if(getActivity() != null) {
-                                TextView tv = getActivity().findViewById(R.id.tv_error);
-                                tv.setText("Нет подключения к Интернету");
-                                tv.setVisibility(View.VISIBLE);
+                                getActivity().runOnUiThread(() -> {
+                                    TextView tv = getActivity().findViewById(R.id.tv_error);
+                                    tv.setText("Нет подключения к Интернету");
+                                    tv.setVisibility(View.VISIBLE);
+                                });
                                 break;
                             }
                         }

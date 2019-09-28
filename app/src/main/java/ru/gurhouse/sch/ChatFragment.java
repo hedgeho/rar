@@ -3,6 +3,7 @@ package ru.gurhouse.sch;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
@@ -78,7 +79,7 @@ public class ChatFragment extends Fragment {
     private boolean scrolled = false, first_time = true;
     private MenuItem itemToEnable = null;
 
-    Context context;
+    Activity context;
     int threadId = 0;
     String threadName = "";
     int searchMsgId = -1;
@@ -126,7 +127,7 @@ public class ChatFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
             pinned = new File(ImageFilePath.getPath(getContext(), data.getData()));
         } else {
@@ -193,7 +194,7 @@ public class ChatFragment extends Fragment {
                     } catch (Exception e) {loge(e);}
                 }
             }.start();
-            getActivity().onBackPressed();
+            getContext().onBackPressed();
         } else if (item.getItemId() == 3) {
             log("refreshing chat");
             item.setEnabled(false);
@@ -204,7 +205,7 @@ public class ChatFragment extends Fragment {
                     try {
                         download(h);
                     } catch (LoginActivity.NoInternetException e) {
-                        getActivity().runOnUiThread(() ->
+                        getContext().runOnUiThread(() ->
                                 Toast.makeText(getContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                     } catch (Exception e) {
                         loge(e.toString());
@@ -270,7 +271,7 @@ public class ChatFragment extends Fragment {
                 tv_attach.setOnClickListener(v -> {
                     try {
                         String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
-                        ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
+                        ((MainActivity) getContext()).saveFile(url, a.getString("fileName"), true);
                     } catch (JSONException e) {loge(e.toString());}
                 });
                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
@@ -300,7 +301,7 @@ public class ChatFragment extends Fragment {
                     try {
                         download(h);
                     } catch (LoginActivity.NoInternetException e) {
-                        getActivity().runOnUiThread(() -> {
+                        getContext().runOnUiThread(() -> {
                             v.setVisibility(View.VISIBLE);
                             view.findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
                         });
@@ -381,7 +382,7 @@ public class ChatFragment extends Fragment {
                                             tv_attach.setTextColor(getResources().getColor(R.color.two));
                                             tv_attach.setOnClickListener(v -> {
                                                 String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                ((MainActivity) getContext()).saveFile(url, a.name, true);
                                             });
                                             ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                         }
@@ -517,7 +518,7 @@ public class ChatFragment extends Fragment {
                                             tv_attach.setTextColor(getResources().getColor(R.color.two));
                                             tv_attach.setOnClickListener(v -> {
                                                 String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                ((MainActivity) getContext()).saveFile(url, a.name, true);
                                             });
                                             ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
                                         }
@@ -647,7 +648,7 @@ public class ChatFragment extends Fragment {
                                 tv_attach.setTextColor(getResources().getColor(R.color.two));
                                 tv_attach.setOnClickListener(v -> {
                                     String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                    ((MainActivity) getContext()).saveFile(url, a.name, true);
                                 });
                                 tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
                                 ((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
@@ -689,7 +690,7 @@ public class ChatFragment extends Fragment {
                             @Override
                             public void run() {
                                 try {
-                                    getActivity().runOnUiThread(() -> {
+                                    getContext().runOnUiThread(() -> {
                                         View item1 = inflater.inflate(R.layout.chat_item, container, false);
                                         TextView tv1 = item1.findViewById(R.id.tv_text);
                                         if (Html.fromHtml(text).toString().equals("")) {
@@ -729,7 +730,7 @@ public class ChatFragment extends Fragment {
                     try {
                         download(h);
                     } catch (LoginActivity.NoInternetException e) {
-                        getActivity().runOnUiThread(()->{
+                        getContext().runOnUiThread(()->{
                             TextView tv = view.findViewById(R.id.tv_error);
                             tv.setText("Нет доступа к интернету");
                             tv.setVisibility(View.VISIBLE);
@@ -888,5 +889,5 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    public Context getContext() {return context;}
+    public Activity getContext() {return (context==null?getActivity():context);}
 }
