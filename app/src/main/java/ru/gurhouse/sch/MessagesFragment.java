@@ -1,6 +1,7 @@
 package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -69,7 +70,7 @@ public class MessagesFragment extends Fragment {
     private View savedView = null, view;
     private int search_mode = -1;
     private Person[] olist;
-    private Context context;
+    private Activity context;
     private boolean READY = false, shown = false;
     private SwipeRefreshLayout refreshL;
     private boolean refreshing = false;
@@ -189,6 +190,13 @@ public class MessagesFragment extends Fragment {
                 }
             }
         }.start();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null)
+            context = getActivity();
     }
 
     @Override
