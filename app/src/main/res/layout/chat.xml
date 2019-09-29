@@ -149,14 +149,16 @@
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
             android:ems="10"
+            android:focusable="auto"
+            android:focusableInTouchMode="true"
             android:hint="Сообщение"
             android:inputType="textMultiLine|textCapSentences"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btn_send"
-            app:layout_constraintStart_toEndOf="@+id/btn_file"
+            android:nextFocusLeft="@id/et"
 
             android:nextFocusUp="@id/et"
-            android:nextFocusLeft="@id/et" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_send"
+            app:layout_constraintStart_toEndOf="@+id/btn_file" />
         <!--;[;-->
 
         <ImageView

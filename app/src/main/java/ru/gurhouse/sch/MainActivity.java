@@ -469,10 +469,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data!=null)
-            if(data.hasExtra("goal"))
-                if(data.getStringExtra("goal").equals("quit"))
-                    quit();
+        super.onActivityResult(requestCode,resultCode,data);
+//        if (data!=null)
+//            if(data.hasExtra("goal"))
+//                if(data.getStringExtra("goal").equals("quit"))
+//                    quit();
     }
 
     @Override
