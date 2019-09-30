@@ -1,13 +1,11 @@
 package ru.gurhouse.sch;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -221,7 +219,7 @@ public class PageFragment extends Fragment {
         }
 
     }
-    @SuppressLint("SetTextI18n")
+
     public void CreateODOD(){
         TextView txt = new TextView(getContext());
         txt.setLayoutParams(new LinearLayout.LayoutParams(

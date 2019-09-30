@@ -489,10 +489,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode,resultCode,data);
-//        if (data!=null)
-//            if(data.hasExtra("goal"))
-//                if(data.getStringExtra("goal").equals("quit"))
-//                    quit();
+        if (data!=null)
+            if(data.hasExtra("goal"))
+                if(data.getStringExtra("goal").equals("quit"))
+                    quit();
     }
 
     @Override
@@ -536,6 +536,16 @@ public class MainActivity extends AppCompatActivity {
                 LoginActivity.login(
                         getSharedPreferences("pref", 0).getString("login", ""),
                         getSharedPreferences("pref", 0).getString("hash", ""));
+                runOnUiThread(()->{
+                    bottomnav = findViewById(R.id.bottomnav);
+                    bottomnav.setSelectedItemId(R.id.navigation_diary);
+                    set_visible(true);
+                    Toolbar toolbar = findViewById(R.id.toolbar);
+                    toolbar.setTitle("Дневник");
+                    toolbar.setClickable(false);
+                    scheduleFragment = new ScheduleFragment();
+                    loadFragment(scheduleFragment);
+                });
             } catch (LoginActivity.NoInternetException e) {
                 runOnUiThread(() -> {
                     TextView tv = findViewById(R.id.tv_error);

@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
+import io.reactivex.internal.util.ArrayListSupplier;
+
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
@@ -153,7 +155,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         shown = true;
         try {
             for (int i = 0; i < pageCount; i++) {
-                log("i" + i);
+                //log("i" + i);
                 pageFragments.get(i).subjects = periods[pernum].subjects;
             }
             int y = 0;
@@ -568,7 +570,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         date1 = c.getTime().getTime();
                         date = new Date(date1);
                         isODOD = object2.getInt("isODOD");
-                        if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR) ) {
+                        if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR)) {
                             index++;
                             thisday = new PeriodFragment.Day();
                             thisday.odods = new ArrayList<>();
