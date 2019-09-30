@@ -385,7 +385,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    ArrayList<Long> toOpen = new ArrayList<>();
+//    ArrayList<Long> toOpen = new ArrayList<>();
 
     public void saveFile(String url, String name, boolean useCookies) {
         log("saving " + name);
@@ -414,22 +414,22 @@ public class MainActivity extends AppCompatActivity {
 
             // get download service and enqueue file
             DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            toOpen.add(manager.enqueue(request));
-
-            registerReceiver(new BroadcastReceiver() {
-                public void onReceive(Context context, Intent intent) {
-                    long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-                    if(!toOpen.contains(id)) return;
-                    toOpen.remove(id);
-                    Uri uri = manager.getUriForDownloadedFile(id);
-                    MainActivity.this.runOnUiThread(()->{
-                        Intent intent2 = new Intent();
-                        intent2.setAction(android.content.Intent.ACTION_VIEW);
-                        intent2.setDataAndType(Uri.parse(Uri.decode(ImageFilePath.getPath(MainActivity.this,uri))), MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(ImageFilePath.getPath(MainActivity.this,uri))));
-                        MainActivity.this.startActivityForResult(intent2, 10);
-                    });
-                }
-            }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+//            toOpen.add(manager.enqueue(request));
+            manager.enqueue(request);
+//            registerReceiver(new BroadcastReceiver() {
+//                public void onReceive(Context context, Intent intent) {
+//                    long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+//                    if(!toOpen.contains(id)) return;
+//                    toOpen.remove(id);
+//                    Uri uri = manager.getUriForDownloadedFile(id);
+//                    MainActivity.this.runOnUiThread(()->{
+//                        Intent intent2 = new Intent();
+//                        intent2.setAction(android.content.Intent.ACTION_VIEW);
+//                        intent2.setDataAndType(Uri.parse(Uri.decode(ImageFilePath.getPath(context,uri))), MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(ImageFilePath.getPath(context,uri))));
+//                        startActivityForResult(intent2, 10);
+//                    });
+//                }
+//            }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         }
     }
 

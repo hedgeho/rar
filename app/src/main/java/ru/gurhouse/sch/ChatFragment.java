@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.net.http.AndroidHttpClient;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -47,6 +49,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -140,12 +143,14 @@ public class ChatFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            pinned = new File(ImageFilePath.getPath(context,data.getData()));
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
+            if(data.getData() != null) {
+                pinned = new File(ImageFilePath.getPath(context,data.getData()));
+                requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
+            }
         } else {
             System.out.println("result");
 
-            attach.add(new File(ImageFilePath.getPath(context,data.getData())));
+            if(data.getData() != null) attach(new File(ImageFilePath.getPath(context,data.getData())));
         }
     }
 
@@ -161,7 +166,7 @@ public class ChatFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if(grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == 124) {
-            attach.add(pinned);
+            attach(pinned);
         }
     }
 
@@ -857,37 +862,38 @@ public class ChatFragment extends Fragment {
                         et.setText("");
                         et.requestFocus();
                         et.requestFocusFromTouch();
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    getActivity().runOnUiThread(() -> {
-                                        View item1 = inflater.inflate(R.layout.chat_item, container, false);
-                                        TextView tv1 = item1.findViewById(R.id.tv_text);
-                                        if (text.isEmpty() && attach.isEmpty()) {
-                                            tv1.setText("          ");
-                                        }else if(!attach.isEmpty()){
-                                            tv1.setVisibility(GONE);
-                                        }else
-                                            tv1.setText(Html.fromHtml(text));
-                                        tv1 = item1.findViewById(R.id.tv_time);
-                                        tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
-                                        container.addView(item1);
-                                        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
-                                    });
-//                                    if(!files.isEmpty()) {
-                                        //uploadFile(new File(files.get(0).getPath()));
-                                    ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
-//                                    } else {
-//                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
-//                                                "&msgUID=" + System.currentTimeMillis());
-//                                    }
-                                } catch (Exception e) {
-                                    loge("rar: " + e.toString());
-                                    e.printStackTrace();
-                                }
-                            }
-                        }.start();
+                        ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
+//                        new Thread() {
+//                            @Override
+//                            public void run() {
+//                                try {
+//                                    getActivity().runOnUiThread(() -> {
+//                                        View item1 = inflater.inflate(R.layout.chat_item, container, false);
+//                                        TextView tv1 = item1.findViewById(R.id.tv_text);
+//                                        if (text.isEmpty() && attach.isEmpty()) {
+//                                            tv1.setText("          ");
+//                                        }else if(!attach.isEmpty()){
+//                                            tv1.setVisibility(GONE);
+//                                        }else
+//                                            tv1.setText(Html.fromHtml(text));
+//                                        tv1 = item1.findViewById(R.id.tv_time);
+//                                        tv1.setText(String.format(Locale.UK, "%02d:%02d", new Date().getHours(), new Date().getMinutes()));
+//                                        container.addView(item1);
+//                                        scroll.post(() -> scroll.fullScroll(ScrollView.FOCUS_DOWN));
+//                                    });
+////                                    if(!files.isEmpty()) {
+//                                        //uploadFile(new File(files.get(0).getPath()));
+//
+////                                    } else {
+////                                        connect("https://app.eschool.center/ec-server/chat/sendNew",  "threadId=" + threadId + "&msgText=" + text +
+////                                                "&msgUID=" + System.currentTimeMillis());
+////                                    }
+//                                } catch (Exception e) {
+//                                    loge("rar: " + e.toString());
+//                                    e.printStackTrace();
+//                                }
+//                            }
+//                        }.start();
                     });
                     first_time = false;
                     if(itemToEnable != null)
@@ -985,7 +991,35 @@ public class ChatFragment extends Fragment {
             h.sendEmptyMessage(1);
     }
 
-    // testing, trying to send a file (not working)
+    LinearLayout attachedLayout;
+    HorizontalScrollView attachedScroll;
+
+    private void attach(File f){
+        if(attachedLayout == null || attachedScroll == null) {
+            attachedLayout = getActivity().findViewById(R.id.attached);
+            attachedScroll = getActivity().findViewById(R.id.attachedScroll);
+        }
+        attach.add(f);
+        attachedScroll.setVisibility(View.VISIBLE);
+        ImageView view = new ImageView(context);
+        view.setImageURI(Uri.fromFile(f));
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
+        layoutParams.setMargins(10,10,10,10);
+        view.setLayoutParams(layoutParams);
+        view.setBackgroundResource(R.drawable.image_bubble);
+        view.setPadding(10,10,10,10);
+        attachedLayout.addView(view);
+    }
+
+    private void clearAttached(){
+        if(attachedLayout == null || attachedScroll == null) {
+            attachedLayout = getActivity().findViewById(R.id.attached);
+            attachedScroll = getActivity().findViewById(R.id.attachedScroll);
+        }
+        attach.clear();
+        attachedLayout.removeAllViews();
+        attachedScroll.setVisibility(GONE);
+    }
 
     private void sendMessage(int threadId, String text, long time) {
         new Thread(() -> {
@@ -1000,19 +1034,25 @@ public class ChatFragment extends Fragment {
                     reqEntity.addBinaryBody("file", f, ContentType.create(getMimeType(f.getPath())), f.getName());
 
                 }
-                attach.clear();
+                getActivity().runOnUiThread(this::clearAttached);
                 reqEntity.addTextBody("threadId", "" + threadId);
                 reqEntity.addTextBody("msgUID", "" + time);
                 reqEntity.addTextBody("msgText", text, ContentType.parse("text/plain; charset=utf-8"));
                 post.setHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
                 post.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
                 post.setEntity(reqEntity.build());
-                int code = httpAsyncClient.execute(post).getStatusLine().getStatusCode();
-                System.out.println(code);
-                log("sending file code " + code);
+                JSONObject jsonObject = new JSONObject(EntityUtils.toString(httpAsyncClient.execute(post).getEntity())).getJSONObject("message");
+                getActivity().runOnUiThread(()-> {
+                    try {
+                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "",jsonObject.getLong("createDate"),jsonObject.getInt("senderId"),jsonObject.getInt("threadId"),jsonObject.getString("senderFio"),jsonObject.has("attachInfo") ? jsonObject.getString("attachInfo") : "");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                });
+//                log("sending file code " + code);
             } catch (UnknownHostException e) {
                 Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
         }).start();
