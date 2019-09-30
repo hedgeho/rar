@@ -1,5 +1,6 @@
 package ru.gurhouse.sch;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -36,7 +37,7 @@ public class DayFragment extends Fragment {
     String topic = "";
     String teachername = "";
     ArrayList<PeriodFragment.Subject> subjects;
-    Context context;
+    Activity context;
 
     public DayFragment() {
     }
@@ -95,7 +96,7 @@ public class DayFragment extends Fragment {
             tv1.setOnClickListener(v -> {
                 try {
                     String url = "https://app.eschool.center/ec-server/files/" + file.id;
-                    ((MainActivity) getActivity()).saveFile(url, file.name, true);
+                    ((MainActivity) getContext()).saveFile(url, file.name, true);
                 } catch (Exception e) {loge(e.toString());}
             });
             tv1.setPadding(50, 10, 50, 0);
@@ -137,7 +138,6 @@ public class DayFragment extends Fragment {
                         tv1.setGravity(Gravity.CENTER);
                         tv1.setPadding(80, 10, 80, 10);
                         final int finalI = i;
-                        final int finalJ;
                         tv1.setOnClickListener(v -> {
                             FragmentTransaction transaction = getFragmentManager().beginTransaction();
                             MarkFragment fragment = new MarkFragment();
@@ -212,8 +212,8 @@ public class DayFragment extends Fragment {
     }
 
     @Override
-    public Context getContext() {
-        return context;
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 }
 

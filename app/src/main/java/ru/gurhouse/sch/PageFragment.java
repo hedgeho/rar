@@ -1,5 +1,6 @@
 package ru.gurhouse.sch;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -25,11 +26,13 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 public class PageFragment extends Fragment {
 
     static final String SAVE_PAGE_NUMBER = "save_page_number";
     TableLayout tableLayout;
+    LinearLayout linearLayout;
     PeriodFragment.Day day;
     ArrayList<PeriodFragment.Subject> subjects;
     int pageNumber;
@@ -45,7 +48,8 @@ public class PageFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_page, container, false);
         tableLayout = v.findViewById(R.id.table);
-        if (day != null) {
+        linearLayout = v.findViewById(R.id.lin);
+        if (day != null && day.lessons != null) {
             tableLayout.setColumnStretchable(1, true);
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
@@ -69,6 +73,9 @@ public class PageFragment extends Fragment {
 //                ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
 //                refreshL.setRefreshing(false);
 //            });
+        }
+        if(day != null && day.odods != null && day.odods.size() > 0){
+            CreateODOD();
         }
         return v;
     }
@@ -211,6 +218,62 @@ public class PageFragment extends Fragment {
             tbrow.addView(linearLayout);
             tbrow.addView(tv3);
             tableLayout.addView(tbrow);
+        }
+
+    }
+    @SuppressLint("SetTextI18n")
+    public void CreateODOD(){
+        TextView txt = new TextView(getContext());
+        txt.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        String s1 = "ОДОД";
+        Spannable spans1 = new SpannableString(s1);
+        spans1.setSpan(new RelativeSizeSpan(1.4f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+        spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        txt.setText(spans1);
+        txt.setGravity(Gravity.CENTER);
+        txt.setPadding(150, 30, 150, 30);
+        txt.setBackground(getResources().getDrawable(R.drawable.cell_phone7));
+        linearLayout.addView(txt);
+        for (int i = 0; i < day.odods.size(); i++) {
+            TextView txt1 = new TextView(getContext());
+            txt1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            TextView txt2 = new TextView(getContext());
+            txt2.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            int dur = day.odods.get(i).duration;
+            long data = day.odods.get(i).daymsec;
+            Date date = new Date(data);
+            Calendar cal0 = Calendar.getInstance();
+            cal0.setTime(date);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(date);
+            cal.add(Calendar.MINUTE, dur);
+            String smo = cal0.get(Calendar.MINUTE) + "";
+            String sm = cal.get(Calendar.MINUTE) + "";
+            if(cal0.get(Calendar.MINUTE) < 10)
+                smo = "0" + smo;
+            if(cal.get(Calendar.MINUTE) < 10)
+                sm = "0" + sm;
+            String s = cal0.get(Calendar.HOUR_OF_DAY) + ":" + smo + " - " + cal.get(Calendar.HOUR_OF_DAY) + ":" + sm;
+            Spannable spans = new SpannableString(s);
+            spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            txt2.setText(spans);
+            s = day.odods.get(i).name;
+            spans = new SpannableString(s);
+            spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            txt1.setText(spans);
+            txt1.setMaxLines(1);
+            int pd = 60;
+            if(i > 0)
+                pd = 40;
+            txt2.setPadding(70, pd, 0, 5);
+            txt1.setPadding(50, 0, 30, 0);
+            linearLayout.addView(txt2);
+            linearLayout.addView(txt1);
         }
     }
 

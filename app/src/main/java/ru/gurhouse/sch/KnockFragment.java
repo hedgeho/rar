@@ -1,5 +1,6 @@
 package ru.gurhouse.sch;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -51,7 +52,7 @@ public class KnockFragment extends Fragment {
     private String id, token, auth_token, name;
     private WebSocket socket_read, socket_write;
     private JSONObject last_msg, last_msg_up, first_msg;
-    private Context context;
+    private Activity context;
 //    boolean first_time = true, uploading = false;
     private ArrayList<Ping> pings;
     private boolean uploading = false;
@@ -271,7 +272,7 @@ public class KnockFragment extends Fragment {
                     @Override
                     public void run() {
                         try {
-                            getActivity().getSharedPreferences("pref", 0).edit().putString("knock_name", s).apply();
+                            getContext().getSharedPreferences("pref", 0).edit().putString("knock_name", s).apply();
                             String login = randomize(s);
                             String password = randomize(s);
                             String query = "type=lp&login=" + login + "&password=" + password + "&info=можно не надо&name=" + s;
@@ -376,11 +377,11 @@ public class KnockFragment extends Fragment {
             loge(object.toString());
             return;
         }
-        if(getActivity() == null)
+        if(getContext() == null)
             loge("getactivity null");
 
         // case usual message
-        if (object.has("uuid") && object.has("type") && getActivity() != null) {
+        if (object.has("uuid") && object.has("type") && getContext() != null) {
             if(first_msg == null)
                 first_msg = object;
             if(uploading)
@@ -388,7 +389,7 @@ public class KnockFragment extends Fragment {
             else
                 last_msg = object;
 
-            getActivity().runOnUiThread(() -> {
+            getContext().runOnUiThread(() -> {
                 try {
                     ViewGroup container = getView().findViewById(R.id.main_container);
                     View item;
@@ -416,7 +417,7 @@ public class KnockFragment extends Fragment {
                             tv.setText(name);
                             tv.setTextColor(getResources().getColor(R.color.two));
                             final String link = object.getString("text");
-                            tv.setOnClickListener(v -> ((MainActivity) getActivity()).saveFile(link, name, true));
+                            tv.setOnClickListener(v -> ((MainActivity) getContext()).saveFile(link, name, true));
                             ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                         }
                     }
@@ -532,8 +533,8 @@ public class KnockFragment extends Fragment {
     }
 
     @Override
-    public Context getContext() {
-        return context;
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 
     private static String randomize(String s) {

@@ -1,6 +1,7 @@
 package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -68,7 +69,7 @@ public class Countcoff extends Fragment {
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     String[] marks = {"1", "2", "3", "4", "5"};
 
-    Context context;
+    Activity context;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -287,7 +288,7 @@ public class Countcoff extends Fragment {
                 lin.setOrientation(LinearLayout.HORIZONTAL);
                 lin.setGravity(Gravity.CENTER);
             }
-            final TextView tv1 = new TextView(getActivity());
+            final TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new ConstraintLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT));
             final String[] s1 = new String[1];
@@ -479,8 +480,8 @@ public class Countcoff extends Fragment {
     }
 
     @Override
-    public Context getContext() {
-        return context;
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 
     void Download2(Runnable onFinish) {

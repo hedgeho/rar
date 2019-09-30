@@ -370,6 +370,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     static void login(String login, String password) throws NoInternetException {
         try {
 //            connect("https://app.eschool.center/ec-server/logout_me", null);
+            TheSingleton.getInstance().login = login;
+            TheSingleton.getInstance().hash = password;
             URL Url = new URL("https://app.eschool.center/ec-server/login");
             HttpURLConnection con = (HttpURLConnection) Url.openConnection();
             con.setRequestMethod("POST");
@@ -451,6 +453,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 rd.close();
                 //log("flag \n" + result.toString());
+                log(result.toString());
                 return result.toString();
             } else
                 return "";

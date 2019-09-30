@@ -131,7 +131,7 @@ public class PeriodFragment1 extends Fragment {
         layout3.removeAllViews();
         layout2.setOrientation(LinearLayout.VERTICAL);
         layout3.setOrientation(LinearLayout.HORIZONTAL);
-        for (int i = -1; i < periods[pernum].subjects.size() - 1; i++) {
+        for (int i = -1; i < periods[pernum].subjects.size(); i++) {
             TextView txt1 = new TextView(getActivity().getApplicationContext());
             TextView txt2 = new TextView(getActivity().getApplicationContext());
             txt1.setTextColor(Color.WHITE);
