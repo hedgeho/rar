@@ -287,7 +287,6 @@ public class ChatFragment extends Fragment {
             array = new JSONArray(attach);
             for (int i = 0; i < array.length(); i++) {
                 final JSONObject a = array.getJSONObject(i);
-                System.out.println(a.getString("fileType").toLowerCase());
                 if(a.getString("fileType").toLowerCase().contains("image")){
                     ImageView image = new ImageView(context);
                     image.setPadding(15,15,15,15);
@@ -317,6 +316,10 @@ public class ChatFragment extends Fragment {
                         try {
                             String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
                             ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
+                            Toast toast = Toast.makeText(context,
+                                    a.getString("fileName")+" загружается...",
+                                    Toast.LENGTH_LONG);
+                            toast.show();
                         } catch (JSONException e) {loge(e.toString());}
                     });
                     ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
@@ -338,6 +341,10 @@ public class ChatFragment extends Fragment {
                         try {
                             String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
                             ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
+                            Toast toast = Toast.makeText(context,
+                                    a.getString("fileName")+" загружается...",
+                                    Toast.LENGTH_LONG);
+                            toast.show();
                         } catch (JSONException e) {
                             loge(e.toString());
                         }
@@ -477,6 +484,10 @@ public class ChatFragment extends Fragment {
                                                 image.setOnClickListener(v -> {
                                                     String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
                                                     ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                    Toast toast = Toast.makeText(context,
+                                                    a.name+" загружается...",
+                                                    Toast.LENGTH_LONG);
+                                                    toast.show();
                                                 });
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(image, 0);
                                             } else {
@@ -496,6 +507,10 @@ public class ChatFragment extends Fragment {
                                                 tv_attach.setOnClickListener(v -> {
                                                     String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
                                                     ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                    Toast toast = Toast.makeText(context,
+                                                    a.name+" загружается...",
+                                                    Toast.LENGTH_LONG);
+                                                    toast.show();
                                                 });
                                                 tv_attach.setPadding(15, 15, 15, 15);
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
@@ -628,7 +643,6 @@ public class ChatFragment extends Fragment {
 
                                     if (msg.files != null) {
                                         for (final Attach a : msg.files) {
-                                            System.out.println(a.name+" "+a.type.toLowerCase().contains("image"));
                                             if (a.type.toLowerCase().contains("image")) {
                                                 ImageView image = new ImageView(context);
                                                 image.setPadding(15,15,15,15);
@@ -657,6 +671,10 @@ public class ChatFragment extends Fragment {
                                                 image.setOnClickListener(v -> {
                                                     String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
                                                     ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                    Toast toast = Toast.makeText(context,
+                                                    a.name+" загружается...",
+                                                    Toast.LENGTH_LONG);
+                                                    toast.show();
                                                 });
                                                 ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
                                             } else {
@@ -676,6 +694,10 @@ public class ChatFragment extends Fragment {
                                                 tv_attach.setOnClickListener(v -> {
                                                     String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
                                                     ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                                    Toast toast = Toast.makeText(context,
+                                                    a.name+" загружается...",
+                                                    Toast.LENGTH_LONG);
+                                                    toast.show();
                                                 });
                                                 tv_attach.setPadding(15,15,15,15);
                     ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
@@ -804,7 +826,6 @@ public class ChatFragment extends Fragment {
                             item.setTag(R.id.TAG_POSITION, "right");
                         if(msg.files != null) {
                             for (final Attach a: msg.files) {
-                                System.out.println(a.name+" "+a.type.toLowerCase().contains("image"));
                                 if (a.type.toLowerCase().contains("image")) {
                                     ImageView image = new ImageView(context);
                                     image.setPadding(15,15,15,15);
@@ -833,6 +854,10 @@ public class ChatFragment extends Fragment {
                                     image.setOnClickListener(v -> {
                                         String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
                                         ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                        Toast toast = Toast.makeText(context,
+                                        a.name+" загружается...",
+                                        Toast.LENGTH_LONG);
+                                        toast.show();
                                     });
                                     ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
                                 } else {
@@ -852,6 +877,10 @@ public class ChatFragment extends Fragment {
                                     tv_attach.setOnClickListener(v -> {
                                         String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
                                         ((MainActivity) getActivity()).saveFile(url, a.name, true);
+                                        Toast toast = Toast.makeText(context,
+                                        a.name+" загружается...",
+                                        Toast.LENGTH_LONG);
+                                        toast.show();
                                     });
                                     tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
                                     tv_attach.setPadding(15,15,15,15);
@@ -1042,7 +1071,6 @@ public class ChatFragment extends Fragment {
         attach.add(f);
         attachedScroll.setVisibility(View.VISIBLE);
         View view;
-        System.out.println(getMimeType(f.getPath()));
         if(getMimeType(f.getPath()) != null && getMimeType(f.getPath()).contains("image")){
             ImageView view2 = new ImageView(context);
             view2.setImageURI(Uri.parse(path));
@@ -1062,6 +1090,9 @@ public class ChatFragment extends Fragment {
             view2.setPadding(10,10,10,10);
             view = view2;
         }
+        view.setOnClickListener((v)->{
+            detach(f,v);
+        });
         attachedLayout.addView(view);
     }
 
@@ -1073,6 +1104,19 @@ public class ChatFragment extends Fragment {
         attach.clear();
         attachedLayout.removeAllViews();
         attachedScroll.setVisibility(GONE);
+    }
+
+    private void detach(File f, View v){
+        if(attachedLayout == null || attachedScroll == null) {
+            attachedLayout = getActivity().findViewById(R.id.attached);
+            attachedScroll = getActivity().findViewById(R.id.attachedScroll);
+        }
+        attachedLayout.removeView(v);
+        attach.remove(f);
+        if(attachedLayout.getChildCount() == 0){
+            attachedScroll.setVisibility(GONE);
+        }
+
     }
 
     private void sendMessage(int threadId, String text, long time) {
@@ -1094,14 +1138,16 @@ public class ChatFragment extends Fragment {
                 post.setHeader("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryfgXAnWy3pntveyQZ ");
                 post.setEntity(reqEntity.build());
                 JSONObject jsonObject = new JSONObject(EntityUtils.toString(httpAsyncClient.execute(post).getEntity())).getJSONObject("message");
-                getActivity().runOnUiThread(()-> {
+                getActivity().runOnUiThread(() -> {
                     try {
-                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "",jsonObject.getLong("createDate"),jsonObject.getInt("senderId"),jsonObject.getInt("threadId"),jsonObject.getString("senderFio"),jsonObject.has("attachInfo") ? jsonObject.getString("attachInfo") : "");
+                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "", jsonObject.getLong("createDate"), jsonObject.getInt("senderId"), jsonObject.getInt("threadId"), jsonObject.getString("senderFio"), jsonObject.has("attachInfo") ? jsonObject.getString("attachInfo") : "");
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 });
+                httpAsyncClient.getConnectionManager().closeExpiredConnections();
 //                log("sending file code " + code);
+            } catch (IllegalStateException ignored){
             } catch (UnknownHostException e) {
                 Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
             } catch (IOException | JSONException e) {
@@ -1152,12 +1198,14 @@ public class ChatFragment extends Fragment {
         ArrayList<String> copyTo = new ArrayList<String>();
 
         String cyrcodes = "";
-        for (int i=1040;i<=1067;i++) {
+        for (int i='А';i<='Я';i++) {
             cyrcodes = cyrcodes + (char)i;
         }
-        for (int j=1072;j<=1099;j++) {
+        cyrcodes+='Ё';
+        for (int j='а';j<='я';j++) {
             cyrcodes = cyrcodes + (char)j;
         }
+        cyrcodes+='ё';
         // Uppercase
         copyTo.add("A");
         copyTo.add("B");
@@ -1187,6 +1235,11 @@ public class ChatFragment extends Fragment {
         copyTo.add("Shch");
         copyTo.add("");
         copyTo.add("Y");
+        copyTo.add("");
+        copyTo.add("E");
+        copyTo.add("YU");
+        copyTo.add("YA");
+        copyTo.add("YO");
 
         // lowercase
         copyTo.add("a");
@@ -1217,6 +1270,12 @@ public class ChatFragment extends Fragment {
         copyTo.add("shch");
         copyTo.add("");
         copyTo.add("y");
+        copyTo.add("");
+        copyTo.add("e");
+        copyTo.add("yu");
+        copyTo.add("ya");
+        copyTo.add("yo");
+
 
         String newstring = "";
         char onechar;
