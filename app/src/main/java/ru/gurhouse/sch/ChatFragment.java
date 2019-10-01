@@ -26,6 +26,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -64,6 +65,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -143,23 +145,23 @@ public class ChatFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if(data == null) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            if(data.getData() != null) {
-                pinned = new File(ImageFilePath.getPath(context,data.getData()));
+            String path = ImageFilePath.getPath(context,data.getData());
+            if(data.getData() != null && path != null) {
+                pinned = new File(path);
                 requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 124);
             }
         } else {
-            System.out.println("result");
-
-            if(data.getData() != null) attach(new File(ImageFilePath.getPath(context,data.getData())));
+            String path = ImageFilePath.getPath(context,data.getData());
+            if(data.getData() != null && path != null) attach(new File(path));
         }
     }
 
     public static String getMimeType(String url) {
-        String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
-        if (extension != null) {
-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        String type = "";
+        if (url.lastIndexOf(".") != -1) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(url.substring(url.lastIndexOf(".")+1));
         }
         return type;
     }
@@ -276,7 +278,7 @@ public class ChatFragment extends Fragment {
         tv = item.findViewById(R.id.tv_text);
         if(text.isEmpty() && attach.isEmpty()) {
             tv.setText("          ");
-        }else if(!attach.isEmpty()){
+        }else if(!attach.isEmpty() && text.isEmpty()){
             tv.setVisibility(GONE);
         }else
             tv.setText(Html.fromHtml(text));
@@ -438,7 +440,7 @@ public class ChatFragment extends Fragment {
                                     tv = item.findViewById(R.id.tv_text);
                                     if (msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
                                         tv.setText("          ");
-                                    }else if(msg.files != null && msg.files.length != 0){
+                                    }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
                                         tv.setVisibility(GONE);
                                     }else
                                         tv.setText(Html.fromHtml(msg.text));
@@ -617,7 +619,7 @@ public class ChatFragment extends Fragment {
                                     tv = item.findViewById(R.id.tv_text);
                                     if (msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
                                         tv.setText("          ");
-                                    }else if(msg.files != null && msg.files.length != 0){
+                                    }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
                                         tv.setVisibility(GONE);
                                     }else
                                         tv.setText(Html.fromHtml(msg.text));
@@ -789,7 +791,7 @@ public class ChatFragment extends Fragment {
                         tv = item.findViewById(R.id.tv_text);
                         if(msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
                             tv.setText("          ");
-                        }else if(msg.files != null && msg.files.length != 0){
+                        }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
                             tv.setVisibility(GONE);
                         }else
                             tv.setText(Html.fromHtml(msg.text));
@@ -1031,19 +1033,35 @@ public class ChatFragment extends Fragment {
     HorizontalScrollView attachedScroll;
 
     private void attach(File f){
+        String path = ImageFilePath.getPath(context,Uri.fromFile(f));
+        if(path == null) return;
         if(attachedLayout == null || attachedScroll == null) {
             attachedLayout = getActivity().findViewById(R.id.attached);
             attachedScroll = getActivity().findViewById(R.id.attachedScroll);
         }
         attach.add(f);
         attachedScroll.setVisibility(View.VISIBLE);
-        ImageView view = new ImageView(context);
-        view.setImageURI(Uri.fromFile(f));
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
-        layoutParams.setMargins(10,10,10,10);
-        view.setLayoutParams(layoutParams);
-        view.setBackgroundResource(R.drawable.image_bubble);
-        view.setPadding(10,10,10,10);
+        View view;
+        System.out.println(getMimeType(f.getPath()));
+        if(getMimeType(f.getPath()) != null && getMimeType(f.getPath()).contains("image")){
+            ImageView view2 = new ImageView(context);
+            view2.setImageURI(Uri.parse(path));
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
+            layoutParams.setMargins(10,10,10,10);
+            view2.setLayoutParams(layoutParams);
+            view2.setBackgroundResource(R.drawable.image_bubble);
+            view2.setPadding(10,10,10,10);
+            view = view2;
+        }else{
+            TextView view2 = new TextView(context);
+            view2.setText(f.getName());
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
+            layoutParams.setMargins(10,10,10,10);
+            view2.setLayoutParams(layoutParams);
+            view2.setBackgroundResource(R.drawable.image_bubble);
+            view2.setPadding(10,10,10,10);
+            view = view2;
+        }
         attachedLayout.addView(view);
     }
 
@@ -1064,10 +1082,8 @@ public class ChatFragment extends Fragment {
                 HttpClient httpAsyncClient = AndroidHttpClient.newInstance("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393", getContext());
                 MultipartEntityBuilder reqEntity = MultipartEntityBuilder.create();
                 reqEntity.setBoundary("----WebKitFormBoundaryfgXAnWy3pntveyQZ");
-                System.out.println("AttachSize "+attach.size());
                 for (File f : attach) {
-                    System.out.println(getMimeType(f.getPath()));
-                    reqEntity.addBinaryBody("file", f, ContentType.create(getMimeType(f.getPath())), f.getName());
+                    reqEntity.addBinaryBody("file", f, ContentType.create(getMimeType(f.getPath())), transliterate(f.getName()));
 
                 }
                 getActivity().runOnUiThread(this::clearAttached);
@@ -1131,4 +1147,91 @@ public class ChatFragment extends Fragment {
     }
 
     public Activity getContext() {return (context==null?getActivity():context);}
+
+    public static String transliterate(String srcstring) {
+        ArrayList<String> copyTo = new ArrayList<String>();
+
+        String cyrcodes = "";
+        for (int i=1040;i<=1067;i++) {
+            cyrcodes = cyrcodes + (char)i;
+        }
+        for (int j=1072;j<=1099;j++) {
+            cyrcodes = cyrcodes + (char)j;
+        }
+        // Uppercase
+        copyTo.add("A");
+        copyTo.add("B");
+        copyTo.add("V");
+        copyTo.add("G");
+        copyTo.add("D");
+        copyTo.add("E");
+        copyTo.add("Zh");
+        copyTo.add("Z");
+        copyTo.add("I");
+        copyTo.add("I");
+        copyTo.add("K");
+        copyTo.add("L");
+        copyTo.add("M");
+        copyTo.add("N");
+        copyTo.add("O");
+        copyTo.add("P");
+        copyTo.add("R");
+        copyTo.add("S");
+        copyTo.add("T");
+        copyTo.add("U");
+        copyTo.add("F");
+        copyTo.add("Kh");
+        copyTo.add("TS");
+        copyTo.add("Ch");
+        copyTo.add("Sh");
+        copyTo.add("Shch");
+        copyTo.add("");
+        copyTo.add("Y");
+
+        // lowercase
+        copyTo.add("a");
+        copyTo.add("b");
+        copyTo.add("v");
+        copyTo.add("g");
+        copyTo.add("d");
+        copyTo.add("e");
+        copyTo.add("zh");
+        copyTo.add("z");
+        copyTo.add("i");
+        copyTo.add("i");
+        copyTo.add("k");
+        copyTo.add("l");
+        copyTo.add("m");
+        copyTo.add("n");
+        copyTo.add("o");
+        copyTo.add("p");
+        copyTo.add("r");
+        copyTo.add("s");
+        copyTo.add("t");
+        copyTo.add("u");
+        copyTo.add("f");
+        copyTo.add("kh");
+        copyTo.add("ts");
+        copyTo.add("ch");
+        copyTo.add("sh");
+        copyTo.add("shch");
+        copyTo.add("");
+        copyTo.add("y");
+
+        String newstring = "";
+        char onechar;
+        int replacewith;
+        for (int j=0; j<srcstring.length();j++) {
+            onechar = srcstring.charAt(j);
+            replacewith = cyrcodes.indexOf((int)onechar);
+            if (replacewith > -1) {
+                newstring = newstring + copyTo.get(replacewith);
+            } else {
+                // keep the original character, not in replace list
+                newstring = newstring + String.valueOf(onechar);
+            }
+        }
+
+        return newstring;
+    }
 }
