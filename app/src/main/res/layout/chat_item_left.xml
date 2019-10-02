@@ -48,19 +48,16 @@
         app:layout_constraintTop_toBottomOf="@+id/chat_tv_sender"
         app:layout_constraintVertical_bias="1.0" />
 
-    <TextView
-        android:id="@+id/chat_tv_sender"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@+id/tv_text"
-        app:layout_constraintTop_toTopOf="parent" />
-</android.support.constraint.ConstraintLayout>-->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:autoLink="web"
+            android:background="@drawable/chat_border_left"
+            android:gravity="end"
+            android:maxWidth="900px"
+            android:orientation="vertical"
+            android:padding="8dp"
+            tools:layout_editor_absoluteY="8dp">-->
 
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -70,6 +67,14 @@
     android:layout_height="wrap_content">
     <!--
 
+//<<<<<<< master
+//                android:layout_width="wrap_content"
+//                android:layout_height="wrap_content"
+//                android:maxWidth="740px"
+//                android:text="hello, hello!"
+//                android:textColor="#ffffff"
+//                android:textSize="16sp">
+//=======
         <ImageView
             android:id="@+id/image_message_profile"
             android:layout_width="32dp"

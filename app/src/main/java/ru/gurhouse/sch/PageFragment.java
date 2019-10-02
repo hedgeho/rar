@@ -144,7 +144,6 @@ public class PageFragment extends Fragment {
                 tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone3));
             }
-            System.out.println(lesson.numInDay);
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
                 String s = lesson.name;

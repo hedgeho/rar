@@ -36,11 +36,31 @@
         android:id="@+id/attach"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
+        android:autoLink="web"
+        android:background="@drawable/chat_border"
+        android:gravity="end"
+        android:maxWidth="900px"
         android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_text"/>
+        android:padding="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <ru.gurhouse.sch.ChatBubble
+            android:id="@+id/tv_text"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="740px"
+            android:text="hello, hello!"
+            android:textColor="#ffffff"
+            android:textSize="16sp">
+
+        </ru.gurhouse.sch.ChatBubble>
+
+        <LinearLayout
+            android:id="@+id/attach"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"></LinearLayout>
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>
