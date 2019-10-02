@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -344,6 +345,12 @@ public class PeriodFragment extends Fragment {
 
         Day() {
         }
+//
+//        @NonNull
+//        @Override
+//        public String toString() {
+//            return "day: " + day + "\n odods: " + odods.toString() + "\n lessons: " + lessons.toString();
+//        }
     }
 
     static class Lesson {

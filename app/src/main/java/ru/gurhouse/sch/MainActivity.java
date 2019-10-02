@@ -28,7 +28,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.MimeTypeMap;
 import android.widget.TextView;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -40,7 +39,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
@@ -385,8 +383,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    ArrayList<Long> toOpen = new ArrayList<>();
-
     public void saveFile(String url, String name, boolean useCookies) {
         log("saving " + name);
         int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
@@ -414,22 +410,7 @@ public class MainActivity extends AppCompatActivity {
 
             // get download service and enqueue file
             DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-//            toOpen.add(manager.enqueue(request));
             manager.enqueue(request);
-//            registerReceiver(new BroadcastReceiver() {
-//                public void onReceive(Context context, Intent intent) {
-//                    long id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-//                    if(!toOpen.contains(id)) return;
-//                    toOpen.remove(id);
-//                    Uri uri = manager.getUriForDownloadedFile(id);
-//                    MainActivity.this.runOnUiThread(()->{
-//                        Intent intent2 = new Intent();
-//                        intent2.setAction(android.content.Intent.ACTION_VIEW);
-//                        intent2.setDataAndType(Uri.parse(Uri.decode(ImageFilePath.getPath(context,uri))), MimeTypeMap.getSingleton().getMimeTypeFromExtension(MimeTypeMap.getFileExtensionFromUrl(ImageFilePath.getPath(context,uri))));
-//                        startActivityForResult(intent2, 10);
-//                    });
-//                }
-//            }, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
         }
     }
 
@@ -488,13 +469,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+      super.onActivityResult(requestCode, resultCode, data);
         if (data!=null)
-            if (data.hasExtra("goal"))
-                if (data.getStringExtra("goal").equals("quit")) {
+            if(data.hasExtra("goal"))
+                if(data.getStringExtra("goal").equals("quit"))
                     quit();
-                    return;
-                }
-        super.onActivityResult(requestCode,resultCode,data);
     }
 
     @Override
@@ -538,6 +517,16 @@ public class MainActivity extends AppCompatActivity {
                 LoginActivity.login(
                         getSharedPreferences("pref", 0).getString("login", ""),
                         getSharedPreferences("pref", 0).getString("hash", ""));
+                runOnUiThread(()->{
+                    bottomnav = findViewById(R.id.bottomnav);
+                    bottomnav.setSelectedItemId(R.id.navigation_diary);
+                    set_visible(true);
+                    Toolbar toolbar = findViewById(R.id.toolbar);
+                    toolbar.setTitle("Дневник");
+                    toolbar.setClickable(false);
+                    scheduleFragment = new ScheduleFragment();
+                    loadFragment(scheduleFragment);
+                });
             } catch (LoginActivity.NoInternetException e) {
                 runOnUiThread(() -> {
                     TextView tv = findViewById(R.id.tv_error);
