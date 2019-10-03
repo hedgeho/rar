@@ -52,10 +52,10 @@ public class MessagesFragment extends Fragment {
 
     private int PERSON_ID;
     private String[] senders, topics;
-    private int[] threadIds, newCounts;
+    private int[] threadIds, newCounts, types;
     private int[] users = null;
     private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
-    private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds;
+    private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds, f_types;
     private ArrayList<Boolean> s_group;
     private String s_query = "";
     private int count = 25, s_count = 0;
@@ -299,7 +299,7 @@ public class MessagesFragment extends Fragment {
                                         if (threads.has(prsId + "")) {
                                             getActivity().runOnUiThread(() -> {
                                                 try {
-                                                    loadChat(threads.getInt(prsId + ""), fio, "", -1, false);
+                                                    loadChat(threads.getInt(prsId + ""), fio, "", 2, -1, false);
                                                 } catch (JSONException e) {
                                                     loge(e.toString());
                                                 }
@@ -309,7 +309,7 @@ public class MessagesFragment extends Fragment {
                                             final int threadId = Integer.parseInt(connect("https://app.eschool.center/ec-server/chat/saveThread",
                                                     "{\"threadId\":null,\"senderId\":null,\"imageId\":null,\"subject\":null,\"isAllowReplay\":2,\"isGroup\":false,\"interlocutor\":" + prsId + "}",
                                                     true));
-                                            getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", -1, false));
+                                            getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", 2, -1, false));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
                                         getActivity().runOnUiThread(() ->
@@ -364,7 +364,7 @@ public class MessagesFragment extends Fragment {
                         img.setVisibility(View.GONE);
                         final int j = i;
                         item.setOnClickListener(v ->
-                                loadChat(s_threadIds.get(j), s_senders.get(j), "", s_msgIds.get(j), s_group.get(j)));
+                                loadChat(s_threadIds.get(j), s_senders.get(j), "", f_types.get(j), s_msgIds.get(j), s_group.get(j)));
                         container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         container.addView(inflater.inflate(R.layout.divider, container, false));
                     }
@@ -405,6 +405,7 @@ public class MessagesFragment extends Fragment {
                                 s_time = new ArrayList<>();
                                 s_msgIds = new ArrayList<>();
                                 s_group = new ArrayList<>();
+                                f_types = new ArrayList<>();
 
                                 String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=15&text=" + query, null);
                                 log("search result: " + result);
@@ -438,6 +439,7 @@ public class MessagesFragment extends Fragment {
                                             s_senders.add(A + " " + B.charAt(0) + ". " + C.charAt(0) + ".");
                                             s_messages.add(c.getString("msg"));
                                             s_threadIds.add(c.getInt("threadId"));
+                                            f_types.add(c.getInt("isAllowReplay"));
                                             s_msgIds.add(a.optInt(j));
                                             Date date = new Date(c.getLong("createDate"));
                                             s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
@@ -613,7 +615,8 @@ public class MessagesFragment extends Fragment {
 
         if(fromNotification) {
             log("fromNotif");
-            loadChat(notifThreadId, (notifCount > 2?f_topics:f_senders).get(f_threadIds.indexOf(notifThreadId)), "", -1, notifCount > 2);
+            int j = f_threadIds.indexOf(notifThreadId);
+            loadChat(notifThreadId, (notifCount > 2?f_topics:f_senders).get(j), "",f_types.get(j), -1, notifCount > 2);
         }
     }
 
@@ -695,7 +698,7 @@ public class MessagesFragment extends Fragment {
                     textv.setVisibility(View.INVISIBLE);
                 }
                 loadChat(f_threadIds.get(j), f_senders.get(j),
-                        f_topics.get(j), -1, users > 2);
+                        f_topics.get(j), f_types.get(j), -1, users > 2);
             });
             registerForContextMenu(item);
             item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
@@ -794,14 +797,15 @@ public class MessagesFragment extends Fragment {
                                             }
                                             final int j = i,
                                                     threadId = f_threadIds.get(f_count + 25 - (l - j));
+                                            final int type = f_types.get(f_count + 25 - (l - j));
                                             final String sender = (u > 2?f_topics:f_senders).get(f_count + 25 - (l - j));
                                             item1.setOnClickListener(v -> {
                                                 if (f_count != -1) {
                                                     loadChat(threadId, sender,
-                                                            topics[j], -1, u > 2);
+                                                            topics[j], type, -1, u > 2);
                                                 } else {
                                                     loadChat(threadId, sender,
-                                                            topics[j], -1, u > 2);
+                                                            topics[j],type, -1, u > 2);
                                                 }
                                             });
                                             container.addView(item1, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -853,7 +857,7 @@ public class MessagesFragment extends Fragment {
 //                        img = item.findViewById(R.id.img);
                                             final int j = i;
                                             item1.setOnClickListener(v ->
-                                                    loadChat(s_threadIds.get(j), s_senders.get(j), "", s_msgIds.get(j), s_group.get(j)));
+                                                    loadChat(s_threadIds.get(j), s_senders.get(j), "",s_threadIds.get(j), s_msgIds.get(j), s_group.get(j)));
                                             container.addView(item1, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                                             container.addView(inflater1.inflate(R.layout.divider, container, false));
                                         }
@@ -878,6 +882,7 @@ public class MessagesFragment extends Fragment {
                                             users = new int[array.length()];
                                             threadIds = new int[array.length()];
                                             newCounts = new int[array.length()];
+                                            types = new int[array.length()];
                                             JSONObject obj;
                                             String a, b, c1;
                                             log(array.length() + "");
@@ -914,6 +919,7 @@ public class MessagesFragment extends Fragment {
                                                 f_senders.add(senders[i]);
                                                 f_topics.add(topics[i]);
                                                 f_newCounts.add(newCounts[i]);
+                                                f_types.add(types[i]);
                                             }
                                             log("first thread: " + senders[0]);
                                             h.sendEmptyMessage(0);
@@ -936,6 +942,7 @@ public class MessagesFragment extends Fragment {
                                                     b = new JSONArray(result);
                                                     c1 = b.getJSONObject(0);
                                                     s_senders.add(c1.getString("senderFio"));
+                                                    s_threadIds.get(c1.getInt("isAllowReplay"));
                                                     s_messages.add(c1.getString("msg"));
                                                     s_threadIds.add(c1.getInt("threadId"));
                                                     s_msgIds.add(a.optInt(j));
@@ -978,7 +985,8 @@ public class MessagesFragment extends Fragment {
         view.findViewById(R.id.l_refresh).setVisibility(View.VISIBLE);
         if(fromNotification) {
             log("fromNotif");
-            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), "", -1, notifCount > 2);
+            int j = f_threadIds.indexOf(notifThreadId);
+            loadChat(notifThreadId, f_senders.get(j), "",s_threadIds.get(j), -1, notifCount > 2);
         }
         shown = true;
     }
@@ -1065,6 +1073,7 @@ public class MessagesFragment extends Fragment {
         users = new int[array.length()];
         threadIds = new int[array.length()];
         newCounts = new int[array.length()];
+        types = new int[array.length()];
         JSONObject obj;
         String a, b, c;
         log(array.length() + "");
@@ -1089,6 +1098,7 @@ public class MessagesFragment extends Fragment {
             else
                 topics[i] = obj.getString("subject");
             users[i] = obj.getInt("addrCnt");
+            types[i] = obj.getInt("isAllowReplay");
             if(obj.getInt("senderId") == PERSON_ID) {
                 users[i] = 1;
             }
@@ -1100,12 +1110,14 @@ public class MessagesFragment extends Fragment {
         f_senders = new ArrayList<>();
         f_topics = new ArrayList<>();
         f_newCounts = new ArrayList<>();
+        f_types = new ArrayList<>();
         for (int i = 0; i < users.length; i++) {
             f_users.add(users[i]);
             f_threadIds.add(threadIds[i]);
             f_senders.add(senders[i]);
             f_topics.add(topics[i]);
             f_newCounts.add(newCounts[i]);
+            f_types.add(types[i]);
         }
         log("first thread: " + senders[0]);
         if(handler != null)
@@ -1222,7 +1234,7 @@ public class MessagesFragment extends Fragment {
                             final int users = f_users.get(i);
                             //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
                             item.setOnClickListener(v -> loadChat(f_threadIds.get(j), f_senders.get(j),
-                                    f_topics.get(j), -1, users > 2));
+                                    f_topics.get(j),f_types.get(j), -1, users > 2));
                             registerForContextMenu(item);
                             item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
                                 contextMenu.add(0, 0, 0,
@@ -1257,7 +1269,7 @@ public class MessagesFragment extends Fragment {
     }
     void refresh (){refresh(true);}
 
-    private void loadChat(int threadId, String threadName, String topic, int searchId, boolean group) {
+    private void loadChat(int threadId, String threadName, String topic, int type, int searchId, boolean group) {
         fromNotification = false;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         ChatFragment fragment = new ChatFragment();
@@ -1267,6 +1279,7 @@ public class MessagesFragment extends Fragment {
         fragment.context = context;
         fragment.group = group;
         fragment.topic = topic;
+        fragment.type = type;
         if(searchId != -1)
             fragment.searchMsgId = searchId;
         ((MainActivity)getActivity()).set_visible(false);
