@@ -53,6 +53,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private int mode = -1;
 
+    static boolean isRestoreInstance = false;
+    static boolean isQuit = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,22 +84,23 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // to see that window with setting nickname in chat, add this
         //settings.edit().putString("knock_token", "").apply();
 
-        if (!settings.getBoolean("first_time", true)) {
-            //the app is being launched not for the first time
+        if (!settings.getBoolean("first_time", true) || !settings.getBoolean("auto", true)) {
+            //there's
 
             new Thread() {
                 @Override
                 public void run() {
                     try {
-                        if(settings.getBoolean("auto", true))
-                            login(settings.getString("login", ""), settings.getString("hash", ""), 1);
+                        login(settings.getString("login", ""), settings.getString("hash", ""), 1);
                     } catch (Exception e) {
-                        loge(e.toString());
+                        e.printStackTrace();
                     }
                 }
             }.start();
         } else {
             log("first time");
+            findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
+            findViewById(R.id.l_login).setVisibility(View.VISIBLE);
         }
 
         FloatingActionButton fab = findViewById(R.id.fab_go);
@@ -167,7 +171,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         try {
                             login(settings.getString("login", ""), settings.getString("hash", ""), mode);
                         } catch (Exception e) {
-                            loge(e.toString());
+                            e.printStackTrace();
                         }
                     }).start();
 
@@ -178,8 +182,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onResume() {
         log("onResume");
-        findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
-        findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+        if(isRestoreInstance) {
+            isRestoreInstance = false;
+            try {
+                SharedPreferences pref = getSharedPreferences("pref", 0);
+                login(pref.getString("login", ""), pref.getString("hash", ""), 1);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if(isQuit) {
+            isQuit = false;
+            findViewById(R.id.l_skip).setVisibility(View.INVISIBLE);
+            findViewById(R.id.l_login).setVisibility(View.VISIBLE);
+        }
         if(internet != null)
             registerReceiver(internet, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         super.onResume();
@@ -209,7 +225,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(logi.replaceAll(" ", "").equals("") || password.replaceAll(" ", "").equals("")) {
             return;
         }
-        if(getSharedPreferences("pref", 0).getBoolean("first_time", true) && !flag_shown) {
+        if(getSharedPreferences("pref", 0).getString("firstperiod", "").equals("") && !flag_shown) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setPositiveButton("OK", (dialog, id) -> onClick(v));
             builder.setMessage("Продолжая использовать данное приложение," +
@@ -242,13 +258,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     try {
                         login(login, pw, 2);
                     } catch (Exception e) {
-                        loge(e.toString());
+                        e.printStackTrace();
                     }
                 }
             }.start();
 
         } catch (Exception e) {
-            Log.e("mylog", e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -273,27 +289,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 findViewById(R.id.pb).setVisibility(View.INVISIBLE);
                 ((TextView) findViewById(R.id.tv_dead)).setText("Нет подключения к интернету");
                 findViewById(R.id.btn_refresh).setVisibility(View.VISIBLE);
-                /*internet = new BroadcastReceiver() {
-                    @Override
-                    public void onReceive(Context context, Intent intent) {
-                        log("network settings changed");
-                        if(hasConnection(context) && mode != -1) {
-                            new Thread() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        unregisterReceiver(internet);
-                                        internet_count++;
-                                        login(login, hash, mode);
-                                    } catch (IOException e) {
-                                        loge(e.toString());
-                                    }
-                                }
-                            }.start();
-                        }
-                    }
-                };
-                registerReceiver(internet, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));*/
             }
         }
     };
@@ -367,9 +362,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(msg != null) Log.e("mylog", msg.toString()); else loge("null log");
     }
 
+    static int attemptInARow = 0;
     static void login(String login, String password) throws NoInternetException {
         try {
-//            connect("https://app.eschool.center/ec-server/logout_me", null);
             TheSingleton.getInstance().login = login;
             TheSingleton.getInstance().hash = password;
             URL Url = new URL("https://app.eschool.center/ec-server/login");
@@ -388,7 +383,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             if(String.valueOf(b[8]).split("route=").length < 2) {
                 loge(Arrays.toString(b));
                 loge("bad cookie: \n" + b[8]);
-                login(login, password);
+                if(attemptInARow < 10) {
+                    attemptInARow++;
+                    login(login, password);
+                } else {
+                    attemptInARow = 0;
+                    throw new NoInternetException();
+                }
             } else {
                 String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
                 String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
@@ -396,9 +397,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 TheSingleton.getInstance().setCOOKIE(COOKIE2);
                 log("route: " + route + ", cookie: " + COOKIE2);
             }
+            attemptInARow = 0;
         } catch (UnknownHostException e) {
+            attemptInARow = 0;
             throw new NoInternetException();
-        } catch (IOException e) {loge(e.toString());}
+        } catch (SSLException e) {
+            attemptInARow = 0;
+            throw new NoInternetException();
+        } catch (ConnectException e) {
+            attemptInARow = 0;
+            throw new NoInternetException();
+        } catch (IOException e) {
+            attemptInARow = 0;
+            e.printStackTrace();
+        }
     }
     static void login() throws NoInternetException {
         login(TheSingleton.getInstance().login, TheSingleton.getInstance().hash);
@@ -472,6 +484,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     static class NoInternetException extends Exception {
         NoInternetException() {
             loge("NoInternetException created");
+            System.err.println("NO INTERNET");
         }
     }
 }

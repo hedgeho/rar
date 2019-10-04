@@ -66,15 +66,10 @@ public class PageFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
-//            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
-//            refreshL.setOnRefreshListener(() -> {
-//                ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
-//                refreshL.setRefreshing(false);
-//            });
         }
-        if(day != null && day.odods != null && day.odods.size() > 0){
-            CreateODOD();
-        }
+//        if(day != null && day.odods != null && day.odods.size() > 0){
+//            CreateODOD();
+//        }
         return v;
     }
 
@@ -219,7 +214,8 @@ public class PageFragment extends Fragment {
 
     }
 
-    public void CreateODOD(){
+    /** odod is under construction because of a fatal bug**/
+    /*public void CreateODOD(){
         TextView txt = new TextView(getContext());
         txt.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -272,7 +268,7 @@ public class PageFragment extends Fragment {
             linearLayout.addView(txt2);
             linearLayout.addView(txt1);
         }
-    }
+    }*/
 
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);

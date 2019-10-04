@@ -22,9 +22,11 @@ import android.widget.TextView;
 
 import java.text.DateFormatSymbols;
 
+import static ru.gurhouse.sch.LoginActivity.log;
+
 public class SubjectFragment extends Fragment {
 
-    private static DateFormatSymbols myDateFormatSymbols = new DateFormatSymbols() {
+    /*private static DateFormatSymbols myDateFormatSymbols = new DateFormatSymbols() {
 
         @Override
         public String[] getWeekdays() {
@@ -37,29 +39,17 @@ public class SubjectFragment extends Fragment {
                     "июля", "августа", "сентября", "октября", "ноября", "декабря"};
         }
 
-    };
+    };*/
 
-    String periodname = ""; // пока так
+    String periodname = "";
 
     String subname;
     int pernum = 0;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     Double avg;
     String[] period;
-
-    static void normallog(String s) {
-        Log.v("normallog", s);
-    }
     String rating;
     String totalmark;
-
-    public SubjectFragment() {
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -97,7 +87,7 @@ public class SubjectFragment extends Fragment {
             sum++;
         }
         if (avg != null && avg != 0) {
-            normallog("SubF/avg: " + avg);
+            log("SubF/avg: " + avg);
             TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
@@ -112,7 +102,7 @@ public class SubjectFragment extends Fragment {
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
             tv1.setOnClickListener(v1 -> {
-                normallog("SubF: onClick(avg)");
+                log("SubF: onClick(avg)");
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 Countcoff fragment = new Countcoff();
                 transaction.replace(R.id.frame, fragment);
@@ -129,10 +119,10 @@ public class SubjectFragment extends Fragment {
             });
             ln1.addView(tv1);
         } else {
-            normallog("SubF/avg: NAN");
+            log("SubF/avg: NAN");
         }
         if (totalmark != null && !totalmark.equals(" ") && !totalmark.equals("")) {
-            normallog("SubF/totalmark: " + totalmark);
+            log("SubF/totalmark: " + totalmark);
             TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
@@ -148,10 +138,10 @@ public class SubjectFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             ln1.addView(tv1);
         } else {
-            normallog("SubF/totalmark: NAN");
+            log("SubF/totalmark: NAN");
         }
         if (rating != " " && rating != "" && rating != null) {
-            normallog("SubF/rating: " + rating);
+            log("SubF/rating: " + rating);
             TextView tv1 = new TextView(getActivity());
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             p.weight = (float) 1 / sum;
@@ -167,7 +157,7 @@ public class SubjectFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             ln1.addView(tv1);
         } else {
-            normallog("SubF/rating: NAN");
+            log("SubF/rating: NAN");
         }
         linearLayout.addView(ln1);
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);

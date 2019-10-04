@@ -1,11 +1,13 @@
 package ru.gurhouse.sch;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -27,6 +29,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Locale;
 
+import static ru.gurhouse.sch.LoginActivity.log;
+
 public class PeriodFragment1 extends Fragment {
     ArrayList<TextView> txts;
     String[] period;
@@ -41,29 +45,31 @@ public class PeriodFragment1 extends Fragment {
     int f = 0;
     boolean shown = false;
     boolean first_time = true;
+    Activity context;
+
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
             ListView lv = ((AlertDialog) dialog).getListView();
             if (which == Dialog.BUTTON_POSITIVE) {
                 pernum = lv.getCheckedItemPosition();
                 if (periods[pernum].subjects == null) {
-                    ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
+                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
                     view.findViewById(R.id.progress).setVisibility(View.VISIBLE);
                     view.findViewById(R.id.scrollView3).setVisibility(View.INVISIBLE);
                 } else {
-                    normallog("PerF1: change of period (" + pernum + "), name - " + periods[pernum].name);
+                    log("PerF1: change of period (" + pernum + "), name - " + periods[pernum].name);
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
                     if (periods[pernum].nullsub) {
-                        normallog("PerF: nullshow()");
-                        ((MainActivity) getActivity()).nullsub(periods, pernum);
+                        log("PerF: nullshow()");
+                        ((MainActivity) getContext()).nullsub(periods, pernum);
                     } else {
-                        normallog("PerF: show()");
-                        ((MainActivity) getActivity()).set(periods, pernum, 1);
+                        log("PerF: show()");
+                        ((MainActivity) getContext()).set(periods, pernum, 1);
                         show();
                     }
                 }
@@ -75,25 +81,17 @@ public class PeriodFragment1 extends Fragment {
         txts = new ArrayList<>();
     }
 
-    static void normallog(String s) {
-        Log.v("normallog", s);
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-
+        if(getActivity() != null)
+            context = getActivity();
         first_time = false;
         if(view == null)
             view = inflater.inflate(R.layout.diary1, container, false);
         if(period==null)
             return view;
 
-        toolbar = getActivity().findViewById(R.id.toolbar);
+        toolbar = getContext().findViewById(R.id.toolbar);
         scrollView = view.findViewById(R.id.scrollView3);
         periodname = period[pernum];
         alr = new AlertDialog.Builder(getContext());
@@ -110,7 +108,7 @@ public class PeriodFragment1 extends Fragment {
 //            refresh();
 //        });
 
-        ((MainActivity) getActivity()).setSupportActionBar(toolbar);
+        ((MainActivity) getContext()).setSupportActionBar(toolbar);
         if(periods[pernum] != null && !shown)
             show();
         return view;
@@ -118,9 +116,9 @@ public class PeriodFragment1 extends Fragment {
 
     void show() {
         shown = true;
-        if (getActivity().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
+        if (getContext().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
-            getActivity().getSharedPreferences("pref", 0).edit().putString("firstperiod", "dvssc").apply();
+            getContext().getSharedPreferences("pref", 0).edit().putString("firstperiod", "dvssc").apply();
         }
         layout = view.findViewById(R.id.linear);
         layout1 = view.findViewById(R.id.linear1);
@@ -132,8 +130,8 @@ public class PeriodFragment1 extends Fragment {
         layout2.setOrientation(LinearLayout.VERTICAL);
         layout3.setOrientation(LinearLayout.HORIZONTAL);
         for (int i = -1; i < periods[pernum].subjects.size(); i++) {
-            TextView txt1 = new TextView(getActivity().getApplicationContext());
-            TextView txt2 = new TextView(getActivity().getApplicationContext());
+            TextView txt1 = new TextView(getContext().getApplicationContext());
+            TextView txt2 = new TextView(getContext().getApplicationContext());
             txt1.setTextColor(Color.WHITE);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             lp.setMargins(0, 0, 40, 10);
@@ -191,7 +189,7 @@ public class PeriodFragment1 extends Fragment {
     }
 
     void refresh() {
-        ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
+        ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<PeriodFragment.Cell> cells, String name, String rating, String totalmark) {
@@ -212,15 +210,25 @@ public class PeriodFragment1 extends Fragment {
         transaction.commit();
     }
 
-    void F() {
+    /*void F() {
         if (pernum != 4) {
-            ((MainActivity) getActivity()).scheduleFragment.Download2(periods[4].id, 4, false, false);
+            ((MainActivity) getContext()).scheduleFragment.Download2(periods[4].id, 4, false, false);
         }
         if (pernum != 5) {
-            ((MainActivity) getActivity()).scheduleFragment.Download2(periods[5].id, 5, false, false);
+            ((MainActivity) getContext()).scheduleFragment.Download2(periods[5].id, 5, false, false);
         }
+    }*/
+
+    public Activity getContext() {
+        return (context == null? getActivity(): context);
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null)
+            context = getActivity();
+    }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -235,7 +243,7 @@ public class PeriodFragment1 extends Fragment {
         item = menu.add(0, 3, 1, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 4, 0, "Обновить");
+        item = menu.add(0, 4, 2, "Обновить");
         item.setIcon(R.drawable.refresh);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);

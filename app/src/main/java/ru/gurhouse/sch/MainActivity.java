@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -42,6 +43,7 @@ import java.net.URL;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
+import static ru.gurhouse.sch.LoginActivity.isQuit;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 
@@ -222,16 +224,20 @@ public class MainActivity extends AppCompatActivity {
                         view.setVisibility(View.INVISIBLE);
                         findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
                         findViewById(R.id.frame).setVisibility(View.VISIBLE);
-                        try {
-                            if (getIntent().getStringExtra("login") != null) {
-                                login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
-                            }
-                        } catch (LoginActivity.NoInternetException e) {
-                            view.setVisibility(View.VISIBLE);
-                            findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
-                            findViewById(R.id.frame).setVisibility(View.INVISIBLE);
-                        } catch (Exception e) {
-                            loge(e.toString());
+                        if (getIntent().getStringExtra("login") != null) {
+                            new Thread(() -> {
+                                try {
+                                    login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
+                                } catch (LoginActivity.NoInternetException e) {
+                                    runOnUiThread(() -> {
+                                        view.setVisibility(View.VISIBLE);
+                                        findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
+                                        findViewById(R.id.frame).setVisibility(View.INVISIBLE);
+                                    });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }).start();
                         }
                     });
                 }
@@ -295,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     scheduleFragment.start();
                 } catch (Exception e) {
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
             }
         }.start();
@@ -328,9 +334,17 @@ public class MainActivity extends AppCompatActivity {
         }
         analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
 
-        KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
-                "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
-        log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
+                    "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
+                            + "&version=" + version);
+            log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
+                + "&version=" + version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     void set(ScheduleFragment.Period[] periods, int pernum, int t) {
@@ -397,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 request.setDescription("Downloading file from " + new URL(url).getHost());
             } catch (MalformedURLException e) {
-                loge(e.toString());
+                e.printStackTrace();
                 request.setDescription("Some Description");
             }
             request.setTitle(name);
@@ -469,7 +483,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-      super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data);
         if (data!=null)
             if(data.hasExtra("goal"))
                 if(data.getStringExtra("goal").equals("quit"))
@@ -484,7 +498,7 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
             registerReceiver(auth_receiver, new IntentFilter("ru.gurhouse.sch.auth"));
         } catch (Exception e) {
-            loge(e.toString());
+            e.printStackTrace();
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
         if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
@@ -504,17 +518,18 @@ public class MainActivity extends AppCompatActivity {
             unregisterReceiver(receiver);
             unregisterReceiver(auth_receiver);
         } catch (Exception e) {
-            loge(e.toString());
+            e.printStackTrace();
         }
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        new Thread(() -> {
-            try {
-                log("onRestoreInstanceState");
-                LoginActivity.login(
+        log("onRestoreInstanceState");
+        LoginActivity.isRestoreInstance = true;
+        finish();
+
+                /*LoginActivity.login(
                         getSharedPreferences("pref", 0).getString("login", ""),
                         getSharedPreferences("pref", 0).getString("hash", ""));
                 runOnUiThread(()->{
@@ -526,16 +541,8 @@ public class MainActivity extends AppCompatActivity {
                     toolbar.setClickable(false);
                     scheduleFragment = new ScheduleFragment();
                     loadFragment(scheduleFragment);
-                });
-            } catch (LoginActivity.NoInternetException e) {
-                runOnUiThread(() -> {
-                    TextView tv = findViewById(R.id.tv_error);
-                    tv.setText("Нет доступа к интернету");
-                    tv.setVisibility(View.VISIBLE);
-                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
-                });
-            }
-        }).start();
+                    scheduleFragment.show();
+                });*/
     }
 
     @Override
@@ -566,6 +573,7 @@ public class MainActivity extends AppCompatActivity {
         pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "")
                 .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "")
                 .putString("muted", "[]").putString("login", "").putString("hash", "").apply();
+        isQuit = true;
         finish();
     }
 

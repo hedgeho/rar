@@ -39,14 +39,6 @@ public class DayFragment extends Fragment {
     ArrayList<PeriodFragment.Subject> subjects;
     Activity context;
 
-    public DayFragment() {
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -97,7 +89,7 @@ public class DayFragment extends Fragment {
                 try {
                     String url = "https://app.eschool.center/ec-server/files/" + file.id;
                     ((MainActivity) getContext()).saveFile(url, file.name, true);
-                } catch (Exception e) {loge(e.toString());}
+                } catch (Exception e) {e.printStackTrace();}
             });
             tv1.setPadding(50, 10, 50, 0);
             linearLayout.addView(tv1);
@@ -196,7 +188,6 @@ public class DayFragment extends Fragment {
         }
 
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        //  todo заголовок на тулбаре дня
         toolbar.setTitle(name);
         setHasOptionsMenu(true);
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
@@ -204,11 +195,17 @@ public class DayFragment extends Fragment {
         return view;
     }
 
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null)
+            context = getActivity();
     }
 
     @Override

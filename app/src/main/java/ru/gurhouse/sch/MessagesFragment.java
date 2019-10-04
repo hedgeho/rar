@@ -75,7 +75,8 @@ public class MessagesFragment extends Fragment {
     private SwipeRefreshLayout refreshL;
     private boolean refreshing = false;
 
-/*    private ActionMode actionMode;
+/*  for future
+  private ActionMode actionMode;
     private ActionMode.Callback actionCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -100,7 +101,7 @@ public class MessagesFragment extends Fragment {
                         try {
                             connect("https://app.eschool.center/ec-server/chat/leave?threadId=" + threadId, null);
                         } catch (LoginActivity.NoInternetException e) {
-                            Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
                         } catch (Exception e) {loge(e);}
                     }).start();
             }
@@ -175,9 +176,9 @@ public class MessagesFragment extends Fragment {
                 } catch (LoginActivity.NoInternetException e) {
                     new Thread (() -> {
                         while(true) {
-                            if(getActivity() != null) {
-                                getActivity().runOnUiThread(() -> {
-                                    TextView tv = getActivity().findViewById(R.id.tv_error);
+                            if(getContext() != null) {
+                                getContext().runOnUiThread(() -> {
+                                    TextView tv = getContext().findViewById(R.id.tv_error);
                                     tv.setText("Нет подключения к Интернету");
                                     tv.setVisibility(View.VISIBLE);
                                 });
@@ -186,7 +187,7 @@ public class MessagesFragment extends Fragment {
                         }
                     }).start();
                 } catch (Exception e) {
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
             }
         }.start();
@@ -297,11 +298,11 @@ public class MessagesFragment extends Fragment {
                                     try {
                                         final JSONObject threads = new JSONObject(connect("https://app.eschool.center/ec-server/chat/privateThreads", null));
                                         if (threads.has(prsId + "")) {
-                                            getActivity().runOnUiThread(() -> {
+                                            getContext().runOnUiThread(() -> {
                                                 try {
                                                     loadChat(threads.getInt(prsId + ""), fio, "", -1, false);
                                                 } catch (JSONException e) {
-                                                    loge(e.toString());
+                                                    e.printStackTrace();
                                                 }
                                             });
                                         } else {
@@ -309,13 +310,12 @@ public class MessagesFragment extends Fragment {
                                             final int threadId = Integer.parseInt(connect("https://app.eschool.center/ec-server/chat/saveThread",
                                                     "{\"threadId\":null,\"senderId\":null,\"imageId\":null,\"subject\":null,\"isAllowReplay\":2,\"isGroup\":false,\"interlocutor\":" + prsId + "}",
                                                     true));
-                                            getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", -1, false));
+                                            getContext().runOnUiThread(() -> loadChat(threadId, fio, "", -1, false));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
-                                        getActivity().runOnUiThread(() ->
+                                        getContext().runOnUiThread(() ->
                                                 Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
-                                    } catch (Exception e) {
-                                        loge(e.toString());}
+                                    } catch (Exception e) {e.printStackTrace();}
                                 }
                             }.start());
 
@@ -455,7 +455,7 @@ public class MessagesFragment extends Fragment {
                             } catch (LoginActivity.NoInternetException e) {
                                 error = "Нет подключения к Интернету";
                             } catch (Exception e) {
-                                loge(e.toString());
+                                e.printStackTrace();
                             }
                         }
                     }.start();
@@ -573,7 +573,7 @@ public class MessagesFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        Toolbar toolbar = getContext().findViewById(R.id.toolbar);
         toolbar.setSubtitle("");
         super.onResume();
     }
@@ -583,7 +583,7 @@ public class MessagesFragment extends Fragment {
         if(READY && !shown)
             show();
         if(READY)
-            if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
+            if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
                 view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
             else
                 view.findViewById(R.id.knock_l).setVisibility(View.GONE);
@@ -624,12 +624,12 @@ public class MessagesFragment extends Fragment {
             return;
         }
         container1.removeAllViews();
-        if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
             view.findViewById(R.id.knock_l).setOnClickListener(v -> {
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 KnockFragment fragment = new KnockFragment();
-                ((MainActivity) getActivity()).set_visible(false);
+                ((MainActivity) getContext()).set_visible(false);
                 transaction.replace(R.id.chat_container, fragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
@@ -709,14 +709,14 @@ public class MessagesFragment extends Fragment {
             fitems[i] = item;
         }
         final int C = c;
-//        getActivity().runOnUiThread(new Runnable() {
+//        getContext().runOnUiThread(new Runnable() {
 //            @Override
 //            public void run() {
         for (View fitem : fitems) {
             container1.addView(fitem, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             container1.addView(getLayoutInflater().inflate(R.layout.divider, container1, false));
         }
-        BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
+        BottomNavigationView bottomnav = getContext().findViewById(R.id.bottomnav);
         BottomNavigationMenuView bottomNavigationMenuView =
                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
@@ -947,30 +947,30 @@ public class MessagesFragment extends Fragment {
                                             h.sendMessage(h.obtainMessage(1, array.length() == 25 ? 0 : 1, 0));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
-                                        getActivity().runOnUiThread(() ->
+                                        getContext().runOnUiThread(() ->
                                                 Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                                     } catch (Exception e) {
-                                        loge(e.toString());
+                                        e.printStackTrace();
                                     }
                                 }
                             }.start();
                         }
                     };
-                    getActivity().runOnUiThread(() -> scroll.getViewTreeObserver()
+                    getContext().runOnUiThread(() -> scroll.getViewTreeObserver()
                             .addOnScrollChangedListener(scrollListener));
                 }
             }.start();
-            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            Toolbar toolbar = getContext().findViewById(R.id.toolbar);
             toolbar.setTitle("Сообщения");
             toolbar.setOnClickListener(v -> {
                 log("click on toolbar");
-                if(!(((MainActivity) getActivity()).getStackTop() instanceof MessagesFragment))
+                if(!(((MainActivity) getContext()).getStackTop() instanceof MessagesFragment))
                     return;
                 final ScrollView scroll1 = view.findViewById(R.id.scroll);
                 scroll1.post(() -> scroll1.scrollTo(0, 0));
             });
             setHasOptionsMenu(true);
-            ((MainActivity)getActivity()).setSupportActionBar(toolbar);
+            ((MainActivity) getContext()).setSupportActionBar(toolbar);
             first_time = false;
         }
 
@@ -994,7 +994,7 @@ public class MessagesFragment extends Fragment {
                         JSONArray array = new JSONArray(pref.getString("muted", "[]"));
                         array.put(item.getIntent().getIntExtra("threadId", -1));
                         pref.edit().putString("muted", array.toString()).apply();
-                    } catch (Exception e) {loge(e.toString());}
+                    } catch (Exception e) {e.printStackTrace();}
                     Toast.makeText(context, "Уведомления отключены", Toast.LENGTH_SHORT).show();
                 } else {
                     log("unmute " + item.getIntent().getIntExtra("threadId", -1));
@@ -1007,7 +1007,7 @@ public class MessagesFragment extends Fragment {
                         }
                         pref.edit().putString("muted", a.toString()).apply();
                         Toast.makeText(context, "Уведомления включены", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {loge(e.toString());}
+                    } catch (Exception e) {e.printStackTrace();}
                 }
                 return true;
             case 1:
@@ -1018,7 +1018,8 @@ public class MessagesFragment extends Fragment {
                                 item.getIntent().getIntExtra("threadId", -1), null);
                         refresh();
                     } catch (LoginActivity.NoInternetException e) {
-                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
+                        getContext().runOnUiThread(() -> Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
+
                     } catch (Exception e) {loge(e);}
                 }).start();
         }
@@ -1042,7 +1043,7 @@ public class MessagesFragment extends Fragment {
         }
         tv = thread.findViewById(R.id.tv_topic);
         tv.setText(text);
-        BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
+        BottomNavigationView bottomnav = getContext().findViewById(R.id.bottomnav);
         BottomNavigationMenuView bottomNavigationMenuView =
                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
@@ -1134,7 +1135,7 @@ public class MessagesFragment extends Fragment {
                     if(searchView.isActionViewExpanded()) {
                         searchView.collapseActionView();
 
-                        if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+                        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
                             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
                             view.findViewById(R.id.knock_l).setOnClickListener(v ->  {
                                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -1162,7 +1163,7 @@ public class MessagesFragment extends Fragment {
                         }
                         final ScrollView scroll = view.findViewById(R.id.scroll);
                         scroll.scrollTo(0, 0);
-                        BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
+                        BottomNavigationView bottomnav = getContext().findViewById(R.id.bottomnav);
                         BottomNavigationMenuView bottomNavigationMenuView =
                                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
                         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
@@ -1245,10 +1246,11 @@ public class MessagesFragment extends Fragment {
                 try {
                     download(h);
                 } catch (LoginActivity.NoInternetException e) {
-                    getActivity().runOnUiThread(() ->
-                            Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
-                    if(refreshl)
-                        refreshL.setRefreshing(false);
+                    getContext().runOnUiThread(() -> {
+                            Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show();
+                            if(refreshl)
+                                refreshL.setRefreshing(false);}
+                        );
                     refreshing = false;
                 } catch (Exception e) {
                     loge("refreshing: " + e.toString());}
@@ -1269,7 +1271,7 @@ public class MessagesFragment extends Fragment {
         fragment.topic = topic;
         if(searchId != -1)
             fragment.searchMsgId = searchId;
-        ((MainActivity)getActivity()).set_visible(false);
+        ((MainActivity) getContext()).set_visible(false);
         transaction.replace(R.id.chat_container, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -1281,7 +1283,7 @@ public class MessagesFragment extends Fragment {
             if(super.getView() != null)
                 return super.getView();
             else
-                return new View(getActivity());
+                return new View(getContext());
         } else
             return view;
     }
@@ -1292,6 +1294,10 @@ public class MessagesFragment extends Fragment {
         String[] words;
         int prsId;
         Person() {}
+    }
+
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 }
 

@@ -71,7 +71,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             handler.post(() -> Toast.makeText(context,
                                             "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                         } catch (IOException e) {
-                            loge(e.toString());
+                            e.printStackTrace();
                         }
                     }
                 }.start();
@@ -94,7 +94,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             try {
                                 request.setDescription("Downloading file from " + new URL(url).getHost());
                             } catch (MalformedURLException e) {
-                                loge(e.toString());
+                                e.printStackTrace();
                                 request.setDescription("Some Description");
                             }
                             request.setTitle(name);
@@ -111,7 +111,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                     }
 
                 } catch (Exception e) {
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
         }
     }

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -114,10 +115,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             calendar[0].add(Calendar.DAY_OF_WEEK, -1);
             pageFragments.get(i).dayofweek = calendar[0].get(Calendar.DAY_OF_WEEK);
         }
-    }
-
-    static void normallog(String s) {
-        Log.v("normallog", s);
     }
 
     void start() {
@@ -427,26 +424,25 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     JSONObject object1 = null;
     boolean first_downl = true;
-    boolean syncing = false;
+    static boolean syncing = false;
     void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
         if(syncing) return;
         syncing = true;
         shown = false;
-        normallog("SchF: Download2()");
+        log("SchF: Download2()");
         if(first_downl && TheSingleton.getInstance().t1 == 0) {
             log("start");
             TheSingleton.getInstance().t1 = System.currentTimeMillis();
             first_downl = false;
         }
         if(periods.length == 0)
-            normallog("SchF/Download2: periods are empty");
+            log("SchF/Download2: periods are empty");
         pernum = h;
         periods[pernum].days = new ArrayList<>();
         periods[pernum].subjects = new ArrayList<>();
         periods[pernum].lins = new ArrayList<>();
         periods[pernum].cells = new ArrayList<>();
         new Thread() {
-            @SuppressLint("SimpleDateFormat")
             @Override
             public void run() {
                 try {
@@ -462,7 +458,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             } catch (LoginActivity.NoInternetException ignore) {
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                loge(e.toString());
+                                e.printStackTrace();
                             }
                         }
                     }.start();
@@ -493,7 +489,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         if (obj.has("unitId"))
                             subject.unitid = obj.getInt("unitId");
                         subject.cells = new ArrayList<>();
-                        normallog((i + 1) + ". name (" + subject.name + "), avg (" + subject.avg + "), tm (" + subject.totalmark + "), rating (" + subject.rating + ")");
+                        log((i + 1) + ". name (" + subject.name + "), avg (" + subject.avg + "), tm (" + subject.totalmark + "), rating (" + subject.rating + ")");
                         periods[pernum].subjects.add(subject);
                     }
 
@@ -502,7 +498,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
 
                     JSONArray arraydaylessons = object1.getJSONArray("result");
-                    normallog("SchF/Download2: arraydaylessons.length = " + arraydaylessons.length());
+                    log("SchF/Download2: arraydaylessons.length = " + arraydaylessons.length());
                         for (int i = 0; i < arraydaylessons.length(); i++) {
                             object1 = arraydaylessons.getJSONObject(i);
                             PeriodFragment.Cell cell = new PeriodFragment.Cell();
@@ -527,7 +523,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Date date = new Date();
                     if (periods[pernum].cells.size() == 0) {
                         if (periods[pernum].datestart <= date.getTime() && periods[pernum].datefinish >= date.getTime()) {
-                            normallog("SchF/Download2: eschool - какашечка, жиденькая такая ");
+                            // ескул не прислал оценки, хотя должен был
+                            log("trying again");
                             periods[pernum].days = new ArrayList<>();
                             periods[pernum].subjects = new ArrayList<>();
                             periods[pernum].lins = new ArrayList<>();
@@ -538,7 +535,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             periods[pernum].nullsub = true;
                             ((MainActivity) getContext()).nullsub(periods, pernum);
                         }
-                        normallog("SchF/Download2: nullsub, pernum - " + pernum);
+                        log("SchF/Download2: nullsub, pernum - " + pernum);
                     } else {
 
                     String s1 = periods[pernum].cells.get(0).date;
@@ -555,7 +552,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Long date1;
                     int isODOD;
                     PeriodFragment.Day thisday = new PeriodFragment.Day();
-                    thisday.odods = new ArrayList<>();
+                    //thisday.odods = new ArrayList<>();
                     int index = -1;
                     log(0);
                     for (int i = 0; i < array2.length(); i++) {
@@ -573,7 +570,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR)) {
                             index++;
                             thisday = new PeriodFragment.Day();
-                            thisday.odods = new ArrayList<>();
+                            //thisday.odods = new ArrayList<>();
                             thisday.day = String.valueOf(date);
                             thisday.daymsec = date1;
                             Date datathis = new Date();
@@ -648,15 +645,15 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             }
                             periods[pernum].days.get(index).lessons.add(lesson);
                         }
-                        else{
+                        /*else{
                             PeriodFragment.ODOD odod = new PeriodFragment.ODOD();
                             odod.duration = object2.getInt("duration");
                             odod.ODODid = object2.getInt("isODOD");
                             odod.daymsec = object2.getLong("date");
                             odod.day = object2.getString("date_d");
                             odod.name = object2.getJSONObject("clazz").getString("name");
-                            thisday.odods.add(odod);
-                        }
+                            //thisday.odods.add(odod);
+                        }*/
                         day1 = date1;
                     }
 
@@ -810,7 +807,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 lin1 = new LinearLayout(getContext());
                                 lin1.setOrientation(LinearLayout.HORIZONTAL);
                                 lin1.setGravity(Gravity.CENTER);
-                                normallog(periods[pernum].days.get(i).lessons.size() + " " + periods[pernum].subjects.get(j).name);
+                                log(periods[pernum].days.get(i).lessons.size() + " " + periods[pernum].subjects.get(j).name);
                                 for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
                                     final PeriodFragment.Lesson less = periods[pernum].days.get(i).lessons.get(k);
                                     if (periods[pernum].subjects.get(j).unitid - less.unitId == 0) {
@@ -933,7 +930,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     syncing = false;
                     getContext().runOnUiThread(() -> {
                          Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
-                        ((SwipeRefreshLayout) v.findViewById(R.id.refresh)).setRefreshing(false);
                     });
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -993,31 +989,17 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 datePickerDialog.show();
                 break;
             case 3:
-                Intent intent = new Intent(getContext(), SettingsActivity.class);
-                startActivityForResult(intent, 0);
+                if(!PeriodFragment.settingsClicked) {
+                    PeriodFragment.settingsClicked = true;
+                    Intent intent = new Intent(getContext(), SettingsActivity.class);
+                    startActivityForResult(intent, 0);
+                }
                 break;
             case 4:
-//                pageFragments = new ArrayList<>();
-//                for (int i = 0; i < pageCount; i++) {
-//                    pageFragments.add(new PageFragment());
-//                    Calendar[] calendar = {Calendar.getInstance()};
-//                    calendar[0] = Calendar.getInstance();
-//                    calendar[0].setTime(datenow);
-//                    calendar[0].add(Calendar.DAY_OF_MONTH, (i - (pageCount / 2) + 1));
-//                    calendar[0].set(Calendar.HOUR_OF_DAY, 0);
-//                    calendar[0].set(Calendar.MINUTE, 0);
-//                    calendar[0].set(Calendar.SECOND, 0);
-//                    calendar[0].set(Calendar.MILLISECOND, 0);
-//                    pageFragments.get(i).c = calendar[0];
-//                    calendar[0].add(Calendar.DAY_OF_WEEK, -1);
-//                    pageFragments.get(i).dayofweek = calendar[0].get(Calendar.DAY_OF_WEEK);
-//                }
                 Download2(periods[pernum].id, pernum, false, true);
         }
         return super.onOptionsItemSelected(item);
     }
-
-
 
     @Override
     public void onResume() {
@@ -1032,6 +1014,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     public Activity getContext() {
         return (context==null?getActivity():context);
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null)
+            context = getActivity();
     }
 
     private class MyFragmentPagerAdapter extends FragmentPagerAdapter {

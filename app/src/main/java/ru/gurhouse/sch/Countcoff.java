@@ -71,20 +71,8 @@ public class Countcoff extends Fragment {
 
     Activity context;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
     ImageView img;
     LinearLayout layout, cont, linearLayout;
-
-    public Countcoff() {
-    }
-
-    static void sasha(String s) {
-        Log.v("sasha", s);
-    }
 
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
@@ -100,9 +88,7 @@ public class Countcoff extends Fragment {
                 }
                 avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
                 makeMarks();
-//                countNewCoff();
-            } /*else {
-            }*/
+            }
         }
     };
 
@@ -140,7 +126,6 @@ public class Countcoff extends Fragment {
                     log("avg: " + avg);
                     alr2.setSingleChoiceItems(period, pernum, myClickListener);
                     makeMarks();
-                    //countNewCoff();
                 }
             }
         }
@@ -208,7 +193,6 @@ public class Countcoff extends Fragment {
 
                 @Override
                 public void onTextChanged(CharSequence s1, int start, int before, int count) {
-                    sasha(String.valueOf(et2.getText()));
                     try {
                         f[0] = Double.valueOf(String.valueOf(et2.getText()));
                         btn3.setClickable(true);
@@ -244,7 +228,6 @@ public class Countcoff extends Fragment {
             if (subname.equals(i.name)) {
                 j = periods[pernum].subjects.indexOf(i);
             }
-            sasha(i.name);
         }
         cells = new ArrayList<>();
         for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
@@ -316,8 +299,6 @@ public class Countcoff extends Fragment {
                 Button btn1 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(0));
                 Button btn2 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(1));
                 final Button btn3 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(2));
-                final TextView txt1 = ((TextView) ((ViewGroup) item).getChildAt(0));
-                TextView txt2 = ((TextView) ((ViewGroup) item).getChildAt(1));
                 Spinner spinner = ((Spinner) ((ViewGroup) item).getChildAt(2));
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, marks);
                 spinner.setGravity(Gravity.CENTER);
@@ -356,12 +337,11 @@ public class Countcoff extends Fragment {
 
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        sasha(String.valueOf(et2.getText()));
                         try {
                             f[0] = Double.valueOf(String.valueOf(et2.getText()));
                             btn3.setClickable(true);
                         } catch (Exception e) {
-                            sasha("errr");
+                            e.printStackTrace();
                             btn3.setClickable(false);
                         }
                     }
@@ -473,8 +453,6 @@ public class Countcoff extends Fragment {
                 cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
             }
             makeMarks();
-//            countNewCoff();
-            sasha("rar");
         }
         return super.onOptionsItemSelected(item);
     }
@@ -515,7 +493,7 @@ public class Countcoff extends Fragment {
                             } catch (LoginActivity.NoInternetException ignore) {
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                loge(e.toString());
+                                e.printStackTrace();
                             }
                         }
                     }.start();

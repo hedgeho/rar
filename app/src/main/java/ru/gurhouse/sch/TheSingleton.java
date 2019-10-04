@@ -8,7 +8,7 @@ class TheSingleton {
     String login, hash;
     private int USER_ID, PERSON_ID;
     private ArrayList<PeriodFragment.Subject> subjects;
-    private boolean hasNotifications = false;
+    //private boolean hasNotifications = false;
     int notification_id = 1;
     private ArrayList<Notification> notifications = new ArrayList<>();
     android.app.Notification summary = null;
@@ -68,13 +68,13 @@ class TheSingleton {
         this.subjects = subjects;
     }
 
-    public boolean isHasNotifications() {
+    /*public boolean isHasNotifications() {
         return hasNotifications;
     }
 
     void setHasNotifications() {
         this.hasNotifications = true;
-    }
+    }*/
 
     ArrayList<Notification> getNotifications() {return notifications;}
 

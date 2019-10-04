@@ -85,7 +85,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                                 .setContentIntent(res);
                         Notification notif = builder.build();
                         compat.notify(TheSingleton.getInstance().notification_id++, notif);
-                        TheSingleton.getInstance().setHasNotifications();
+                        //TheSingleton.getInstance().setHasNotifications();
                         break;
                     }
                 }
@@ -109,7 +109,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     try {
                         attachCount = new JSONArray(attach_s).length();
                     } catch (JSONException e) {
-                        loge(e.toString());
+                        e.printStackTrace();
                     }
                 }
                 int addrCnt = 0;

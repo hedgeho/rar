@@ -107,13 +107,16 @@ public class ChatFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null) {
+            context = getActivity();
 
-        getActivity().findViewById(R.id.btn_file).setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
-            intent.setType("*/*");
-            startActivityForResult(intent, 43);
-        });
+            getActivity().findViewById(R.id.btn_file).setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("*/*");
+                startActivityForResult(intent, 43);
+            });
+        }
     }
 
     @Override
@@ -199,7 +202,7 @@ public class ChatFragment extends Fragment {
                     JSONArray array = new JSONArray(pref.getString("muted", "[]"));
                     array.put(threadId);
                     pref.edit().putString("muted", array.toString()).apply();
-                } catch (Exception e) {loge(e.toString());}
+                } catch (Exception e) {e.printStackTrace();}
                 item.setTitle("Включить уведомления");
             } else {
                 try {
@@ -211,7 +214,7 @@ public class ChatFragment extends Fragment {
                     }
                     pref.edit().putString("muted", a.toString()).apply();
                     item.setTitle("Отключить уведомления");
-                } catch (Exception e) {loge(e.toString());}
+                } catch (Exception e) {e.printStackTrace();}
             }
         } else if(item.getItemId() == 2) {
             new Thread() {
@@ -220,7 +223,8 @@ public class ChatFragment extends Fragment {
                     try {
                         connect("https://app.eschool.center/ec-server/chat/leave?threadId=" + threadId, null);
                     } catch (LoginActivity.NoInternetException e) {
-                        Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
+                        getContext().runOnUiThread(() ->
+                                Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show());
                     } catch (Exception e) {loge(e);}
                 }
             }.start();
@@ -238,7 +242,7 @@ public class ChatFragment extends Fragment {
                         getContext().runOnUiThread(() ->
                                 Toast.makeText(getContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                     } catch (Exception e) {
-                        loge(e.toString());
+                        e.printStackTrace();
                     }
                 }
             }.start();
@@ -320,7 +324,7 @@ public class ChatFragment extends Fragment {
                                     a.getString("fileName")+" загружается...",
                                     Toast.LENGTH_LONG);
                             toast.show();
-                        } catch (JSONException e) {loge(e.toString());}
+                        } catch (JSONException e) {e.printStackTrace();}
                     });
                     ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
                 }else {
@@ -346,7 +350,7 @@ public class ChatFragment extends Fragment {
                                     Toast.LENGTH_LONG);
                             toast.show();
                         } catch (JSONException e) {
-                            loge(e.toString());
+                            e.printStackTrace();
                         }
                     });
 
@@ -359,12 +363,12 @@ public class ChatFragment extends Fragment {
                 //    try {
                 //        String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
                 //        ((MainActivity) getContext()).saveFile(url, a.getString("fileName"), true);
-                //    } catch (JSONException e) {loge(e.toString());}
+                //    } catch (JSONException e) {e.printStackTrace();}
                 //});
                 //((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
             }
         } catch (JSONException e) {
-            loge(e.toString());
+            e.printStackTrace();
         }
         Date date = new Date(time);
 
@@ -393,7 +397,7 @@ public class ChatFragment extends Fragment {
                             view.findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
                         });
                     } catch (Exception e) {
-                        loge(e.toString());
+                        e.printStackTrace();
                     }}).start();
             });
 
@@ -546,7 +550,7 @@ public class ChatFragment extends Fragment {
                                         array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
                                                 "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null));
                                     } catch (LoginActivity.NoInternetException e) {
-                                        Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
+                                        getContext().runOnUiThread(() -> Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show());
                                         return;
                                     }
                                     if(array.length() == 0) {
@@ -760,7 +764,8 @@ public class ChatFragment extends Fragment {
                                     }
                                     h.sendEmptyMessage(0);
                                 } catch (LoginActivity.NoInternetException e) {
-                                    Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
+                                    getContext().runOnUiThread(() -> Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show());
+
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                     loge("on scroll bottom: " + e.toString());
@@ -1003,7 +1008,7 @@ public class ChatFragment extends Fragment {
                 } catch (LoginActivity.NoInternetException ignore) {
                 } catch (Exception e) {
                     e.printStackTrace();
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
             }
         }.start();
