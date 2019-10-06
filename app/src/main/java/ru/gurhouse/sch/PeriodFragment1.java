@@ -10,9 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -250,7 +248,7 @@ public class PeriodFragment1 extends Fragment {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
             // under construction - screen showing total marks of the user (disabled)
             case 2:
@@ -266,7 +264,14 @@ public class PeriodFragment1 extends Fragment {
                 startActivityForResult(intent, 0);
                 break;
             case 4:
+                item.setEnabled(false);
                 refresh();
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(100);
+                        getContext().runOnUiThread(() -> item.setEnabled(true));
+                    } catch (Exception e) {e.printStackTrace();}
+                }).start();
                 break;
             case 5:
                 transaction = getFragmentManager().beginTransaction();

@@ -1,7 +1,6 @@
 package ru.gurhouse.sch;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,8 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-
-import static ru.gurhouse.sch.LoginActivity.loge;
 
 
 public class DayFragment extends Fragment {

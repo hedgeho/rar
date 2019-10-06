@@ -1,6 +1,5 @@
 package ru.gurhouse.sch;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Context;
@@ -14,14 +13,12 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -44,8 +41,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
-
-import io.reactivex.internal.util.ArrayListSupplier;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
@@ -849,7 +844,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 lin1 = new LinearLayout(getContext());
                                 lin1.setOrientation(LinearLayout.HORIZONTAL);
                                 lin1.setGravity(Gravity.CENTER);
-                                log(periods[pernum].days.get(i).lessons.size() + " " + periods[pernum].subjects.get(j).name);
+                                //log(periods[pernum].days.get(i).lessons.size() + " " + periods[pernum].subjects.get(j).name);
                                 for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
                                     final PeriodFragment.Lesson less = periods[pernum].days.get(i).lessons.get(k);
                                     if (periods[pernum].subjects.get(j).unitid - less.unitId == 0) {

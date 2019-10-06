@@ -214,7 +214,7 @@ public class KnockFragment extends Fragment {
                                         socket_write.sendText(object.toString());
                                     }
                                 } catch (Exception e) {
-                                    log(e.toString());
+                                    e.printStackTrace();
                                 }
                             }
                         }

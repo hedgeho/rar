@@ -10,10 +10,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -281,6 +279,9 @@ public class PeriodFragment extends Fragment {
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
         view.findViewById(R.id.txtnull).setVisibility(View.INVISIBLE);
+        ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+
     }
 
     void refresh() {
@@ -429,6 +430,7 @@ public class PeriodFragment extends Fragment {
             context = getActivity();
     }
 
+    //MenuItem itemRefresh;
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -449,10 +451,22 @@ public class PeriodFragment extends Fragment {
                 }
                 break;
             case 4:
+                item.setEnabled(false);
+                toolbar.getMenu().getItem(0).setEnabled(false);
+                //itemRefresh = item;
                 refresh();
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(100);
+                        getContext().runOnUiThread(() -> {
+                            item.setEnabled(true);
+                            toolbar.getMenu().getItem(0).setEnabled(false);
+                        });
+                    } catch (Exception e) {e.printStackTrace();}
+                }).start();
                 break;
             case 5:
-                if(!syncing) {
+                if(!syncing /*&& (itemRefresh == null || itemRefresh.isEnabled())*/) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     Countcoff fragment2 = new Countcoff();
                     transaction.replace(R.id.frame, fragment2);

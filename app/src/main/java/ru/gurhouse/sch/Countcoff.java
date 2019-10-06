@@ -18,7 +18,6 @@ import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -43,7 +42,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
@@ -230,11 +228,15 @@ public class Countcoff extends Fragment {
             }
         }
         cells = new ArrayList<>();
-        for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-            cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
-        }
+        if(periods[pernum].subjects.size() != 0) {
+            for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+            }
 
-        makeMarks();
+            makeMarks();
+        } else {
+            getContext().onBackPressed();
+        }
 
         alr = new AlertDialog.Builder(getContext());
         alr.create();

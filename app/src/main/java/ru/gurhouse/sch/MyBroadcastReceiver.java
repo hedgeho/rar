@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
-import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class MyBroadcastReceiver extends BroadcastReceiver {
 

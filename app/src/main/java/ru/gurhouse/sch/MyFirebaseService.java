@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.log;
-import static ru.gurhouse.sch.LoginActivity.loge;
 
 
 public class MyFirebaseService extends FirebaseMessagingService {

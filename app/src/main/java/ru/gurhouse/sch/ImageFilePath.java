@@ -10,8 +10,6 @@ import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.widget.Toast;
 
-import java.net.URISyntaxException;
-
 /**
  * Скопировано с сайта https://stackoverflow.com/questions/27602986/convert-a-file-path-to-uri-in-android
  */
