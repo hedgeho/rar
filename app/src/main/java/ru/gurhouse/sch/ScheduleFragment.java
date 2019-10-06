@@ -551,23 +551,65 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     Long day1 = 0L;
                     Long date1;
                     int isODOD;
-                    PeriodFragment.Day thisday = new PeriodFragment.Day();
+                    //PeriodFragment.Day thisday = new PeriodFragment.Day();
                     //thisday.odods = new ArrayList<>();
                     int index = -1;
                     log(0);
                     for (int i = 0; i < array2.length(); i++) {
                         object2 = array2.getJSONObject(i);
                         date1 = Long.valueOf(String.valueOf(object2.getString("date")));
-                        date = new Date(date1);
-                        Calendar c = Calendar.getInstance();
-                        Calendar c1 = Calendar.getInstance();
-                        c.setTime(date);
-                        date = new Date(day1);
-                        c1.setTime(date);
-                        date1 = c.getTime().getTime();
-                        date = new Date(date1);
+//                        date = new Date(date1);
+//                        Calendar c = Calendar.getInstance();
+//                        Calendar c1 = Calendar.getInstance();
+//                        c.setTime(date);
+//                        date = new Date(day1);
+//                        c1.setTime(date);
+//                        date1 = c.getTime().getTime();
+//                        date = new Date(date1);
                         isODOD = object2.getInt("isODOD");
-                        if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR)) {
+                        if (isODOD == 0) {
+                            if (!date1.equals(day1)) {
+                                index++;
+                                date = new Date(date1);
+                                date.setHours(0);
+                                date.setMinutes(0);
+                                date1 = date.getTime();
+                                PeriodFragment.Day thisday = new PeriodFragment.Day();
+                                thisday.day = String.valueOf(date);
+                                thisday.daymsec = date1;
+                                Date datathis = new Date();
+                                datathis.setTime(date1);
+                                SimpleDateFormat dateFormat2 = new SimpleDateFormat("EEE", Locale.ENGLISH);
+                                String dayOfTheWeek = dateFormat2.format(datathis);
+                                switch (dayOfTheWeek) {
+                                    case "Mon":
+                                        thisday.numday = 1;
+                                        break;
+                                    case "Tue":
+                                        thisday.numday = 2;
+                                        break;
+                                    case "Wed":
+                                        thisday.numday = 3;
+                                        break;
+                                    case "Thu":
+                                        thisday.numday = 4;
+                                        break;
+                                    case "Fri":
+                                        thisday.numday = 5;
+                                        break;
+                                    case "Sat":
+                                        thisday.numday = 6;
+                                        break;
+                                    case "Sun":
+                                        thisday.numday = 7;
+                                        break;
+                                }
+                            thisday.lessons = new ArrayList<>();
+//                                log("added day " + date.toString());
+                            periods[pernum].days
+                                    .add(thisday);
+                        }
+                        /*if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR)) {
                             index++;
                             thisday = new PeriodFragment.Day();
                             //thisday.odods = new ArrayList<>();
@@ -598,12 +640,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     break;
                                 case "Sun":
                                     thisday.numday = 7;
-                                    break;
-                                }
-                            thisday.lessons = new ArrayList<>();
-                            periods[pernum].days.add(thisday);
-                        }
-                        if (isODOD == 0) {
+                                    break;*/
+//                            thisday.lessons = new ArrayList<>();
+//                            periods[pernum].days.add(thisday);
+//                        }
+//
+//                        if (isODOD == 0) {
                             PeriodFragment.Lesson lesson = new PeriodFragment.Lesson();
                             lesson.id = object2.getLong("id");
                             lesson.numInDay = object2.getInt("numInDay");
