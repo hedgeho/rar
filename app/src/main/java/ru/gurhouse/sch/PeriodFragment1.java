@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.ScheduleFragment.syncing;
 
 public class PeriodFragment1 extends Fragment {
     ArrayList<TextView> txts;
@@ -43,6 +45,7 @@ public class PeriodFragment1 extends Fragment {
     int f = 0;
     boolean shown = false;
     boolean first_time = true;
+    boolean avg_fixed;
     Activity context;
 
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
@@ -86,6 +89,20 @@ public class PeriodFragment1 extends Fragment {
         first_time = false;
         if(view == null)
             view = inflater.inflate(R.layout.diary1, container, false);
+        if (view == null) {
+            avg_fixed = getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false);
+            if (avg_fixed)
+                view = inflater.inflate(R.layout.diary1_fixed, container, false);
+            else
+                view = inflater.inflate(R.layout.diary1, container, false);
+        } else if(avg_fixed ^ getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false)) {
+            avg_fixed = getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false);
+            if (avg_fixed)
+                view = inflater.inflate(R.layout.diary1_fixed, container, false);
+            else
+                view = inflater.inflate(R.layout.diary1, container, false);
+            shown = false;
+        }
         if(period==null)
             return view;
 
@@ -217,6 +234,25 @@ public class PeriodFragment1 extends Fragment {
         }
     }*/
 
+    boolean recreating = false;
+    @Override
+    public void onResume() {
+        if(getContext() != null) {
+            ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+            ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
+        }
+        if(!recreating) {
+            ((AppCompatActivity) getContext()).getSupportFragmentManager()
+                    .beginTransaction()
+                    .detach(this)
+                    .attach(this)
+                    .commit();
+            recreating = true;
+        } else
+            recreating = false;
+        super.onResume();
+    }
+
     public Activity getContext() {
         return (context == null? getActivity(): context);
     }
@@ -265,27 +301,34 @@ public class PeriodFragment1 extends Fragment {
                 break;
             case 4:
                 item.setEnabled(false);
+                toolbar.getMenu().getItem(0).setEnabled(false);
                 refresh();
                 new Thread(() -> {
                     try {
                         Thread.sleep(100);
-                        getContext().runOnUiThread(() -> item.setEnabled(true));
+                        getContext().runOnUiThread(() -> {
+                            item.setEnabled(true);
+                            toolbar.getMenu().getItem(0).setEnabled(false);
+                        });
                     } catch (Exception e) {e.printStackTrace();}
                 }).start();
                 break;
             case 5:
-                transaction = getFragmentManager().beginTransaction();
-                Countcoff fragment2 = new Countcoff();
-                transaction.replace(R.id.frame, fragment2);
-                try {
-                    fragment2.periods = periods;
-                    fragment2.period = period;
-                    fragment2.pernum = pernum;
-                    fragment2.subname = periods[pernum].subjects.get(0).name;
-                    fragment2.avg = periods[pernum].subjects.get(0).avg;
-                } catch (Exception ignore) {}
-                transaction.addToBackStack(null);
-                transaction.commit();
+                if(!syncing) {
+                    transaction = getFragmentManager().beginTransaction();
+                    Countcoff fragment2 = new Countcoff();
+                    transaction.replace(R.id.frame, fragment2);
+                    try {
+                        fragment2.periods = periods;
+                        fragment2.period = period;
+                        fragment2.pernum = pernum;
+                        fragment2.subname = periods[pernum].subjects.get(0).name;
+                        fragment2.avg = periods[pernum].subjects.get(0).avg;
+                    } catch (Exception ignore) {
+                    }
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                }
         }
         return super.onOptionsItemSelected(item);
     }

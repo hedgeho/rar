@@ -44,7 +44,7 @@ public class PeriodFragment extends Fragment {
     boolean first_time = true;
     boolean nullsub = false;
     TextView txtnull;
-    boolean mode;
+    boolean mode, avg_fixed;
     Activity context;
 
     static boolean settingsClicked = false;
@@ -98,8 +98,21 @@ public class PeriodFragment extends Fragment {
         if(getActivity() != null)
             context = getActivity();
         first_time = false;
-        if (view == null)
-            view = inflater.inflate(R.layout.diary, container, false);
+        if (view == null) {
+            avg_fixed = getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false);
+            if (avg_fixed)
+                view = inflater.inflate(R.layout.diary_fixed, container, false);
+            else
+                view = inflater.inflate(R.layout.diary, container, false);
+        } else if(avg_fixed ^ getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false)) {
+            avg_fixed = getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false);
+            if (avg_fixed)
+                view = inflater.inflate(R.layout.diary_fixed, container, false);
+            else
+                view = inflater.inflate(R.layout.diary, container, false);
+            shown = false;
+        }
+        log("avgfixed " + avg_fixed);
         if (period == null && !nullsub)
             return view;
         toolbar = getContext().findViewById(R.id.toolbar);
@@ -127,7 +140,6 @@ public class PeriodFragment extends Fragment {
         txtnull = view.findViewById(R.id.txtnull);
         txtnull.setTextSize(8 * getResources().getDisplayMetrics().density);
         txtnull.setTextColor(Color.LTGRAY);
-        //txtnull.setText("А оценочек то нет. Че съел?  Ну давай быкани быкани! Ты че решил ко мне лезть? Ублюдок, мать твою, а ну иди сюда говно собачье, решил ко мне лезть? Ты, засранец вонючий, мать твою, а? Ну иди сюда, попробуй меня трахнуть, я тебя сам трахну ублюдок, онанист чертов, будь ты проклят, иди идиот, трахать тебя и всю семью, говно собачье, жлоб вонючий, дерьмо, сука, падла, иди сюда, мерзавец, негодяй, гад, иди сюда ты - говно, ЖОПА!");
         txtnull.setText("Нет оценок за выбранный период");
         txtnull.setPadding(90, 0, 90, 0);
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
@@ -306,13 +318,32 @@ public class PeriodFragment extends Fragment {
         transaction.commit();
     }
 
+    boolean recreating = false;
     @Override
     public void onResume() {
-        super.onResume();
+        log("resume");
         if(getContext() != null) {
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
         }
+        if(!recreating) {
+            ((AppCompatActivity) getContext()).getSupportFragmentManager()
+                    .beginTransaction()
+                    .detach(this)
+                    .attach(this)
+                    .commit();
+            recreating = true;
+        } else
+            recreating = false;
+//        if(avg_fixed ^ getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false)) {
+//            avg_fixed = getContext().getSharedPreferences("pref", 0).getBoolean("avg_fixed", false);
+//            if (avg_fixed)
+//                view = getContext().getLayoutInflater().inflate(R.layout.diary_fixed, getContext().findViewById(R.id.frame), false);
+//            else
+//                view = getContext().getLayoutInflater().inflate(R.layout.diary, getContext().findViewById(R.id.frame), false);
+//            show();
+//        }
+        super.onResume();
     }
 
     @Override

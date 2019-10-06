@@ -82,10 +82,11 @@
 
             <ImageView
                 android:id="@+id/btn_quit"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="32dp"
-                android:layout_marginRight="32dp"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginRight="8dp"
+                android:padding="10dp"
                 app:layout_constraintBottom_toBottomOf="@+id/textView12"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/textView12"
@@ -252,7 +253,7 @@
                 android:text="Переключение дня"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textView8" />
+                app:layout_constraintTop_toBottomOf="@+id/textView16" />
 
             <TextView
                 android:id="@+id/textView14"
@@ -286,6 +287,40 @@
                 app:layout_constraintBottom_toTopOf="@+id/textView2"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/textView15"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="28dp"
+                android:text="Закрепленный средний балл"
+                android:textSize="18sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView8" />
+
+            <TextView
+                android:id="@+id/textView16"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginLeft="24dp"
+                android:layout_marginTop="8dp"
+                android:maxEms="15"
+                android:maxLines="3"
+                android:text="Средний балл не двигается при скролле в первой вкладке"
+                app:layout_constraintStart_toStartOf="@+id/textView15"
+                app:layout_constraintTop_toBottomOf="@+id/textView15" />
+
+            <Switch
+                android:id="@+id/switch_avgfixed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginRight="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/textView15" />
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>

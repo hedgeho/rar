@@ -76,8 +76,9 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(new Intent(getApplicationContext(), ThanksActivity.class));
         });
 
-        Switch auto = findViewById(R.id.switch_auto);
         final SharedPreferences pref = getSharedPreferences("pref", 0);
+
+        Switch auto = findViewById(R.id.switch_auto);
         auto.setChecked(pref.getBoolean("auto", true));
         auto.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("auto", isChecked).apply());
 
@@ -89,11 +90,14 @@ public class SettingsActivity extends AppCompatActivity {
         nextday.setChecked(pref.getBoolean("nextday", true));
         nextday.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("nextday", isChecked).apply());
 
+        Switch avgfixed = findViewById(R.id.switch_avgfixed);
+        avgfixed.setChecked(pref.getBoolean("avg_fixed", false));
+        avgfixed.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("avg_fixed", isChecked).apply());
+
         findViewById(R.id.btn_quit).setOnClickListener(v -> {
             setResult(RESULT_OK, new Intent().putExtra("goal", "quit"));
             finish();
         });
-
 
         Switch chat = findViewById(R.id.switch_chat);
         chat.setChecked(pref.getBoolean("show_chat", true));
