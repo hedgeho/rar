@@ -131,7 +131,7 @@ public class ChatFragment extends Fragment {
 
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(threadName);
-        if(!topic.equals("") && group)
+        if(!topic.equals("") && group && !topic.equals(threadName))
             toolbar.setSubtitle(topic);
         setHasOptionsMenu(true);
 
@@ -281,7 +281,7 @@ public class ChatFragment extends Fragment {
         }
         tv = item.findViewById(R.id.tv_text);
         if(text.isEmpty() && attach.isEmpty()) {
-            tv.setText("          ");
+            tv.setText(" ");
         }else if(!attach.isEmpty() && text.isEmpty()){
             tv.setVisibility(GONE);
         }else
@@ -637,7 +637,7 @@ public class ChatFragment extends Fragment {
                                     }
                                     tv = item.findViewById(R.id.tv_text);
                                     if (msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
-                                        tv.setText("          ");
+                                        tv.setText(" ");
                                     }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
                                         tv.setVisibility(GONE);
                                     }else
@@ -790,6 +790,8 @@ public class ChatFragment extends Fragment {
                     log(messages.length + "");
                     Msg msg;
                     for (int i = messages.length-1; i >= 0; i--) {
+                        if(i >= messages.length)
+                            continue;
                         msg = messages[i];
 //                        if (msg.text.equals(""))
 //                            continue;
@@ -817,7 +819,7 @@ public class ChatFragment extends Fragment {
                         }
                         tv = item.findViewById(R.id.tv_text);
                         if(msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
-                            tv.setText("          ");
+                            tv.setText(" ");
                         }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
                             tv.setVisibility(GONE);
                         }else

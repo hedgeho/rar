@@ -54,7 +54,7 @@ public class MessagesFragment extends Fragment {
     private String[] senders, topics;
     private int[] threadIds, newCounts;
     private int[] users = null;
-    private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
+    private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time, s_topics;
     private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds;
     private ArrayList<Boolean> s_group;
     private String s_query = "";
@@ -353,7 +353,8 @@ public class MessagesFragment extends Fragment {
                             end = mess.toString().length()-1;
                         s = (start == 0?"":"...") + mess.subSequence(start, end+1).toString() + (end == mess.toString().length()-1?"":"...");
                         spannable = new SpannableString(s);
-                        spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        if(s.toLowerCase().contains(query.toLowerCase()))
+                            spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         tv.setText(spannable);
 
                         tv = item.findViewById(R.id.tv_users);
@@ -364,7 +365,7 @@ public class MessagesFragment extends Fragment {
                         img.setVisibility(View.GONE);
                         final int j = i;
                         item.setOnClickListener(v ->
-                                loadChat(s_threadIds.get(j), s_senders.get(j), "", s_msgIds.get(j), s_group.get(j)));
+                                loadChat(s_threadIds.get(j), s_senders.get(j), s_topics.get(j), s_msgIds.get(j), s_group.get(j)));
                         container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         container.addView(inflater.inflate(R.layout.divider, container, false));
                     }
@@ -405,6 +406,7 @@ public class MessagesFragment extends Fragment {
                                 s_time = new ArrayList<>();
                                 s_msgIds = new ArrayList<>();
                                 s_group = new ArrayList<>();
+                                s_topics = new ArrayList<>();
 
                                 String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=15&text=" + query, null);
                                 log("search result: " + result);
@@ -439,6 +441,10 @@ public class MessagesFragment extends Fragment {
                                             s_messages.add(c.getString("msg"));
                                             s_threadIds.add(c.getInt("threadId"));
                                             s_msgIds.add(a.optInt(j));
+                                            if(c.has("subject"))
+                                                s_topics.add(c.getString("subject"));
+                                            else
+                                                s_topics.add("");
                                             Date date = new Date(c.getLong("createDate"));
                                             s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
 
@@ -623,6 +629,8 @@ public class MessagesFragment extends Fragment {
             loge("container null in MessagesFragment");
             return;
         }
+        count = 25;
+        s_count = 0;
         container1.removeAllViews();
         if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
@@ -792,6 +800,8 @@ public class MessagesFragment extends Fragment {
                                                 img1.setImageDrawable(getResources().getDrawable(R.drawable.group));
                                                 tv1.setText(users[i] + "");
                                             }
+                                            if(f_count + 25 - (l - i) >= f_threadIds.size())
+                                                continue;
                                             final int j = i,
                                                     threadId = f_threadIds.get(f_count + 25 - (l - j));
                                             final String sender = (u > 2?f_topics:f_senders).get(f_count + 25 - (l - j));
@@ -869,10 +879,10 @@ public class MessagesFragment extends Fragment {
                                 public void run() {
                                     try {
                                         if (s_senders == null) {
-                                            JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row="
-                                                    + (count + 1) + "&rowsCount=25", null));
                                             if (count == -1)
                                                 return;
+                                            JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row="
+                                                    + (count + 1) + "&rowsCount=25", null));
                                             senders = new String[array.length()];
                                             topics = new String[array.length()];
                                             users = new int[array.length()];
