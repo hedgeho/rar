@@ -4,8 +4,10 @@ package ru.gurhouse.sch;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -99,6 +101,7 @@ public class ChatFragment extends Fragment {
 
     Activity context;
     int threadId = 0;
+    int type = 0;
     String threadName = "";
     int searchMsgId = -1;
     boolean group = false;
@@ -139,6 +142,9 @@ public class ChatFragment extends Fragment {
         // Inflate the layout for this fragment``
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
 
+        if(type == 0) {
+            view.findViewById(R.id.sender).setVisibility(GONE);
+        }
         this.container = view.findViewById(R.id.main_container);
         this.view = view;
         return view;
@@ -936,7 +942,12 @@ public class ChatFragment extends Fragment {
                         et.setText("");
                         et.requestFocus();
                         et.requestFocusFromTouch();
-                        ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
+                        if(type == 1){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                            builder.setMessage("Сообщение увидит только создатель диалога").setTitle("Вы уверены, что хотите отправить сообщение?").setPositiveButton("Отправить", (dialog, which)->ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis()))
+                                    .setNegativeButton("Отмена", null).show();
+                        }else
+                            ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
 //                        new Thread() {
 //                            @Override
 //                            public void run() {

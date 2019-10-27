@@ -24,6 +24,7 @@
         android:layout_height="wrap_content"
         android:autoLink="web"
         android:background="@drawable/chat_border"
+        android:foregroundGravity="right"
         android:gravity="end"
         android:maxWidth="900px"
         android:orientation="vertical"
@@ -33,8 +34,9 @@
         <ru.gurhouse.sch.ChatBubble
             android:id="@+id/tv_text"
 
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="right"
             android:maxWidth="740px"
             android:text="hello, hello!"
             android:textColor="#ffffff"
@@ -47,6 +49,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"></LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>
