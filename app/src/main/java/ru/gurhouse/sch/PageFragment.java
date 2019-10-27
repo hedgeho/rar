@@ -27,19 +27,13 @@ import java.util.Calendar;
 
 public class PageFragment extends Fragment {
 
-    static final String SAVE_PAGE_NUMBER = "save_page_number";
     TableLayout tableLayout;
     LinearLayout linearLayout;
     PeriodFragment.Day day;
     ArrayList<PeriodFragment.Subject> subjects;
-    int pageNumber;
     Calendar c;
+    ScheduleFragment.Period[] periods;
     int dayofweek;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -51,6 +45,24 @@ public class PageFragment extends Fragment {
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
         } else {
+            /*boolean ok = true;
+            if(periods != null) {
+                int pernum = 0;
+                for (ScheduleFragment.Period period : periods) {
+                    if (period.datestart <= c.getTimeInMillis() && period.datefinish >= c.getTimeInMillis()) {
+                        if (period.days == null) {
+                            ok = false;
+                            pernum = period.num;
+                        } else {
+                            ok = true;
+                            break;
+                        }
+                    }
+                }
+                if(!ok) {
+                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
+                }
+            }*/
             tableLayout.setColumnStretchable(0, true);
             tableLayout.setColumnShrinkable(0, true);
             TableRow tbrow1 = new TableRow(getContext());
@@ -268,11 +280,5 @@ public class PageFragment extends Fragment {
             linearLayout.addView(txt1);
         }
     }*/
-
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(SAVE_PAGE_NUMBER, pageNumber);
-    }
-
 
 }

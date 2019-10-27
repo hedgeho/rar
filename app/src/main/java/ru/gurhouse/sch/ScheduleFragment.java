@@ -109,6 +109,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             pageFragments.get(i).c = calendar[0];
             calendar[0].add(Calendar.DAY_OF_WEEK, -1);
             pageFragments.get(i).dayofweek = calendar[0].get(Calendar.DAY_OF_WEEK);
+            pageFragments.get(i).periods = periods;
         }
     }
 
@@ -149,6 +150,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             for (int i = 0; i < pageCount; i++) {
                 //log("i" + i);
                 pageFragments.get(i).subjects = periods[pernum].subjects;
+                pageFragments.get(i).periods = periods;
             }
             int y = 0;
             try {
@@ -397,16 +399,27 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             break;
                         }
                     }
+                    periods[3].datefinish = periods[4].datestart;
+                    periods[4].datefinish = periods[5].datestart;
+                    periods[5].datefinish = periods[6].datestart;
 
                     if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
                         Download2(periods[3].id, 3, true, true);
+                        while(syncing) {
+                            Thread.sleep(10);
+                        }
+                        Download2(periods[4].id, 4, true, true);
                     } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
                         Download2(periods[4].id, 4, true, true);
+                        while(syncing) {
+                            Thread.sleep(10);
+                        }
+                        Download2(periods[3].id, 3, true, true);
                     } else if (datenow.getTime() >= periods[5].datestart && datenow.getTime() <= periods[5].datefinish) {
                         Download2(periods[5].id, 5, true, true);
-                    } else {
+                    } else if (datenow.getTime() >= periods[6].datestart && datenow.getTime() <= periods[6].datefinish){
                         Download2(periods[6].id, 6, true, true);
-                    }
+                    } // else summer holidays / other year
                 } catch (LoginActivity.NoInternetException e) {
                     getContext().runOnUiThread(() ->
                             Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
@@ -792,7 +805,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     ready = true;
 
-
                     getContext().runOnUiThread(() -> show(pager != null ? pager.getCurrentItem() : -1));
 
                     // цикл на ~3 секунды
@@ -1081,8 +1093,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     }
 
     class Period {
-        Long datestart;
-        Long datefinish;
+        long datestart;
+        long datefinish;
         String name;
         boolean nullsub = false;
         int num;

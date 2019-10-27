@@ -56,7 +56,7 @@ public class PeriodFragment extends Fragment {
                 TheSingleton.getInstance().t1 = System.currentTimeMillis();
                 pernum = lv.getCheckedItemPosition();
                 if (periods[pernum].subjects == null) {
-                    log("PerF: change of period and downloud (" + pernum + "), name - " + periods[pernum].name + ", id - " + periods[pernum].id);
+                    log("PerF: change of period and download (" + pernum + "), name - " + periods[pernum].name + ", id - " + periods[pernum].id);
                     ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
