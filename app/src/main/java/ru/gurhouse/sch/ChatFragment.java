@@ -4,15 +4,27 @@ package ru.gurhouse.sch;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.http.AndroidHttpClient;
 import android.os.Build;
@@ -24,6 +36,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.Gravity;
@@ -45,6 +59,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.util.ArrayUtils;
+
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.HttpClient;
@@ -59,6 +75,8 @@ import org.json.JSONObject;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -67,8 +85,11 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
@@ -91,14 +112,15 @@ public class ChatFragment extends Fragment {
     private Handler h;
     private boolean uploading = false;
     private int last_msg = -1;
-    private ArrayList<Integer> first_msgs;
+    private List<Integer> first_msgs;
     private ScrollView scroll;
-    private ArrayList<File> attach = new ArrayList<>();
+    private List<File> attach = new ArrayList<>();
     private boolean scrolled = false, first_time = true;
     private MenuItem itemToEnable = null;
 
     Activity context;
     int threadId = 0;
+    int type = 0;
     String threadName = "";
     int searchMsgId = -1;
     boolean group = false;
@@ -139,6 +161,9 @@ public class ChatFragment extends Fragment {
         // Inflate the layout for this fragment``
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
 
+        if(type == 0) {
+            view.findViewById(R.id.sender).setVisibility(GONE);
+        }
         this.container = view.findViewById(R.id.main_container);
         this.view = view;
         return view;
@@ -250,10 +275,10 @@ public class ChatFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    void newMessage(String text, long time, int sender_id, int thread_id, String sender_fio, String attach) {
+    void newMessage(String text, Date time, int sender_id, int thread_id, String sender_fio, List<Attach> attach, boolean toBottom) {
         log("new message in ChatFragment");
         log("notif thread: " + thread_id + ", this thread id: " + this.threadId);
-        if(thread_id != this.threadId) {
+        if(thread_id != this.threadId && sender_id != thread_id) {
             log("wrong thread, sorry");
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "1");
             builder.setContentTitle(sender_fio)
@@ -279,104 +304,103 @@ public class ChatFragment extends Fragment {
             tv.setText(sender_fio);
             tv.setVisibility(View.VISIBLE);
         }
-        tv = item.findViewById(R.id.tv_text);
-        if(text.isEmpty() && attach.isEmpty()) {
-            tv.setText(" ");
-        }else if(!attach.isEmpty() && text.isEmpty()){
-            tv.setVisibility(GONE);
-        }else
-            tv.setText(Html.fromHtml(text));
-        JSONArray array;
-        try {
-            array = new JSONArray(attach);
-            for (int i = 0; i < array.length(); i++) {
-                final JSONObject a = array.getJSONObject(i);
-                if(a.getString("fileType").toLowerCase().contains("image")){
-                    ImageView image = new ImageView(context);
-                    image.setPadding(15,15,15,15);
 
-                    (new Thread(() -> {
-                        try {
-                            URL obj = new URL("https://app.eschool.center/ec-server/files/" + a.getInt("fileId"));
-                            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-                            connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                            connection.setRequestMethod("GET");
-
-                            Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
-                            Bitmap bitmap;
-                            if(bitmap2.getWidth() > bitmap2.getHeight())
-                                bitmap = Bitmap.createScaledBitmap(bitmap2, 720,720*bitmap2.getHeight()/bitmap2.getWidth(), false);
-                            else
-                                bitmap = Bitmap.createScaledBitmap(bitmap2, 720*bitmap2.getWidth()/bitmap2.getHeight(),720, false);
-                            getActivity().runOnUiThread(() -> {
-                                image.setImageBitmap(bitmap);
-                            });
-                        } catch (IOException | JSONException | NullPointerException e) {
-                            e.printStackTrace();
-                        }
-                    })).start();
-
-                    image.setOnClickListener(v -> {
-                        try {
-                            String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
-                            ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
-                            Toast toast = Toast.makeText(context,
-                                    a.getString("fileName")+" загружается...",
-                                    Toast.LENGTH_LONG);
-                            toast.show();
-                        } catch (JSONException e) {e.printStackTrace();}
-                    });
-                    ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
-                }else {
-                    tv_attach = new TextView(getContext());
-                    float size = a.getInt("fileSize");
-                    String s = "B";
-                    if (size > 900) {
-                        s = "KB";
-                        size /= 1024;
-                    }
-                    if (size > 900) {
-                        s = "MB";
-                        size /= 1024;
-                    }
-                    tv_attach.setText(String.format(Locale.getDefault(), a.getString("fileName") + " (%.2f " + s + ")", size));
-                    tv_attach.setTextColor(getResources().getColor(R.color.two));
-                    tv_attach.setOnClickListener(v -> {
-                        try {
-                            String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
-                            ((MainActivity) getActivity()).saveFile(url, a.getString("fileName"), true);
-                            Toast toast = Toast.makeText(context,
-                                    a.getString("fileName")+" загружается...",
-                                    Toast.LENGTH_LONG);
-                            toast.show();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    });
-
-                    tv_attach.setPadding(15,15,15,15);
-                    ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-                }
-                //tv_attach.setText(String.format(Locale.getDefault(), a.getString("fileName") + " (%.2f " + s + ")", size));
-                //tv_attach.setTextColor(getResources().getColor(R.color.two));
-                //tv_attach.setOnClickListener(v -> {
-                //    try {
-                //        String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
-                //        ((MainActivity) getContext()).saveFile(url, a.getString("fileName"), true);
-                //    } catch (JSONException e) {e.printStackTrace();}
-                //});
-                //((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        if(attach != null && attach.size() == 1 && attach.get(0).type.contains("image") && text.isEmpty()){
+            LinearLayout layout = item.findViewById(R.id.layout);
+            layout.setBackground(null);
+            layout.setPadding(0,0,0,0);
         }
-        Date date = new Date(time);
+        tv = item.findViewById(R.id.tv_text);
+        if(text.isEmpty() && (attach == null || attach.isEmpty())) {
+            tv.setText(" ");
+        }else if(attach != null && !attach.isEmpty() && text.isEmpty()){
+            tv.setVisibility(GONE);
+        }else {
+            tv.setText(Html.fromHtml(text));
+        }
+        for (int i = 0; attach != null && i < attach.size(); i++) {
+            if(attach.get(i) == null) continue;
+            if(attach.get(i).type.contains("image")){
+                ImageView image = new ImageView(context);
+                image.setPadding(15,15,15,15);
+
+                final int i2 = i;
+                (new Thread(() -> {
+                    try {
+                        URL obj = new URL("https://app.eschool.center/ec-server/files/" + attach.get(i2).fileId);
+                        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+                        connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                        connection.setRequestMethod("GET");
+
+                        Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
+                        Bitmap bitmap;
+                        if(bitmap2.getWidth() > bitmap2.getHeight())
+                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720,720*bitmap2.getHeight()/bitmap2.getWidth(), false);
+                        else
+                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720*bitmap2.getWidth()/bitmap2.getHeight(),720, false);
+                        RoundedBitmapDrawable roundedBitmap = RoundedBitmapDrawableFactory.create(getResources(),bitmap);
+                        roundedBitmap.setCornerRadius(30);
+                        getActivity().runOnUiThread(() -> {
+                            image.setImageDrawable(roundedBitmap);
+                        });
+                    } catch (IOException | NullPointerException e) {
+                        e.printStackTrace();
+                    }
+                })).start();
+
+                image.setOnClickListener(v -> {
+                    String url = "https://app.eschool.center/ec-server/files/" + attach.get(i2).fileId;
+                    ((MainActivity) getActivity()).saveFile(url, attach.get(i2).name, true);
+                    Toast toast = Toast.makeText(context,
+                            attach.get(i2).name+" загружается...",
+                            Toast.LENGTH_LONG);
+                    toast.show();
+                });
+                ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
+            }else {
+                final int i2 = i;
+                tv_attach = new TextView(getContext());
+                float size = attach.get(i).size;
+                String s = "B";
+                if (size > 900) {
+                    s = "KB";
+                    size /= 1024;
+                }
+                if (size > 900) {
+                    s = "MB";
+                    size /= 1024;
+                }
+                tv_attach.setText(String.format(Locale.getDefault(), attach.get(i2).name + " (%.2f " + s + ")", size));
+                tv_attach.setTextColor(getResources().getColor(R.color.two));
+                tv_attach.setOnClickListener(v -> {
+                    String url = "https://app.eschool.center/ec-server/files/" + attach.get(i2).fileId;
+                    ((MainActivity) getActivity()).saveFile(url, attach.get(i2).name, true);
+                    Toast toast = Toast.makeText(context,
+                            attach.get(i2).name+" загружается...",
+                            Toast.LENGTH_LONG);
+                    toast.show();
+                });
+
+                tv_attach.setPadding(15,15,15,15);
+                ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+            }
+            //tv_attach.setText(String.format(Locale.getDefault(), a.getString("fileName") + " (%.2f " + s + ")", size));
+            //tv_attach.setTextColor(getResources().getColor(R.color.two));
+            //tv_attach.setOnClickListener(v -> {
+            //    try {
+            //        String url = "https://app.eschool.center/ec-server/files/" + a.getInt("fileId");
+            //        ((MainActivity) getContext()).saveFile(url, a.getString("fileName"), true);
+            //    } catch (JSONException e) {e.printStackTrace();}
+            //});
+            //((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+        }
 
         tv = item.findViewById(R.id.tv_time);
-        tv.setText(date.getHours() + ":" + date.getMinutes());
+        tv.setText(time.getHours() + ":" + time.getMinutes());
         log("person_id: " + PERSON_ID + ", sender: " + sender_id);
 
-        container.addView(item);
+        if(toBottom) container.addView(item);
+        else container.addView(item,0);
         scroll.post(() -> scroll.scrollTo(0, scroll.getChildAt(0).getBottom()));
     }
 
@@ -420,118 +444,108 @@ public class ChatFragment extends Fragment {
                             @Override
                             public void handleMessage(Message yoyyoyoy) {
                                 final LinearLayout container = view.findViewById(R.id.main_container);
-                                View item;
-                                TextView tv, tv_attach;
-                                Calendar cal = getInstance(), cal1 = getInstance();
-                                int i = 0;
+//                                View item;
+//                                TextView tv, tv_attach;
+//                                Calendar cal = getInstance(), cal1 = getInstance();
+//                                int i = 0;
                                 for (Msg msg : messages) {
-                                    if(i != 0) {
-                                        cal1.setTime(msg.time);
-                                        cal.setTime(messages[i-1].time);
-                                        //log("comparing day " + сal1.get(Calendar.DAY_OF_MONTH) + " and " + cal.get(Calendar.DAY_OF_MONTH));
-                                        if(cal1.get(Calendar.DAY_OF_MONTH) != cal.get(Calendar.DAY_OF_MONTH)) {
-                                            item = inflater.inflate(R.layout.date_divider, container, false);
-                                            tv = item.findViewById(R.id.tv_date);
-                                            tv.setText(getDate(cal));
-                                            container.addView(item, 0);
-                                        }
-                                    }
-                                    if(PERSON_ID == msg.user_id) {
-                                        item = inflater.inflate(R.layout.chat_item, container, false);
-                                    } else {
-                                        item = inflater.inflate(R.layout.chat_item_left, container, false);
-                                    }
-                                    tv = item.findViewById(R.id.chat_tv_sender);
-                                    if(!group && tv != null) {
-                                        tv.setVisibility(GONE);
-                                    } else if(tv != null) {
-                                        tv.setText(msg.sender);
-                                        tv.setVisibility(View.VISIBLE);
-                                    }
-                                    tv = item.findViewById(R.id.tv_text);
-                                    if (msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
-                                        tv.setText("          ");
-                                    }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
-                                        tv.setVisibility(GONE);
-                                    }else
-                                        tv.setText(Html.fromHtml(msg.text));
-                                    tv = item.findViewById(R.id.tv_time);
-
-                                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-                                    if (msg.files != null) {
-                                        for (final Attach a : msg.files) {
-                                            if (a.type.toLowerCase().contains("image")) {
-                                                ImageView image = new ImageView(context);
-                                                image.setPadding(15, 15, 15, 15);
-
-                                                (new Thread(() -> {
-                                                    try {
-                                                        URL obj = new URL("https://app.eschool.center/ec-server/files/" + a.fileId);
-                                                        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-                                                        connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                                                        connection.setRequestMethod("GET");
-
-                                                        Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
-                                                        Bitmap bitmap;
-                                                        if (bitmap2.getWidth() > bitmap2.getHeight())
-                                                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720, 720 * bitmap2.getHeight() / bitmap2.getWidth(), false);
-                                                        else
-                                                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720 * bitmap2.getWidth() / bitmap2.getHeight(), 720, false);
-                                                        getActivity().runOnUiThread(() -> {
-                                                            image.setImageBitmap(bitmap);
-                                                        });
-                                                    } catch (IOException | NullPointerException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                })).start();
-
-                                                image.setOnClickListener(v -> {
-                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                                    Toast toast = Toast.makeText(context,
-                                                    a.name+" загружается...",
-                                                    Toast.LENGTH_LONG);
-                                                    toast.show();
-                                                });
-                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(image, 0);
-                                            } else {
-                                                tv_attach = new TextView(getContext());
-                                                float size = a.size;
-                                                String s = "B";
-                                                if (size > 900) {
-                                                    s = "KB";
-                                                    size /= 1024;
-                                                }
-                                                if (size > 900) {
-                                                    s = "MB";
-                                                    size /= 1024;
-                                                }
-                                                tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
-                                                tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                                tv_attach.setOnClickListener(v -> {
-                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                                    Toast toast = Toast.makeText(context,
-                                                    a.name+" загружается...",
-                                                    Toast.LENGTH_LONG);
-                                                    toast.show();
-                                                });
-                                                tv_attach.setPadding(15, 15, 15, 15);
-                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-                                            }
-
-                                            //tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
-                                            //tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                            //tv_attach.setOnClickListener(v -> {
-                                            //    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                            //    ((MainActivity) getContext()).saveFile(url, a.name, true);
-                                            //});
-                                            //((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-                                        }
-                                    } else
-                                        item.findViewById(R.id.attach).setVisibility(GONE);
-                                    container.addView(item, 0);
-                                    i++;
+                                    newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender, msg.files,false);
+//                                    if(PERSON_ID == msg.user_id) {
+////                                        item = inflater.inflate(R.layout.chat_item, container, false);
+////                                    } else {
+////                                        item = inflater.inflate(R.layout.chat_item_left, container, false);
+////                                    }
+////                                    tv = item.findViewById(R.id.chat_tv_sender);
+////                                    if(!group && tv != null) {
+////                                        tv.setVisibility(GONE);
+////                                    } else if(tv != null) {
+////                                        tv.setText(msg.sender);
+////                                        tv.setVisibility(View.VISIBLE);
+////                                    }
+////                                    tv = item.findViewById(R.id.tv_text);
+////                                    if (msg.text.isEmpty() && (msg.files == null || msg.files.isEmpty())) {
+////                                        tv.setText("          ");
+////                                    }else if(msg.files != null && !msg.files.isEmpty() && msg.text.isEmpty()){
+////                                        tv.setVisibility(GONE);
+////                                    }else
+////                                        tv.setText(Html.fromHtml(msg.text));
+////                                    tv = item.findViewById(R.id.tv_time);
+////
+////                                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
+////                                    if (msg.files != null) {
+////                                        for (final Attach a : msg.files) {
+////                                            if (a.type.toLowerCase().contains("image")) {
+////                                                ImageView image = new ImageView(context);
+////                                                image.setPadding(15, 15, 15, 15);
+////
+////                                                (new Thread(() -> {
+////                                                    try {
+////                                                        URL obj = new URL("https://app.eschool.center/ec-server/files/" + a.fileId);
+////                                                        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+////                                                        connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+////                                                        connection.setRequestMethod("GET");
+////
+////                                                        Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
+////                                                        Bitmap bitmap;
+////                                                        if (bitmap2.getWidth() > bitmap2.getHeight())
+////                                                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720, 720 * bitmap2.getHeight() / bitmap2.getWidth(), false);
+////                                                        else
+////                                                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720 * bitmap2.getWidth() / bitmap2.getHeight(), 720, false);
+////                                                        getActivity().runOnUiThread(() -> {
+////                                                            image.setImageBitmap(bitmap);
+////                                                        });
+////                                                    } catch (IOException | NullPointerException e) {
+////                                                        e.printStackTrace();
+////                                                    }
+////                                                })).start();
+////
+////                                                image.setOnClickListener(v -> {
+////                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+////                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+////                                                    Toast toast = Toast.makeText(context,
+////                                                    a.name+" загружается...",
+////                                                    Toast.LENGTH_LONG);
+////                                                    toast.show();
+////                                                });
+////                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(image, 0);
+////                                            } else {
+////                                                tv_attach = new TextView(getContext());
+////                                                float size = a.size;
+////                                                String s = "B";
+////                                                if (size > 900) {
+////                                                    s = "KB";
+////                                                    size /= 1024;
+////                                                }
+////                                                if (size > 900) {
+////                                                    s = "MB";
+////                                                    size /= 1024;
+////                                                }
+////                                                tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
+////                                                tv_attach.setTextColor(getResources().getColor(R.color.two));
+////                                                tv_attach.setOnClickListener(v -> {
+////                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+////                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
+////                                                    Toast toast = Toast.makeText(context,
+////                                                    a.name+" загружается...",
+////                                                    Toast.LENGTH_LONG);
+////                                                    toast.show();
+////                                                });
+////                                                tv_attach.setPadding(15, 15, 15, 15);
+////                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+////                                            }
+////
+////                                            //tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
+////                                            //tv_attach.setTextColor(getResources().getColor(R.color.two));
+////                                            //tv_attach.setOnClickListener(v -> {
+////                                            //    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
+////                                            //    ((MainActivity) getContext()).saveFile(url, a.name, true);
+////                                            //});
+////                                            //((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+////                                        }
+////                                    } else
+////                                        item.findViewById(R.id.attach).setVisibility(GONE);
+////                                    container.addView(item, 0);
+////                                    i++;
                                 }
                                 if(scroll != null)
                                     scroll.post(() -> {
@@ -569,12 +583,12 @@ public class ChatFragment extends Fragment {
                                         if (tmp.getInt("attachCount") <= 0) {
                                             msg.files = null;
                                         } else {
-                                            msg.files = new Attach[tmp.getInt("attachCount")];
+                                            msg.files = new ArrayList<Attach>();
                                             log(tmp.getString("attachInfo"));
-                                            for (int j = 0; j < msg.files.length; j++) {
+                                            for (int j = 0; j < tmp.getInt("attachCount"); j++) {
                                                 tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                                                msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-                                                        tmp1.getString("fileName"), tmp1.getString("fileType"));
+                                                msg.files.add(new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                                        tmp1.getString("fileName"), tmp1.getString("fileType")));
                                             }
                                         }
                                         msg.user_id = tmp.getInt("senderId");
@@ -608,7 +622,7 @@ public class ChatFragment extends Fragment {
                             public void handleMessage(Message yoyoy) {
                                 final LinearLayout container = view.findViewById(R.id.main_container);
                                 View item;
-                                TextView tv, tv_attach;
+                                TextView tv;
                                 Calendar cal = getInstance(), cal1 = getInstance();
                                 Msg msg;
                                 for (int i = messages.length - 1; i >= 0; i--) {
@@ -623,103 +637,7 @@ public class ChatFragment extends Fragment {
                                             container.addView(item);
                                         }
                                     }
-                                    if(PERSON_ID == msg.user_id) {
-                                        item = inflater.inflate(R.layout.chat_item, container, false);
-                                    } else {
-                                        item = inflater.inflate(R.layout.chat_item_left, container, false);
-                                    }
-                                    tv = item.findViewById(R.id.chat_tv_sender);
-                                    if(!group && tv != null) {
-                                        tv.setVisibility(GONE);
-                                    } else if(tv != null) {
-                                        tv.setText(msg.sender);
-                                        tv.setVisibility(View.VISIBLE);
-                                    }
-                                    tv = item.findViewById(R.id.tv_text);
-                                    if (msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
-                                        tv.setText(" ");
-                                    }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
-                                        tv.setVisibility(GONE);
-                                    }else
-                                        tv.setText(Html.fromHtml(msg.text));
-                                    tv = item.findViewById(R.id.tv_time);
-                                    tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-
-                                    if (msg.files != null) {
-                                        for (final Attach a : msg.files) {
-                                            if (a.type.toLowerCase().contains("image")) {
-                                                ImageView image = new ImageView(context);
-                                                image.setPadding(15,15,15,15);
-
-                                                (new Thread(() -> {
-                                                    try {
-                                                        URL obj = new URL("https://app.eschool.center/ec-server/files/" + a.fileId);
-                                                        HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-                                                        connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                                                        connection.setRequestMethod("GET");
-
-                                                        Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
-                                                        Bitmap bitmap;
-                                                        if(bitmap2.getWidth() > bitmap2.getHeight())
-                                                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720,720*bitmap2.getHeight()/bitmap2.getWidth(), false);
-                                                        else
-                                                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720*bitmap2.getWidth()/bitmap2.getHeight(),720, false);
-                                                        getActivity().runOnUiThread(() -> {
-                                                            image.setImageBitmap(bitmap);
-                                                        });
-                                                    } catch (IOException | NullPointerException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                })).start();
-
-                                                image.setOnClickListener(v -> {
-                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                                    Toast toast = Toast.makeText(context,
-                                                    a.name+" загружается...",
-                                                    Toast.LENGTH_LONG);
-                                                    toast.show();
-                                                });
-                                                ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
-                                            } else {
-                                                tv_attach = new TextView(getContext());
-                                                float size = a.size;
-                                                String s = "B";
-                                                if (size > 900) {
-                                                    s = "KB";
-                                                    size /= 1024;
-                                                }
-                                                if (size > 900) {
-                                                    s = "MB";
-                                                    size /= 1024;
-                                                }
-                                                tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
-                                                tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                                tv_attach.setOnClickListener(v -> {
-                                                    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                                    ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                                    Toast toast = Toast.makeText(context,
-                                                    a.name+" загружается...",
-                                                    Toast.LENGTH_LONG);
-                                                    toast.show();
-                                                });
-                                                tv_attach.setPadding(15,15,15,15);
-                    ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-                                            }
-
-
-                              //tv_attach.setText(String.format(Locale.getDefault(), a.name + " (%.2f " + s + ")", size));
-                              //tv_attach.setTextColor(getResources().getColor(R.color.two));
-                              //tv_attach.setOnClickListener(v -> {
-                              //    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                              //    ((MainActivity) getContext()).saveFile(url, a.name, true);
-                              //});
-                              //((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-
-                                        }
-                                    } else
-                                        item.findViewById(R.id.attach).setVisibility(GONE);
-                                    container.addView(item);
+                                    newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files, true);
                                 }
                                 uploading = false;
                                 first_msgs.remove(first_msgs.size() - 1);
@@ -745,11 +663,11 @@ public class ChatFragment extends Fragment {
                                         if (tmp.getInt("attachCount") <= 0) {
                                             msg.files = null;
                                         } else {
-                                            msg.files = new Attach[tmp.getInt("attachCount")];
-                                            for (int j = 0; j < msg.files.length; j++) {
+                                            msg.files = new ArrayList<>();
+                                            for (int j = 0; j < tmp.getInt("attachCount"); j++) {
                                                 tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                                                msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-                                                        tmp1.getString("fileName"), tmp1.getString("fileType"));
+                                                msg.files.add(new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                                        tmp1.getString("fileName"), tmp1.getString("fileType")));
                                             }
                                         }
                                         msg.user_id = tmp.getInt("senderId");
@@ -785,7 +703,7 @@ public class ChatFragment extends Fragment {
                         container = view.findViewById(R.id.main_container);
                     container.removeAllViews();
                     View item;
-                    TextView tv, tv_attach;
+                    TextView tv;
                     Calendar cal = Calendar.getInstance(), cal1 = Calendar.getInstance();
                     log(messages.length + "");
                     Msg msg;
@@ -805,110 +723,7 @@ public class ChatFragment extends Fragment {
                                 container.addView(item);
                             }
                         }
-                        if(PERSON_ID == msg.user_id) {
-                            item = inflater.inflate(R.layout.chat_item, container, false);
-                        } else {
-                            item = inflater.inflate(R.layout.chat_item_left, container, false);
-                        }
-                        tv = item.findViewById(R.id.chat_tv_sender);
-                        if(!group && tv != null) {
-                            tv.setVisibility(GONE);
-                        } else if(tv != null) {
-                            tv.setText(msg.sender);
-                            tv.setVisibility(View.VISIBLE);
-                        }
-                        tv = item.findViewById(R.id.tv_text);
-                        if(msg.text.isEmpty() && (msg.files == null || msg.files.length == 0)) {
-                            tv.setText(" ");
-                        }else if(msg.files != null && msg.files.length != 0 && msg.text.isEmpty()){
-                            tv.setVisibility(GONE);
-                        }else
-                            tv.setText(Html.fromHtml(msg.text));
-                        tv = item.findViewById(R.id.tv_time);
-                        tv.setText(String.format(Locale.UK, "%02d:%02d", msg.time.getHours(), msg.time.getMinutes()));
-//                    item.setPadding(0, 16, 4, 0);
-                        if(PERSON_ID != msg.user_id) {
-                            item.setTag(R.id.TAG_POSITION, "left");
-                        } else
-                            item.setTag(R.id.TAG_POSITION, "right");
-                        if(msg.files != null) {
-                            for (final Attach a: msg.files) {
-                                if (a.type.toLowerCase().contains("image")) {
-                                    ImageView image = new ImageView(context);
-                                    image.setPadding(15,15,15,15);
-
-                                    (new Thread(() -> {
-                                        try {
-                                            URL obj = new URL("https://app.eschool.center/ec-server/files/" + a.fileId);
-                                            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
-                                            connection.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                                            connection.setRequestMethod("GET");
-
-                                            Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
-                                            Bitmap bitmap;
-                                            if(bitmap2.getWidth() > bitmap2.getHeight())
-                                                bitmap = Bitmap.createScaledBitmap(bitmap2, 720,720*bitmap2.getHeight()/bitmap2.getWidth(), false);
-                                            else
-                                                bitmap = Bitmap.createScaledBitmap(bitmap2, 720*bitmap2.getWidth()/bitmap2.getHeight(),720, false);
-                                            getActivity().runOnUiThread(() -> {
-                                                image.setImageBitmap(bitmap);
-                                            });
-                                        } catch (IOException | NullPointerException e) {
-                                            e.printStackTrace();
-                                        }
-                                    })).start();
-
-                                    image.setOnClickListener(v -> {
-                                        String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                        ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                        Toast toast = Toast.makeText(context,
-                                        a.name+" загружается...",
-                                        Toast.LENGTH_LONG);
-                                        toast.show();
-                                    });
-                                    ((LinearLayout) item.findViewById(R.id.attach)).addView(image,0);
-                                } else {
-                                    tv_attach = new TextView(context);
-                                    float size = a.size;
-                                    String s = "B";
-                                    if (size > 900) {
-                                        s = "KB";
-                                        size /= 1024;
-                                    }
-                                    if (size > 900) {
-                                        s = "MB";
-                                        size /= 1024;
-                                    }
-                                    tv_attach.setText(String.format(Locale.getDefault(), "%s (%.2f " + s + ")", a.name, size));
-                                    tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                    tv_attach.setOnClickListener(v -> {
-                                        String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                        ((MainActivity) getActivity()).saveFile(url, a.name, true);
-                                        Toast toast = Toast.makeText(context,
-                                        a.name+" загружается...",
-                                        Toast.LENGTH_LONG);
-                                        toast.show();
-                                    });
-                                    tv_attach.setMaxWidth(view.getMeasuredWidth() - 300);
-                                    tv_attach.setPadding(15,15,15,15);
-                    ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
-                                }
-                                //tv_attach.setText(String.format(Locale.getDefault(), "%s (%.2f "+ s + ")", a.name, size));
-                                //tv_attach.setTextColor(getResources().getColor(R.color.two));
-                                //tv_attach.setOnClickListener(v -> {
-                                //    String url = "https://app.eschool.center/ec-server/files/" + a.fileId;
-                                //    ((MainActivity) getContext()).saveFile(url, a.name, true);
-                                //});
-                                //tv_attach.setMaxWidth(view.getMeasuredWidth()-300);
-                                //((LinearLayout)item.findViewById(R.id.attach)).addView(tv_attach);
-                            }
-                        }  else
-                            item.findViewById(R.id.attach).setVisibility(GONE);
-                        if(msg.msg_id == searchMsgId) {
-                            log("result found");
-                            item.setTag("result");
-                        }
-                        container.addView(item);
+                        newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files, true);
                     }
                     view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
 
@@ -936,7 +751,12 @@ public class ChatFragment extends Fragment {
                         et.setText("");
                         et.requestFocus();
                         et.requestFocusFromTouch();
-                        ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
+                        if(type == 1){
+                            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                            builder.setMessage("Сообщение увидит только создатель диалога").setTitle("Вы уверены, что хотите отправить сообщение?").setPositiveButton("Отправить", (dialog, which)->ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis()))
+                                    .setNegativeButton("Отмена", null).show();
+                        }else
+                            ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
 //                        new Thread() {
 //                            @Override
 //                            public void run() {
@@ -1035,11 +855,11 @@ public class ChatFragment extends Fragment {
                 if (tmp.getInt("attachCount") <= 0) {
                     msg.files = null;
                 } else {
-                    msg.files = new Attach[tmp.getInt("attachCount")];
-                    for (int j = 0; j < msg.files.length; j++) {
+                    msg.files = new ArrayList<>();
+                    for (int j = 0; j < tmp.getInt("attachCount"); j++) {
                         tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
-                        msg.files[j] = new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
-                                tmp1.getString("fileName"), tmp1.getString("fileType"));
+                        msg.files.add(new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                tmp1.getString("fileName"), tmp1.getString("fileType")));
                     }
                 }
                 msg.user_id = tmp.getInt("senderId");
@@ -1069,38 +889,83 @@ public class ChatFragment extends Fragment {
     HorizontalScrollView attachedScroll;
 
     private void attach(File f){
-        String path = ImageFilePath.getPath(context,Uri.fromFile(f));
-        if(path == null) return;
-        if(attachedLayout == null || attachedScroll == null) {
-            attachedLayout = getActivity().findViewById(R.id.attached);
-            attachedScroll = getActivity().findViewById(R.id.attachedScroll);
+        try {
+            String path = ImageFilePath.getPath(context, Uri.fromFile(f));
+            if (path == null) return;
+            if (attachedLayout == null || attachedScroll == null) {
+                attachedLayout = getActivity().findViewById(R.id.attached);
+                attachedScroll = getActivity().findViewById(R.id.attachedScroll);
+            }
+            attach.add(f);
+            attachedScroll.setVisibility(View.VISIBLE);
+            View view;
+            Drawable delete = getResources().getDrawable(R.drawable.delete);
+            if (getMimeType(f.getPath()) != null && getMimeType(f.getPath()).contains("image")) {
+
+
+                Bitmap bitmap = Bitmap.createBitmap(250,250, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                canvas.drawColor(Color.parseColor("#797979"));
+                canvas.drawBitmap(
+                        Bitmap.createScaledBitmap(
+                                BitmapFactory.decodeStream(new FileInputStream(f)), 250, 250, false
+                        ), 0,0,null);
+
+                RoundedBitmapDrawable roundedBitmap = RoundedBitmapDrawableFactory.create(getResources(),bitmap);
+                roundedBitmap.setCornerRadius(30);
+
+
+
+                ImageView view2 = new ImageView(context);
+                view2.setImageResource(R.drawable.delete);
+
+                view2.setBackground(roundedBitmap);
+
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
+                layoutParams.setMargins(10, 10, 10, 10);
+                view2.setLayoutParams(layoutParams);
+                //view2.setBackgroundResource(R.drawable.image_bubble);
+                view2.setPadding(10, 10, 10, 10);
+
+                view = view2;
+
+            } else {
+                TextView view2 = new TextView(context);
+                view2.setText(f.getName());
+                LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
+                layoutParams.setMargins(10, 10, 10, 10);
+                view2.setLayoutParams(layoutParams);
+                view2.setPadding(10, 10, 10, 10);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    view2.setForeground(delete);
+                    view2.setBackgroundResource(R.drawable.image_bubble);
+                }else{
+                    Bitmap bitmap = Bitmap.createBitmap(250,250, Bitmap.Config.ARGB_8888);
+                    Canvas canvas = new Canvas(bitmap);
+                    canvas.drawColor(Color.parseColor("#797979"));
+                    canvas.drawBitmap(
+                            Bitmap.createScaledBitmap(
+                                BitmapFactory.decodeResource(
+                                        getResources(),
+                                        R.drawable.delete
+                                ), 250, 250, false
+                            ), 0,0,null);
+
+                    RoundedBitmapDrawable roundedBitmap = RoundedBitmapDrawableFactory.create(getResources(),bitmap);
+                    roundedBitmap.setCornerRadius(30);
+
+                    view2.setBackground(roundedBitmap);
+                }
+                view = view2;
+            }
+            view.setOnClickListener((v) -> {
+                detach(f, v);
+            });
+            attachedLayout.addView(view);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         }
-        attach.add(f);
-        attachedScroll.setVisibility(View.VISIBLE);
-        View view;
-        if(getMimeType(f.getPath()) != null && getMimeType(f.getPath()).contains("image")){
-            ImageView view2 = new ImageView(context);
-            view2.setImageURI(Uri.parse(path));
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
-            layoutParams.setMargins(10,10,10,10);
-            view2.setLayoutParams(layoutParams);
-            view2.setBackgroundResource(R.drawable.image_bubble);
-            view2.setPadding(10,10,10,10);
-            view = view2;
-        }else{
-            TextView view2 = new TextView(context);
-            view2.setText(f.getName());
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
-            layoutParams.setMargins(10,10,10,10);
-            view2.setLayoutParams(layoutParams);
-            view2.setBackgroundResource(R.drawable.image_bubble);
-            view2.setPadding(10,10,10,10);
-            view = view2;
-        }
-        view.setOnClickListener((v)->{
-            detach(f,v);
-        });
-        attachedLayout.addView(view);
     }
 
     private void clearAttached(){
@@ -1147,7 +1012,13 @@ public class ChatFragment extends Fragment {
                 JSONObject jsonObject = new JSONObject(EntityUtils.toString(httpAsyncClient.execute(post).getEntity())).getJSONObject("message");
                 getActivity().runOnUiThread(() -> {
                     try {
-                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "", jsonObject.getLong("createDate"), jsonObject.getInt("senderId"), jsonObject.getInt("threadId"), jsonObject.getString("senderFio"), jsonObject.has("attachInfo") ? jsonObject.getString("attachInfo") : "");
+                        ArrayList<Attach> files = new ArrayList<>();
+                        for (int j = 0; j < jsonObject.getInt("attachCount"); j++) {
+                            JSONObject tmp1 = jsonObject.getJSONArray("attachInfo").getJSONObject(j);
+                            files.add(new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                    tmp1.getString("fileName"), tmp1.getString("fileType")));
+                        }
+                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "", new Date(jsonObject.getLong("createDate")), jsonObject.getInt("senderId"), jsonObject.getInt("threadId"), jsonObject.getString("senderFio"), jsonObject.has("attachInfo") ? files : new ArrayList<>(),true);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -1182,27 +1053,27 @@ public class ChatFragment extends Fragment {
 
     private class Msg {
         Date time;
-        Attach[] files;
+        List<Attach> files = new ArrayList<>();
         int user_id, msg_id;
         String text, sender;
     }
 
-    private class Attach {
-        int fileId, size;
-        String name, type;
+    public static class Attach {
+        public int fileId = 0, size = 0;
+        public String name = "", type = "";
 
         Attach(int fileId, int size, String name, String type) {
             this.fileId = fileId;
             this.size = size;
-            this.name = name;
-            this.type = type;
+            if(name != null) this.name = name;
+            if(type != null) this.type = type;
         }
     }
 
     public Activity getContext() {return (context==null?getActivity():context);}
 
     public static String transliterate(String srcstring) {
-        ArrayList<String> copyTo = new ArrayList<String>();
+        List<String> copyTo = new ArrayList<>();
 
         String cyrcodes = "";
         for (int i='А';i<='Я';i++) {

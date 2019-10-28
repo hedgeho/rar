@@ -40,6 +40,8 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
@@ -157,9 +159,21 @@ public class MainActivity extends AppCompatActivity {
                             intent.getLongExtra("time", 0), intent.getIntExtra("sender_id", 0),
                             intent.getIntExtra("thread_id", 0));
                 } else if (getStackTop() instanceof ChatFragment) {
-                    ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
-                            intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
-                            intent.getStringExtra("sender_fio"), intent.getStringExtra("attach"));
+                    try {
+                        ArrayList<ChatFragment.Attach> files = new ArrayList<>();
+                        JSONArray arr = new JSONArray(intent.getStringExtra("attach"));
+                        for (int j = 0; j < arr.length(); j++) {
+                            JSONObject tmp1 = arr.getJSONObject(j);
+                            files.add(new ChatFragment.Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                    tmp1.getString("fileName"), tmp1.getString("fileType")));
+                        }
+
+                        ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), new Date(intent.getLongExtra("time", 0)),
+                                intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
+                                intent.getStringExtra("sender_fio"), files,true);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     BottomNavigationMenuView bottomNavigationMenuView =
                             (BottomNavigationMenuView) bottomnav.getChildAt(0);
