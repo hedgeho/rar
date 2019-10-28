@@ -29,6 +29,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
+            android:id="@+id/layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:autoLink="web"
@@ -37,13 +38,13 @@
             android:gravity="end"
             android:maxWidth="900px"
             android:orientation="vertical"
-            android:padding="8dp"
+            android:padding="5dp"
             tools:layout_editor_absoluteY="8dp">
 
             <ru.gurhouse.sch.ChatBubble
                 android:id="@+id/tv_text"
 
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="left"
                 android:maxWidth="740px"
