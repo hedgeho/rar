@@ -23,6 +23,7 @@ import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -387,10 +388,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFragment(Fragment fragment) {
+        printStack();
+        log("loading " + fragment);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frame, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
+        //printStack();
     }
 
     public void setSupActionBar(android.support.v7.widget.Toolbar toolbar) {
@@ -455,6 +459,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void nullsub(ScheduleFragment.Period[] periods, int pernum) {
+        // todo PF1
         period = scheduleFragment.period;
         periodFragment = new PeriodFragment();
         periodFragment.period = period;
@@ -466,14 +471,21 @@ public class MainActivity extends AppCompatActivity {
             loadFragment(periodFragment);
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
     }
-    @Override
-    public void onBackPressed() {
+
+    public void printStack() {
         log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
         List<Fragment> a = getSupportFragmentManager().getFragments();
         for (int i = 0; i < a.size(); i++) {
             log(a.get(i).toString());
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        log("onBackPressed");
+        printStack();
         //log("top: " + getStackTop());
+        List<Fragment> a = getSupportFragmentManager().getFragments();
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
@@ -516,10 +528,30 @@ public class MainActivity extends AppCompatActivity {
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
         if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
             || getStackTop() instanceof Countcoff)) {
-            if (mode0)
+            log("heeeree");
+//            if(!(getStackTop() instanceof PageFragment))
+//                getSupportFragmentManager().popBackStack();
+//            if(getStackTop() instanceof PeriodFragment != mode0)
+//                getSupportFragmentManager().popBackStack();
+            if (mode0) {
+//                getSupportFragmentManager()
+//                        .beginTransaction()
+//                        .detach(periodFragment1)
+//                        .attach(periodFragment)
+//                        .commit();
+//                periodFragment1.view.setVisibility(View.INVISIBLE);
+                //getSupportFragmentManager().popBackStack("PeriodFragment1", FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 loadFragment(periodFragment);
-            else
+            } else {
+//                getSupportFragmentManager()
+//                        .beginTransaction()
+//                        .detach(periodFragment)
+//                        .attach(periodFragment1)
+//                        .commit();
+                //periodFragment1.view.setVisibility(View.VISIBLE);
+                //getSupportFragmentManager().popBackStack("PeriodFragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 loadFragment(periodFragment1);
+            }
         }
     }
 

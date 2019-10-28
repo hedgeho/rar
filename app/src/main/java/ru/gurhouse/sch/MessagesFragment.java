@@ -1298,7 +1298,12 @@ public class MessagesFragment extends Fragment {
         ((MainActivity) getContext()).set_visible(false);
         transaction.replace(R.id.chat_container, fragment);
         transaction.addToBackStack(null);
-        transaction.commit();
+        try {
+            transaction.commit();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            log(e.toString());
+        }
     }
 
     public View getView() {

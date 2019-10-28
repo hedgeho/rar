@@ -301,8 +301,6 @@ public class Countcoff extends Fragment {
                 Button btn1 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(0));
                 Button btn2 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(1));
                 final Button btn3 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(2));
-                final TextView txt1 = ((TextView) ((ViewGroup) item).getChildAt(0));
-                TextView txt2 = ((TextView) ((ViewGroup) item).getChildAt(1));
                 Spinner spinner = ((Spinner) ((ViewGroup) item).getChildAt(2));
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, marks);
                 spinner.setGravity(Gravity.CENTER);
@@ -435,11 +433,6 @@ public class Countcoff extends Fragment {
         }
         if (newAvg != avg)
             linearLayout.addView(txt0);
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
     }
 
     @Override

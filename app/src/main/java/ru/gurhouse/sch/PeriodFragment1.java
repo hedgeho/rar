@@ -84,6 +84,7 @@ public class PeriodFragment1 extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        log("onCreateView PerF1: " + this);
         if(getActivity() != null)
             context = getActivity();
         first_time = false;
@@ -130,6 +131,7 @@ public class PeriodFragment1 extends Fragment {
     }
 
     void show() {
+        log("show() PerF1");
         shown = true;
         if (getContext().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
@@ -237,6 +239,7 @@ public class PeriodFragment1 extends Fragment {
     boolean recreating = false;
     @Override
     public void onResume() {
+        log("onResume PerF");
         if(getContext() != null) {
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
@@ -250,6 +253,11 @@ public class PeriodFragment1 extends Fragment {
             recreating = true;
         } else
             recreating = false;
+
+        if(((MainActivity) getContext()).getStackTop() instanceof PeriodFragment)
+            view.setVisibility(View.INVISIBLE);
+        else
+            view.setVisibility(View.VISIBLE);
         super.onResume();
     }
 
@@ -285,6 +293,8 @@ public class PeriodFragment1 extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(final MenuItem item) {
+        if(((MainActivity) getContext()).getStackTop() instanceof PeriodFragment)
+            return super.onOptionsItemSelected(item);
         switch (item.getItemId()) {
             // under construction - screen showing total marks of the user (disabled)
             case 2:
@@ -296,6 +306,7 @@ public class PeriodFragment1 extends Fragment {
                 transaction.commit();
                 break;
             case 3:
+                //((AppCompatActivity) getContext()).getSupportFragmentManager().popBackStack();
                 Intent intent = new Intent(getContext(), SettingsActivity.class);
                 startActivityForResult(intent, 0);
                 break;
