@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
                         ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), new Date(intent.getLongExtra("time", 0)),
                                 intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
-                                intent.getStringExtra("sender_fio"), files);
+                                intent.getStringExtra("sender_fio"), files,true);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

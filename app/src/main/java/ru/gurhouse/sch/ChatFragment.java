@@ -59,6 +59,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.util.ArrayUtils;
+
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.HttpClient;
@@ -83,8 +85,11 @@ import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import static android.support.v4.content.ContextCompat.checkSelfPermission;
@@ -107,9 +112,9 @@ public class ChatFragment extends Fragment {
     private Handler h;
     private boolean uploading = false;
     private int last_msg = -1;
-    private ArrayList<Integer> first_msgs;
+    private List<Integer> first_msgs;
     private ScrollView scroll;
-    private ArrayList<File> attach = new ArrayList<>();
+    private List<File> attach = new ArrayList<>();
     private boolean scrolled = false, first_time = true;
     private MenuItem itemToEnable = null;
 
@@ -270,7 +275,7 @@ public class ChatFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
-    void newMessage(String text, Date time, int sender_id, int thread_id, String sender_fio, ArrayList<Attach> attach) {
+    void newMessage(String text, Date time, int sender_id, int thread_id, String sender_fio, List<Attach> attach, boolean toBottom) {
         log("new message in ChatFragment");
         log("notif thread: " + thread_id + ", this thread id: " + this.threadId);
         if(thread_id != this.threadId && sender_id != thread_id) {
@@ -299,6 +304,7 @@ public class ChatFragment extends Fragment {
             tv.setText(sender_fio);
             tv.setVisibility(View.VISIBLE);
         }
+
         if(attach != null && attach.size() == 1 && attach.get(0).type.contains("image") && text.isEmpty()){
             LinearLayout layout = item.findViewById(R.id.layout);
             layout.setBackground(null);
@@ -313,6 +319,7 @@ public class ChatFragment extends Fragment {
             tv.setText(Html.fromHtml(text));
         }
         for (int i = 0; attach != null && i < attach.size(); i++) {
+            if(attach.get(i) == null) continue;
             if(attach.get(i).type.contains("image")){
                 ImageView image = new ImageView(context);
                 image.setPadding(15,15,15,15);
@@ -392,7 +399,8 @@ public class ChatFragment extends Fragment {
         tv.setText(time.getHours() + ":" + time.getMinutes());
         log("person_id: " + PERSON_ID + ", sender: " + sender_id);
 
-        container.addView(item);
+        if(toBottom) container.addView(item);
+        else container.addView(item,0);
         scroll.post(() -> scroll.scrollTo(0, scroll.getChildAt(0).getBottom()));
     }
 
@@ -436,12 +444,12 @@ public class ChatFragment extends Fragment {
                             @Override
                             public void handleMessage(Message yoyyoyoy) {
                                 final LinearLayout container = view.findViewById(R.id.main_container);
-                                View item;
-                                TextView tv, tv_attach;
-                                Calendar cal = getInstance(), cal1 = getInstance();
-                                int i = 0;
+//                                View item;
+//                                TextView tv, tv_attach;
+//                                Calendar cal = getInstance(), cal1 = getInstance();
+//                                int i = 0;
                                 for (Msg msg : messages) {
-                                    newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender, new ArrayList<>(msg.files));
+                                    newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender, msg.files,false);
 //                                    if(PERSON_ID == msg.user_id) {
 ////                                        item = inflater.inflate(R.layout.chat_item, container, false);
 ////                                    } else {
@@ -629,7 +637,7 @@ public class ChatFragment extends Fragment {
                                             container.addView(item);
                                         }
                                     }
-                                    newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files);
+                                    newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files, true);
                                 }
                                 uploading = false;
                                 first_msgs.remove(first_msgs.size() - 1);
@@ -715,7 +723,7 @@ public class ChatFragment extends Fragment {
                                 container.addView(item);
                             }
                         }
-                        newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files);
+                        newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files, true);
                     }
                     view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
 
@@ -1010,7 +1018,7 @@ public class ChatFragment extends Fragment {
                             files.add(new Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
                                     tmp1.getString("fileName"), tmp1.getString("fileType")));
                         }
-                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "", new Date(jsonObject.getLong("createDate")), jsonObject.getInt("senderId"), jsonObject.getInt("threadId"), jsonObject.getString("senderFio"), jsonObject.has("attachInfo") ? files : new ArrayList<>());
+                        newMessage(jsonObject.has("msg") ? jsonObject.getString("msg") : "", new Date(jsonObject.getLong("createDate")), jsonObject.getInt("senderId"), jsonObject.getInt("threadId"), jsonObject.getString("senderFio"), jsonObject.has("attachInfo") ? files : new ArrayList<>(),true);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -1045,27 +1053,27 @@ public class ChatFragment extends Fragment {
 
     private class Msg {
         Date time;
-        ArrayList<Attach> files = new ArrayList<>();
+        List<Attach> files = new ArrayList<>();
         int user_id, msg_id;
         String text, sender;
     }
 
     public static class Attach {
-        public int fileId, size;
-        public String name, type;
+        public int fileId = 0, size = 0;
+        public String name = "", type = "";
 
         Attach(int fileId, int size, String name, String type) {
             this.fileId = fileId;
             this.size = size;
-            this.name = name;
-            this.type = type;
+            if(name != null) this.name = name;
+            if(type != null) this.type = type;
         }
     }
 
     public Activity getContext() {return (context==null?getActivity():context);}
 
     public static String transliterate(String srcstring) {
-        ArrayList<String> copyTo = new ArrayList<String>();
+        List<String> copyTo = new ArrayList<>();
 
         String cyrcodes = "";
         for (int i='А';i<='Я';i++) {
