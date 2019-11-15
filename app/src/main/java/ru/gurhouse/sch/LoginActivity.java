@@ -465,7 +465,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 rd.close();
                 //log("flag \n" + result.toString());
-                log(result.toString());
+                log("RRR: " + result.toString());
                 return result.toString();
             } else
                 return "";

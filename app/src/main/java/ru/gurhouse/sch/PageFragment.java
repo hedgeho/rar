@@ -63,6 +63,7 @@ public class PageFragment extends Fragment {
                     ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
                 }
             }*/
+
             tableLayout.setColumnStretchable(0, true);
             tableLayout.setColumnShrinkable(0, true);
             TableRow tbrow1 = new TableRow(getContext());

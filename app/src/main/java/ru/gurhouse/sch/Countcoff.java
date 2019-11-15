@@ -52,15 +52,14 @@ import static ru.gurhouse.sch.LoginActivity.loge;
 public class Countcoff extends Fragment {
 
     String subname;
-    String periodname = "4 четверть"; // пока так
+    String periodname = "4 четверть";
     ArrayList<PeriodFragment.Cell> cells;
     int j;
     int dell = 7;
     String[] period;
     int pernum = 6;
-    Double avg;
+    double avg;
     Toolbar toolbar;
-    boolean newm = false;
     String[] strings;
     TextView txt1, txt0, txt, txt2;
     AlertDialog.Builder alr, alr1, alr2;
@@ -133,6 +132,14 @@ public class Countcoff extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         if(getActivity() != null)
             context = getActivity();
+
+        if(avg != 0.0d) {
+            if (pernum == 3 || pernum == 4) {
+                pernum = 1;
+            } else if (pernum == 5 || pernum == 6) {
+                pernum = 2;
+            }
+        }
 
         View v = inflater.inflate(R.layout.fragment_countcoff, container, false);
         periodname = period[pernum];
@@ -238,10 +245,11 @@ public class Countcoff extends Fragment {
             getContext().onBackPressed();
         }
 
+
         alr = new AlertDialog.Builder(getContext());
         alr.create();
         alr.setSingleChoiceItems(strings, j, myClickListener);
-        alr.setTitle("Выбирете предмет");
+        alr.setTitle("Выберите предмет");
         alr.setPositiveButton("ok", myClickListener);
         txt2.setText(subname);
         txt2.setOnClickListener(v12 -> alr.show());
@@ -500,7 +508,7 @@ public class Countcoff extends Fragment {
                                     null));
                     if(!object.has("result"))
                         log("lol no result: " + object.toString());
-                    log(object.toString());
+                    log("RR: " + object.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
                         PeriodFragment.Subject subject = new PeriodFragment.Subject();

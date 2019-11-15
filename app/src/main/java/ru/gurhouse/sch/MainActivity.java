@@ -23,7 +23,6 @@ import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -362,7 +361,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void set(ScheduleFragment.Period[] periods, int pernum, int t) {
+        set(periods, pernum, t, true);
+    }
+    void set(ScheduleFragment.Period[] periods, int pernum, int t, boolean show) {
         period = scheduleFragment.period;
+        if(!show) {
+            periodFragment.periods = periods;
+            periodFragment1.periods = periods;
+            return;
+        }
         if (t == 1) {
             periodFragment1 = new PeriodFragment1();
             periodFragment1.period = period;

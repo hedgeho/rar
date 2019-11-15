@@ -56,7 +56,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 }
                 s.delete(s.length() - 2, s.length());
                 s.append("]");
-                log(s.toString());
+                log("not: " + s.toString());
                 log("deleted " + count + " notification" + (count != 1 ? "s" : ""));
 
                 new Thread() {

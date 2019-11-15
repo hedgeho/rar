@@ -131,7 +131,7 @@ public class PeriodFragment1 extends Fragment {
     }
 
     void show() {
-        log("show() PerF1");
+        log("show() PerF1, pernum " + pernum);
         shown = true;
         if (getContext().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
@@ -239,7 +239,7 @@ public class PeriodFragment1 extends Fragment {
     boolean recreating = false;
     @Override
     public void onResume() {
-        log("onResume PerF");
+        log("onResume PerF1");
         if(getContext() != null) {
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
@@ -254,7 +254,7 @@ public class PeriodFragment1 extends Fragment {
         } else
             recreating = false;
 
-        if(((MainActivity) getContext()).getStackTop() instanceof PeriodFragment)
+        if(getContext().getSharedPreferences("pref", 0).getBoolean("period_normal", false))
             view.setVisibility(View.INVISIBLE);
         else
             view.setVisibility(View.VISIBLE);

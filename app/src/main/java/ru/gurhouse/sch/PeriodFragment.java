@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -152,7 +151,7 @@ public class PeriodFragment extends Fragment {
 
     void show() {
         shown = true;
-        log("show() PerF");
+        log("show() PerF, pernum " + pernum);
         if (getContext().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
             getContext().getSharedPreferences("pref", 0).edit().putString("firstperiod", "dvssc").apply();
@@ -347,10 +346,11 @@ public class PeriodFragment extends Fragment {
 //                view = getContext().getLayoutInflater().inflate(R.layout.diary, getContext().findViewById(R.id.frame), false);
 //            show();
 //        }
-        if(((MainActivity) getContext()).getStackTop() instanceof PeriodFragment1)
-            view.setVisibility(View.INVISIBLE);
-        else
+        //((MainActivity) getContext()).getStackTop() instanceof PeriodFragment1)
+        if(getContext().getSharedPreferences("pref", 0).getBoolean("period_normal", false))
             view.setVisibility(View.VISIBLE);
+        else
+            view.setVisibility(View.INVISIBLE);
         super.onResume();
     }
 
