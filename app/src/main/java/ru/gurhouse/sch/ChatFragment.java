@@ -316,7 +316,7 @@ public class ChatFragment extends Fragment {
         }else if(attach != null && !attach.isEmpty() && text.isEmpty()){
             tv.setVisibility(GONE);
         }else {
-            tv.setText(Html.fromHtml(text));
+            tv.setText(Html.fromHtml(text.replace("\n","<br>")));
         }
         for (int i = 0; attach != null && i < attach.size(); i++) {
             if(attach.get(i) == null) continue;
