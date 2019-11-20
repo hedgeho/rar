@@ -360,32 +360,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    void set(ScheduleFragment.Period[] periods, int pernum, int t) {
-        set(periods, pernum, t, true);
+    void set(ScheduleFragment.Period[] periods, int pernum) {
+        set(periods, pernum, true);
     }
-    void set(ScheduleFragment.Period[] periods, int pernum, int t, boolean show) {
+    void set(ScheduleFragment.Period[] periods, int pernum, boolean show) {
         period = scheduleFragment.period;
         if(!show) {
             periodFragment.periods = periods;
             periodFragment1.periods = periods;
             return;
         }
-        if (t == 1) {
-            periodFragment1 = new PeriodFragment1();
-            periodFragment1.period = period;
-            periodFragment1.pernum = pernum;
-            periodFragment1.periods = periods;
-            if (state == 1 && !mode0)
-                loadFragment(periodFragment1);
-        } else {
-            periodFragment = new PeriodFragment();
-            periodFragment.period = period;
-            periodFragment.pernum = pernum;
-            periodFragment.periods = periods;
-            periodFragment.mode = !mode0;
-            if (state == 1 && mode0)
-                loadFragment(periodFragment);
-        }
+        periodFragment1 = new PeriodFragment1();
+        periodFragment1.period = period;
+        periodFragment1.pernum = pernum;
+        periodFragment1.periods = periods;
+        if (state == 1 && !mode0)
+            loadFragment(periodFragment1);
+        periodFragment = new PeriodFragment();
+        periodFragment.period = period;
+        periodFragment.pernum = pernum;
+        periodFragment.periods = periods;
+        periodFragment.mode = !mode0;
+        if (state == 1 && mode0)
+            loadFragment(periodFragment);
+
         TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
        // TheSingleton.getInstance().setDays(days);
     }
@@ -535,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
         if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
             || getStackTop() instanceof Countcoff)) {
-            log("heeeree");
+            log("heeeree, Mode0=" + mode0);
 //            if(!(getStackTop() instanceof PageFragment))
 //                getSupportFragmentManager().popBackStack();
 //            if(getStackTop() instanceof PeriodFragment != mode0)
@@ -548,6 +546,7 @@ public class MainActivity extends AppCompatActivity {
 //                        .commit();
 //                periodFragment1.view.setVisibility(View.INVISIBLE);
                 //getSupportFragmentManager().popBackStack("PeriodFragment1", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                loadFragment(periodFragment1);
                 loadFragment(periodFragment);
             } else {
 //                getSupportFragmentManager()
@@ -557,6 +556,7 @@ public class MainActivity extends AppCompatActivity {
 //                        .commit();
                 //periodFragment1.view.setVisibility(View.VISIBLE);
                 //getSupportFragmentManager().popBackStack("PeriodFragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                loadFragment(periodFragment);
                 loadFragment(periodFragment1);
             }
         }

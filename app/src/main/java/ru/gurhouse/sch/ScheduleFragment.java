@@ -28,7 +28,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
-import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -406,32 +405,30 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     periods[5].datefinish = periods[6].datestart;
 
                     if (datenow.getTime() >= periods[3].datestart && datenow.getTime() <= periods[3].datefinish) {
-                        Download2(periods[3].id, 3, true, true);
+                        Download2(3);
                         while(syncing) {
                             Thread.sleep(10);
                         }
-                        //Download2(periods[4].id, 4, true, true);
-                        Download2(periods[1].id, 1, true, true, false);
+                        Download2(1,  false);
                     } else if (datenow.getTime() >= periods[4].datestart && datenow.getTime() <= periods[4].datefinish) {
-                        Download2(periods[4].id, 4, true, true);
+                        Download2(4/*, true, true*/);
                         while(syncing) {
                             Thread.sleep(10);
                         }
-                        //Download2(periods[3].id, 3, true, true);
-                        Download2(periods[1].id, 1, true, true, false);
+                        Download2(1, false);
 
                     } else if (datenow.getTime() >= periods[5].datestart && datenow.getTime() <= periods[5].datefinish) {
-                        Download2(periods[5].id, 5, true, true);
+                        Download2(5);
                         while(syncing) {
                             Thread.sleep(10);
                         }
-                        Download2(periods[2].id, 2, true, true, false);
+                        Download2(2, false);
                     } else if (datenow.getTime() >= periods[6].datestart && datenow.getTime() <= periods[6].datefinish){
-                        Download2(periods[6].id, 6, true, true);
+                        Download2(6);
                         while(syncing) {
                             Thread.sleep(10);
                         }
-                        Download2(periods[2].id, 2, true, true, false);
+                        Download2(2, false);
                     } // else summer holidays / other year
                 } catch (LoginActivity.NoInternetException e) {
                     getContext().runOnUiThread(() ->
@@ -446,13 +443,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     JSONObject object1 = null;
     boolean first_downl = true;
     static boolean syncing = false;
-    void Download2(final int id, final int h, final boolean isone, final boolean istwo) {
-        Download2(id, h, isone, istwo, true);
+    void Download2(final int h) {
+        Download2(h,true);
     }
-    void Download2(final int id, final int pernum, final boolean isone, final boolean istwo, final boolean show) {
+    void Download2(final int pernum, final boolean show) {
         if(syncing) return;
         syncing = true;
         shown = false;
+
+        final int id = periods[pernum].id;
+
         log("SchF: Download2(), period " + pernum + ", show " + show);
         if(first_downl && TheSingleton.getInstance().t1 == 0) {
             log("start");
@@ -467,6 +467,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         periods[pernum].subjects = new ArrayList<>();
         periods[pernum].lins = new ArrayList<>();
         periods[pernum].cells = new ArrayList<>();
+        object1 = null;
         new Thread() {
             @Override
             public void run() {
@@ -555,14 +556,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             periods[pernum].lins = new ArrayList<>();
                             periods[pernum].cells = new ArrayList<>();
                             syncing = false;
-                            Download2(id, pernum, isone, istwo, show);
+                            Download2(pernum, show);
                         } else {
                             periods[pernum].nullsub = true;
                             ((MainActivity) getContext()).nullsub(periods, pernum);
                         }
                         log("SchF/Download2: nullsub, pernum - " + pernum);
                     } else {
-
                         String s1 = periods[pernum].cells.get(0).date;
                         String s2 = periods[pernum].cells.get(periods[pernum].cells.size() - 1).date;
                         DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
@@ -975,10 +975,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         log("f " + ef);
                         log(3);
                         log("matvey: " + matvey);
-                        if (isone)
-                            ((MainActivity) getContext()).set(periods, pernum, 1, show);
-                        if (istwo)
-                            ((MainActivity) getContext()).set(periods, pernum, 2, show);
+                        ((MainActivity) getContext()).set(periods, pernum, show);
                         READY = true;
 
                         log("Download2() ended");
@@ -991,12 +988,19 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     syncing = false;
 
+                    log("AFTER : ");
+                    for (int i = 0; i < periods.length; i++) {
+                        if (periods[i].days != null && periods[i].days.size() != 0 && periods[i].days.get(0).lessons != null && periods[i].days.get(0).lessons.size() != 0)
+                            log(i + " " + periods[i].name + ", first lesson: " + periods[i].days.get(0).lessons.get(0).name);
+                        else
+                            log(i + " " + periods[i].days);
+                    }
+
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (LoginActivity.NoInternetException e) {
                     syncing = false;
-                    getContext().runOnUiThread(() -> {
-                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
-                    });
+                    getContext().runOnUiThread(() ->
+                            Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     e.printStackTrace();
                     loge("Download2() " + e.toString());
@@ -1005,7 +1009,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     periods[pernum].lins = new ArrayList<>();
                     periods[pernum].cells = new ArrayList<>();
                     syncing = false;
-                    Download2(id, pernum, isone, istwo, show);
+                    Download2(pernum, show);
                 }
             }
         }.start();
@@ -1062,10 +1066,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 }
                 break;
             case 4:
-//                loge("current item: " + getNum(periods, pageFragments.get(pager.getCurrentItem()-1).c)
-//                  + ", " + pernum);
                 int num = getNum(periods, pageFragments.get(pager.getCurrentItem()-1).c);
-                Download2(periods[num].id, num, false, true, false);
+                Download2(num, false);
 //                final int current = pager.getCurrentItem();
 //                new Thread(() -> {
 //                    try {

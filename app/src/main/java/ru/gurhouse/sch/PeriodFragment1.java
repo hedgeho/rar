@@ -54,7 +54,7 @@ public class PeriodFragment1 extends Fragment {
             if (which == Dialog.BUTTON_POSITIVE) {
                 pernum = lv.getCheckedItemPosition();
                 if (periods[pernum].subjects == null) {
-                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
+                    ((MainActivity) getContext()).scheduleFragment.Download2(pernum/*, true, false*/);
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
@@ -70,7 +70,7 @@ public class PeriodFragment1 extends Fragment {
                         ((MainActivity) getContext()).nullsub(periods, pernum);
                     } else {
                         log("PerF: show()");
-                        ((MainActivity) getContext()).set(periods, pernum, 1);
+                        ((MainActivity) getContext()).set(periods, pernum);
                         show();
                     }
                 }
@@ -206,7 +206,7 @@ public class PeriodFragment1 extends Fragment {
     }
 
     void refresh() {
-        ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, true, false);
+        ((MainActivity) getContext()).scheduleFragment.Download2(pernum/*, true, false*/);
     }
 
     public void SwitchToSubjectFragment(Double avg, ArrayList<PeriodFragment.Cell> cells, String name, String rating, String totalmark) {

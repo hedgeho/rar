@@ -57,7 +57,7 @@ public class PeriodFragment extends Fragment {
                 pernum = lv.getCheckedItemPosition();
                 if (periods[pernum].subjects == null) {
                     log("PerF: change of period and download (" + pernum + "), name - " + periods[pernum].name + ", id - " + periods[pernum].id);
-                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
+                    ((MainActivity) getContext()).scheduleFragment.Download2(pernum/*, false, true*/);
                     periodname = periods[pernum].name;
                     alr.setSingleChoiceItems(period, pernum, myClickListener);
                     toolbar.setTitle(periodname);
@@ -74,12 +74,13 @@ public class PeriodFragment extends Fragment {
                         ((MainActivity) getContext()).nullsub(periods, pernum);
                     } else {
                         log("PerF: show()");
+                        ((MainActivity) getContext()).set(periods, pernum);
                         if (((MainActivity) getContext()).getMode0()) {
                             log("PerF");
-                            ((MainActivity) getContext()).set(periods, pernum, 2);
+
                         } else {
                             log("PerF1");
-                            ((MainActivity) getContext()).set(periods, pernum, 1);
+
                         }
                     }
                 }
@@ -209,8 +210,8 @@ public class PeriodFragment extends Fragment {
                     txt2.setText(" ");
             }
             final Subject sub = periods[pernum].subjects.get(i);
-            txt2.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
-            txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
+            txt2.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark));
+            txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark));
             layout2.addView(txt2);
             layout1.addView(txt1);
 
@@ -300,10 +301,10 @@ public class PeriodFragment extends Fragment {
     }
 
     void refresh() {
-        ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
+        ((MainActivity) getContext()).scheduleFragment.Download2(pernum);
     }
 
-    public void SwitchToSubjectFragment(Double avg, ArrayList<Cell> cells, String name, String rating, String totalmark) {
+    public void SwitchToSubjectFragment(Double avg, String name, String rating, String totalmark) {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         SubjectFragment fragment = new SubjectFragment();
         transaction.replace(R.id.frame, fragment);

@@ -45,7 +45,8 @@ public class PageFragment extends Fragment {
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
         } else {
-            /*boolean ok = true;
+/*
+            boolean ok = true;
             if(periods != null) {
                 int pernum = 0;
                 for (ScheduleFragment.Period period : periods) {
@@ -60,7 +61,7 @@ public class PageFragment extends Fragment {
                     }
                 }
                 if(!ok) {
-                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
+                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, true, true);
                 }
             }*/
 
