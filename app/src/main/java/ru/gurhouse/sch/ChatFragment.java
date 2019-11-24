@@ -84,6 +84,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -398,7 +399,7 @@ public class ChatFragment extends Fragment {
         }
 
         tv = item.findViewById(R.id.tv_time);
-        tv.setText(time.getHours() + ":" + time.getMinutes());
+        tv.setText(new SimpleDateFormat("HH:mm", Locale.ENGLISH).format(time));
         log("person_id: " + PERSON_ID + ", sender: " + sender_id);
 
         if(toBottom) container.addView(item);
