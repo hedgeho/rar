@@ -548,6 +548,11 @@ public class Countcoff extends Fragment {
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
                         PeriodFragment.Cell cell = new PeriodFragment.Cell();
+                        if(object.has("attends")){
+                            JSONArray as = object.getJSONArray("attends");
+                            JSONObject a = as.getJSONObject(0);
+
+                        }
                         if (object1.has("lptName"))
                             cell.lptname = object1.getString("lptName");
                         if (object1.has("markDate"))

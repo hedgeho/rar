@@ -551,6 +551,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 for (int i = 0; i < arraydaylessons.length(); i++) {
                     object1 = arraydaylessons.getJSONObject(i);
                     cell = new PeriodFragment.Cell();
+                    if(object1.has("attends")){
+                        cell.attends = new PageFragment.Attends();
+                        JSONArray ar = object1.getJSONArray("attends");
+                        JSONObject o = (JSONObject) ar.get(0);
+                        cell.attends.name = o.getString("name");
+                        cell.attends.color = "60" + o.getString("color");
+                    }
                     if (object1.has("lptName"))
                         cell.lptname = object1.getString("lptName");
                     if (object1.has("markDate"))
@@ -663,47 +670,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                         break;
                                 }
                                 thisday.lessons = new ArrayList<>();
-//                                log("added day " + date.toString());
                                 periods[pernum].days
                                         .add(thisday);
+                                thisday.odods = new ArrayList<>();
                             }
-                        /*if (c.get(Calendar.DAY_OF_YEAR) != c1.get(Calendar.DAY_OF_YEAR)) {
-                            index++;
-                            thisday = new PeriodFragment.Day();
-                            //thisday.odods = new ArrayList<>();
-                            thisday.day = String.valueOf(date);
-                            thisday.daymsec = date1;
-                            Date datathis = new Date();
-                            datathis.setTime(date1);
-                            SimpleDateFormat dateFormat2 = new SimpleDateFormat("EEE", Locale.ENGLISH);
-                            String dayOfTheWeek = dateFormat2.format(datathis);
-                            switch (dayOfTheWeek) {
-                                case "Mon":
-                                    thisday.numday = 1;
-                                    break;
-                                case "Tue":
-                                    thisday.numday = 2;
-                                    break;
-                                case "Wed":
-                                    thisday.numday = 3;
-                                    break;
-                                case "Thu":
-                                    thisday.numday = 4;
-                                    break;
-                                case "Fri":
-                                    thisday.numday = 5;
-                                    break;
-                                case "Sat":
-                                    thisday.numday = 6;
-                                    break;
-                                case "Sun":
-                                    thisday.numday = 7;
-                                    break;*/
-//                            thisday.lessons = new ArrayList<>();
-//                            periods[pernum].days.add(thisday);
-//                        }
-//
-//                        if (isODOD == 0) {
                             lesson = new PeriodFragment.Lesson();
                             lesson.id = object2.getLong("id");
                             lesson.numInDay = object2.getInt("numInDay");
@@ -746,15 +716,15 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             lesson.homeWork.stringwork = builder.toString();
                             periods[pernum].days.get(index).lessons.add(lesson);
                         }
-                        /*else{
+                        else{
                             PeriodFragment.ODOD odod = new PeriodFragment.ODOD();
                             odod.duration = object2.getInt("duration");
                             odod.ODODid = object2.getInt("isODOD");
                             odod.daymsec = object2.getLong("date");
                             odod.day = object2.getString("date_d");
                             odod.name = object2.getJSONObject("clazz").getString("name");
-                            //thisday.odods.add(odod);
-                        }*/
+                            periods[pernum].days.get(index).odods.add(odod);
+                        }
                         day1 = date1;
                     }
 
@@ -763,6 +733,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         for (int j = 0; j < periods[pernum].cells.size(); j++) {
                             cell = periods[pernum].cells.get(j);
                             s1 = cell.date;
+                            PageFragment.Attends at = cell.attends;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                             d1 = format.parse(s1).getTime();
                             if (cell.mktWt != 0) {
@@ -834,20 +805,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                     }
 
                                                 }
-//                                                if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
-//                                                    periods[pernum].subjects.get(l).shortname = "Общест.";
-//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
-//                                                    periods[pernum].subjects.get(l).shortname = "Физ-ра";
-//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
-//                                                    periods[pernum].subjects.get(l).shortname = "Информ.";
-//                                                else if (periods[pernum].subjects.get(l).shortname != null)
-//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
-//                                                else
-//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
-//                                            }
                                             }
                                             Collections.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid, o2.unitid));
                                             periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
+                                            periods[pernum].days.get(i).lessons.get(k).attends = at;
                                         }
                                     }
                                 }
