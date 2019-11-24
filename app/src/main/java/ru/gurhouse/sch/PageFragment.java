@@ -45,7 +45,6 @@ public class PageFragment extends Fragment {
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
         } else {
-/*
             boolean ok = true;
             if(periods != null) {
                 int pernum = 0;
@@ -61,17 +60,20 @@ public class PageFragment extends Fragment {
                     }
                 }
                 if(!ok) {
-                    ((MainActivity) getContext()).scheduleFragment.Download2(periods[pernum].id, pernum, true, true);
+                    ((MainActivity) getContext()).scheduleFragment.Download2(pernum, false);
                 }
-            }*/
-
+            }
             tableLayout.setColumnStretchable(0, true);
             tableLayout.setColumnShrinkable(0, true);
             TableRow tbrow1 = new TableRow(getContext());
             tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
             final TextView tv1 = new TextView(getContext());
-            tv1.setText("Уроков нет");
+            if(ok) {
+                tv1.setText("Уроков нет");
+            } else {
+                tv1.setText("Загрузка...");
+            }
             tv1.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             tbrow1.addView(tv1);

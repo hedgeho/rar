@@ -48,6 +48,7 @@ import java.util.Locale;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.MainActivity.TYPE_SEM;
 
 public class Countcoff extends Fragment {
 
@@ -59,6 +60,7 @@ public class Countcoff extends Fragment {
     String[] period;
     int pernum = 6;
     double avg;
+    boolean periodType;
     Toolbar toolbar;
     String[] strings;
     TextView txt1, txt0, txt, txt2;
@@ -110,7 +112,6 @@ public class Countcoff extends Fragment {
                         log("avg: " + avg);
                         alr2.setSingleChoiceItems(period, pernum, myClickListener);
                         makeMarks();
-//                        countNewCoff();
                     });
                 } else {
                     periodname = periods[pernum].name;
@@ -133,12 +134,15 @@ public class Countcoff extends Fragment {
         if(getActivity() != null)
             context = getActivity();
 
-        if(avg != 0.0d) {
+        if(periodType == TYPE_SEM) {
             if (pernum == 3 || pernum == 4) {
                 pernum = 1;
             } else if (pernum == 5 || pernum == 6) {
                 pernum = 2;
             }
+            String[] tmp = new String[period.length-4];
+            System.arraycopy(period, 0, tmp, 0, period.length-4);
+            period = tmp;
         }
 
         View v = inflater.inflate(R.layout.fragment_countcoff, container, false);
@@ -403,13 +407,13 @@ public class Countcoff extends Fragment {
     }
 
     void countNewCoff() {
-        Double d = 0.;
-        Double f = 0.;
+        double d = 0.;
+        double f = 0.;
         for (int i = 0; i < cells.size(); i++) {
             if (cells.get(i).markvalue != null && !cells.get(i).markvalue.equals(" "))
                 if (cells.get(i).markvalue.equals("1") || cells.get(i).markvalue.equals("2") || cells.get(i).markvalue.equals("3")
                         || cells.get(i).markvalue.equals("4") || cells.get(i).markvalue.equals("5")) {
-                    d += Double.valueOf(cells.get(i).markvalue) * cells.get(i).mktWt;
+                    d += Double.parseDouble(cells.get(i).markvalue) * cells.get(i).mktWt;
                     f += cells.get(i).mktWt;
                 }
         }
@@ -422,7 +426,7 @@ public class Countcoff extends Fragment {
         linearLayout.removeAllViews();
         txt = new TextView(getContext());
         txt0 = new TextView(getContext());
-        txt.setText(String.format(Locale.UK, "%.2f", Double.valueOf(s) - avg));
+        txt.setText(String.format(Locale.UK, "%.2f", Double.parseDouble(s) - avg));
         txt0.setText(s);
         txt1.setText(String.valueOf(avg));
         txt.setPadding(30, 0, 30, 0);

@@ -465,7 +465,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 rd.close();
                 //log("flag \n" + result.toString());
-                log("RRR: " + result.toString());
+                log("connect result: " + result.toString());
                 return result.toString();
             } else
                 return "";
@@ -484,7 +484,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     static class NoInternetException extends Exception {
         NoInternetException() {
             loge("NoInternetException created");
+            StackTraceElement[] s = getStackTrace();
+            loge("\tat " + s[s.length-1].toString());
             System.err.println("NO INTERNET");
+
         }
     }
 }

@@ -51,6 +51,9 @@ import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final boolean TYPE_Q = true; // четверти
+    public static final boolean TYPE_SEM = false; // полугодия
+
     private PeriodFragment periodFragment;
     private PeriodFragment1 periodFragment1;
     private MessagesFragment messagesFragment;
@@ -383,8 +386,6 @@ public class MainActivity extends AppCompatActivity {
         periodFragment.mode = !mode0;
         if (state == 1 && mode0)
             loadFragment(periodFragment);
-
-        TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
        // TheSingleton.getInstance().setDays(days);
     }
 
@@ -474,7 +475,52 @@ public class MainActivity extends AppCompatActivity {
         periodFragment.mode = !mode0;
         if (state == 1)
             loadFragment(periodFragment);
-        TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
+    }
+
+    public void updateSubjects(ScheduleFragment.Period[] periods, int pernum) {
+        if(pernum < 3)
+            return;
+        ArrayList<PeriodFragment.Subject> array = periods[pernum].subjects, bigarray;
+        if (pernum == 3 || pernum == 4)
+            bigarray = periods[1].subjects;
+        else
+            bigarray = periods[2].subjects;
+        try {
+            JSONArray subjects = new JSONArray();
+            JSONObject object;
+            ArrayList<PeriodFragment.Cell> cells;
+            double d;
+            double f;
+            for (int i = 0; i < array.size(); i++) {
+                d = 0;
+                f = 0;
+                object = new JSONObject();
+                if(array.get(i).periodType == TYPE_SEM)
+                    cells = bigarray.get(i).cells;
+                else
+                    cells = array.get(i).cells;
+                object.put("name", array.get(i).name);
+                object.put("unitid", array.get(i).unitid);
+                for (int j = 0; j < cells.size(); j++) {
+                    if(cells.get(j).markvalue != null)
+                        if (cells.get(j).markvalue != null && !cells.get(j).markvalue.equals(" "))
+                            if (cells.get(j).markvalue.equals("1") || cells.get(j).markvalue.equals("2")
+                                    || cells.get(j).markvalue.equals("3") || cells.get(j).markvalue.equals("4")
+                                    || cells.get(j).markvalue.equals("5")) {
+                                d += Double.parseDouble(cells.get(j).markvalue) * cells.get(j).mktWt;
+                                f += cells.get(j).mktWt;
+                            }
+                }
+
+                object.put("d", d);
+                object.put("f", f);
+                subjects.put(object);
+            }
+            getSharedPreferences("pref", MODE_PRIVATE).edit().putString("subjects", subjects.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+            loge(e);
+        }
     }
 
     public void printStack() {

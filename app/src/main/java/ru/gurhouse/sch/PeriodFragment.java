@@ -437,6 +437,7 @@ public class PeriodFragment extends Fragment {
         double avg = 0;
         int unitid;
         ArrayList<Cell> cells;
+        boolean periodType;
 
         Subject() {
         }
@@ -518,6 +519,7 @@ public class PeriodFragment extends Fragment {
                     fragment2.pernum = pernum;
                     fragment2.subname = periods[pernum].subjects.get(0).name;
                     fragment2.avg = periods[pernum].subjects.get(0).avg;
+                    fragment2.periodType = periods[pernum].subjects.get(0).periodType;
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }
