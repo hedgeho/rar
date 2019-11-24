@@ -332,7 +332,7 @@ public class MessagesFragment extends Fragment {
                         tv = item.findViewById(R.id.tv_sender);
                         tv.setText(s_senders.get(i));
                         tv = item.findViewById(R.id.tv_topic);
-                        mess = Html.fromHtml(s_messages.get(i));
+                        mess = Html.fromHtml(s_messages.get(i).replace("\n","<br>"));
 
                         ImageView muted = item.findViewById(R.id.muted);
                         if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
@@ -668,7 +668,7 @@ public class MessagesFragment extends Fragment {
             tv = item.findViewById(R.id.tv_sender);
             tv.setText(f_senders.get(i));
             tv = item.findViewById(R.id.tv_topic);
-            tv.setText(Html.fromHtml(f_topics.get(i)));
+            tv.setText(Html.fromHtml(f_topics.get(i).replace("\n","<br>")));
             tv = item.findViewById(R.id.tv_users);
             img = item.findViewById(R.id.img);
 
@@ -839,7 +839,7 @@ public class MessagesFragment extends Fragment {
                                             tv1 = item1.findViewById(R.id.tv_sender);
                                             tv1.setText(s_senders.get(i));
                                             tv1 = item1.findViewById(R.id.tv_topic);
-                                            mess = Html.fromHtml(s_messages.get(i));
+                                            mess = Html.fromHtml(s_messages.get(i).replace("\n","<br>"));
 
                                             ImageView muted = item1.findViewById(R.id.muted);
                                             if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
@@ -1214,7 +1214,7 @@ public class MessagesFragment extends Fragment {
                             tv = item.findViewById(R.id.tv_sender);
                             tv.setText(f_senders.get(i));
                             tv = item.findViewById(R.id.tv_topic);
-                            tv.setText(Html.fromHtml(f_topics.get(i)));
+                            tv.setText(Html.fromHtml(f_topics.get(i).replace("\n","<br>")));
                             tv = item.findViewById(R.id.tv_users);
                             img = item.findViewById(R.id.img);
 
