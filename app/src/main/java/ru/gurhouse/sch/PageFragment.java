@@ -1,8 +1,12 @@
 package ru.gurhouse.sch;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -14,6 +18,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -24,6 +29,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 
 public class PageFragment extends Fragment {
 
@@ -82,19 +88,21 @@ public class PageFragment extends Fragment {
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
         }
-//        if(day != null && day.odods != null && day.odods.size() > 0){
-//            CreateODOD();
-//        }
+        if(day != null && day.odods != null && day.odods.size() > 0){
+            try {
+                CreateODOD();
+            }catch (Exception e){}
+        }
         return v;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void CreateTable() {
         for (int i = 0; i < day.lessons.size(); i++) {
             final PeriodFragment.Lesson lesson = day.lessons.get(i);
             TableRow tbrow = new TableRow(getActivity());
             tbrow.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
-
             tbrow.setBaselineAligned(false);
 
             TextView tv21 = new TextView(getActivity().getApplicationContext());
@@ -142,8 +150,7 @@ public class PageFragment extends Fragment {
                     transaction.addToBackStack(null);
                     transaction.commit();
                 });
-            } catch (Exception ignore) {
-            }
+            } catch (Exception ignore) { }
             if (i - day.lessons.size() + 1 == 0) {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
@@ -184,19 +191,25 @@ public class PageFragment extends Fragment {
                 for (int j = 0; j < lesson.marks.size(); j++) {
                     if (lesson.marks.get(j).value != null && !lesson.marks.get(j).value.equals(" ") && !lesson.marks.get(j).value.equals("")) {
                         s1.append(lesson.marks.get(j).value);
-                        if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1 && lesson.marks.get(j + 1).value != null && !lesson.marks.get(j + 1).value.equals(" ") && !lesson.marks.get(j + 1).value.equals("")) {
+                        if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1 ) {
                             s1.append("/");
                         }
                     }
+                }
+                if(s1.toString().charAt(s1.length()-1) == '/'){
+                    s1.deleteCharAt(s1.length()-1);
                 }
                 s1.append("\n");
                 for (int j = 0; j < lesson.marks.size(); j++) {
                     if (lesson.marks.get(j).value != null && !lesson.marks.get(j).value.equals(" ") && !lesson.marks.get(j).value.equals("")) {
                         s1.append(lesson.marks.get(j).coefficient);
-                        if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1 && lesson.marks.get(j + 1).value != null && !lesson.marks.get(j + 1).value.equals(" ") && !lesson.marks.get(j + 1).value.equals("")) {
+                        if (lesson.marks.size() > 1 && j != lesson.marks.size() - 1 ) {
                             s1.append("/");
                         }
                     }
+                }
+                if(s1.toString().charAt(s1.length()-1) == '/'){
+                    s1.deleteCharAt(s1.length()-1);
                 }
                 Spannable spans1 = new SpannableString(s1.toString());
                 spans1.setSpan(new RelativeSizeSpan(1.4f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -205,6 +218,10 @@ public class PageFragment extends Fragment {
                 spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv3.setText(spans1);
             } catch (Exception ignored) {
+            }
+            if(lesson.attends != null){
+                System.out.println(lesson.attends.color);
+               // tv1.setBackground(getResources().getDrawable(R.drawable.ringb));
             }
             tbrow.addView(tv1);
             LinearLayout linearLayout = new LinearLayout(getContext());
@@ -222,6 +239,26 @@ public class PageFragment extends Fragment {
             linearLayout2.addView(tv22);
 
             linearLayout.addView(linearLayout2);
+//            linearLayout.setOnTouchListener(new View.OnTouchListener() {
+//                @SuppressLint("ResourceAsColor")
+//                @Override
+//                public boolean onTouch(View v, MotionEvent event) {
+//                    switch (event.getAction()) {
+//                        case MotionEvent.ACTION_DOWN: // нажатие
+//                            linearLayout.setBackgroundColor(getResources().getColor(R.color.onTouch));
+//                            break;
+//                        case MotionEvent.ACTION_MOVE: // движение
+//
+//                            break;
+//                        case MotionEvent.ACTION_UP:
+//                            linearLayout.setBackgroundColor(getResources().getColor(R.color.gr1));
+//                        case MotionEvent.ACTION_CANCEL:
+//                            linearLayout.setBackgroundColor(getResources().getColor(R.color.gr1));
+//                            break;
+//                    }
+//                    return false;
+//                }
+//            });
             tbrow.addView(linearLayout);
             tbrow.addView(tv3);
             tableLayout.addView(tbrow);
@@ -230,7 +267,7 @@ public class PageFragment extends Fragment {
     }
 
     /** odod is under construction because of a fatal bug**/
-    /*public void CreateODOD(){
+    public void CreateODOD(){
         TextView txt = new TextView(getContext());
         txt.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -272,7 +309,7 @@ public class PageFragment extends Fragment {
             s = day.odods.get(i).name;
             spans = new SpannableString(s);
             spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             txt1.setText(spans);
             txt1.setMaxLines(1);
             int pd = 60;
@@ -283,6 +320,11 @@ public class PageFragment extends Fragment {
             linearLayout.addView(txt2);
             linearLayout.addView(txt1);
         }
-    }*/
+    }
+    static class Attends{
+        String name;
+        String color;
+        public Attends(){}
+    }
 
 }

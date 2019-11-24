@@ -140,7 +140,7 @@ public class PeriodFragment extends Fragment {
 
     void nullshow() {
         txtnull = view.findViewById(R.id.txtnull);
-        txtnull.setTextSize(8 * getResources().getDisplayMetrics().density);
+        txtnull.setTextSize(20);
         txtnull.setTextColor(Color.LTGRAY);
         txtnull.setText("Нет оценок за выбранный период");
         txtnull.setPadding(90, 0, 90, 0);
@@ -177,8 +177,8 @@ public class PeriodFragment extends Fragment {
             lp.setMargins(0, 0, 40, 10);
             txt1.setLayoutParams(lp);
             txt1.setGravity(Gravity.CENTER);
-            txt1.setTextSize(9 * getResources().getDisplayMetrics().density);
-            txt2.setTextSize(9 * getResources().getDisplayMetrics().density);
+            txt1.setTextSize(20);
+            txt2.setTextSize(20);
             txt2.setLayoutParams(lp);
             txt2.setTextColor(getResources().getColor(R.color.two));
             txt1.setText(periods[pernum].subjects.get(i).shortname);
@@ -247,7 +247,7 @@ public class PeriodFragment extends Fragment {
                         });
                     } catch (Exception ignore) {
                     }
-                    txts.get(txts.size() - 1).setTextSize(9 * getResources().getDisplayMetrics().density);
+                    txts.get(txts.size() - 1).setTextSize(20);
                     txts.get(txts.size() - 1).setTextColor(Color.WHITE);
                     txts.get(txts.size() - 1).setBackground(getResources().getDrawable(R.drawable.gradient_list));
                     txts.get(txts.size() - 1).setPadding(15, 0, 15, 0);
@@ -284,7 +284,7 @@ public class PeriodFragment extends Fragment {
                 LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                 lp1.setMargins(0, 0, 10, 10);
                 txtnull.setLayoutParams(lp1);
-                txtnull.setTextSize(9 * getResources().getDisplayMetrics().density);
+                txtnull.setTextSize(20);
                 txtnull.setTextColor(Color.TRANSPARENT);
                 txtnull.setPadding(15, 0, 15, 0);
                 linearLayout.addView(txtnull);
@@ -374,7 +374,7 @@ public class PeriodFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    /*static class ODOD {
+    static class ODOD {
         Long daymsec;
         String day, name;
         int duration;
@@ -383,13 +383,13 @@ public class PeriodFragment extends Fragment {
 
         ODOD() {
         }
-    }*/
+    }
 
     static class Day {
         Long daymsec;
         String day, name;
         int numday;
-        //ArrayList<ODOD> odods;
+        ArrayList<ODOD> odods;
         ArrayList<Lesson> lessons;
 
         Day() {
@@ -403,7 +403,7 @@ public class PeriodFragment extends Fragment {
         ArrayList<Mark> marks = new ArrayList<>();
         Long id;
         long unitId = 0;
-
+        PageFragment.Attends attends;
         Lesson() {
         }
 
@@ -449,6 +449,7 @@ public class PeriodFragment extends Fragment {
         Long lessonid;
         String markdate, teachFio;
         int unitid;
+        PageFragment.Attends attends;
 
         Cell() {
         }
