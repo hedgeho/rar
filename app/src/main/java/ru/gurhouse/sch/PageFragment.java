@@ -1,13 +1,11 @@
 package ru.gurhouse.sch;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -26,23 +24,16 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 
 public class PageFragment extends Fragment {
 
-    static final String SAVE_PAGE_NUMBER = "save_page_number";
     TableLayout tableLayout;
     LinearLayout linearLayout;
     PeriodFragment.Day day;
     ArrayList<PeriodFragment.Subject> subjects;
-    int pageNumber;
     Calendar c;
+    ScheduleFragment.Period[] periods;
     int dayofweek;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,13 +45,35 @@ public class PageFragment extends Fragment {
             tableLayout.setColumnShrinkable(1, true);
             CreateTable();
         } else {
+            boolean ok = true;
+            if(periods != null) {
+                int pernum = 0;
+                for (ScheduleFragment.Period period : periods) {
+                    if (period.datestart <= c.getTimeInMillis() && period.datefinish >= c.getTimeInMillis()) {
+                        if (period.days == null) {
+                            ok = false;
+                            pernum = period.num;
+                        } else {
+                            ok = true;
+                            break;
+                        }
+                    }
+                }
+                if(!ok) {
+                    ((MainActivity) getContext()).scheduleFragment.Download2(pernum, false);
+                }
+            }
             tableLayout.setColumnStretchable(0, true);
             tableLayout.setColumnShrinkable(0, true);
             TableRow tbrow1 = new TableRow(getContext());
             tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
             final TextView tv1 = new TextView(getContext());
-            tv1.setText("Уроков нет");
+            if(ok) {
+                tv1.setText("Уроков нет");
+            } else {
+                tv1.setText("Загрузка...");
+            }
             tv1.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             tbrow1.addView(tv1);
@@ -68,15 +81,10 @@ public class PageFragment extends Fragment {
             tv1.setGravity(Gravity.CENTER);
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
-//            final SwipeRefreshLayout refreshL = v.findViewById(R.id.refresh);
-//            refreshL.setOnRefreshListener(() -> {
-//                ((MainActivity) getActivity()).scheduleFragment.Download2(periods[pernum].id, pernum, false, true);
-//                refreshL.setRefreshing(false);
-//            });
         }
-        if(day != null && day.odods != null && day.odods.size() > 0){
-            CreateODOD();
-        }
+//        if(day != null && day.odods != null && day.odods.size() > 0){
+//            CreateODOD();
+//        }
         return v;
     }
 
@@ -146,7 +154,6 @@ public class PageFragment extends Fragment {
                 tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone3));
             }
-            System.out.println(lesson.numInDay);
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
                 String s = lesson.name;
@@ -221,8 +228,9 @@ public class PageFragment extends Fragment {
         }
 
     }
-    @SuppressLint("SetTextI18n")
-    public void CreateODOD(){
+
+    /** odod is under construction because of a fatal bug**/
+    /*public void CreateODOD(){
         TextView txt = new TextView(getContext());
         txt.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -275,12 +283,6 @@ public class PageFragment extends Fragment {
             linearLayout.addView(txt2);
             linearLayout.addView(txt1);
         }
-    }
-
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(SAVE_PAGE_NUMBER, pageNumber);
-    }
-
+    }*/
 
 }

@@ -16,6 +16,7 @@ import com.google.firebase.messaging.RemoteMessage;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,29 +66,50 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         notificationManager.createNotificationChannel(channel);
                     }
                 }
-                ArrayList<PeriodFragment.Subject> subjects = TheSingleton.getInstance().getSubjects();
-                if(subjects == null) {
-                    return;
-                }
-                PeriodFragment.Subject s;
                 PendingIntent res = TaskStackBuilder.create(this)
                         .addNextIntentWithParentStack(new Intent(this, LoginActivity.class))
                         .getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-                for (int i = 0; i < subjects.size(); i++) {
-                    s = subjects.get(i);
-                    if (s.unitid == unitId) {
+
+                try {
+                    JSONArray subjects = new JSONArray(getSharedPreferences("pref", MODE_PRIVATE).getString("subjects", ""));
+                    JSONObject obj;
+                    // TODO remove /*
+                    if (subjects.length() == 0) {
                         NotificationManagerCompat compat = NotificationManagerCompat.from(this);
 
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-                        builder.setContentText(s.name + ": " + val + " с коэф. " + coef)
+                        NotificationCompat.Builder b = new NotificationCompat.Builder(this, "1");
+                        b.setContentText("Хз какой предмет, блын")
                                 .setContentTitle("Новая оценка")
                                 .setSmallIcon(R.drawable.alternative)
                                 .setContentIntent(res);
-                        Notification notif = builder.build();
+                        Notification notif = b.build();
                         compat.notify(TheSingleton.getInstance().notification_id++, notif);
-                        TheSingleton.getInstance().setHasNotifications();
-                        break;
+                        return;
                     }
+                    // TODO */
+                    for (int i = 0; i < subjects.length(); i++) {
+                        obj = subjects.getJSONObject(i);
+                        if (obj.getInt("unitid") == unitId) {
+
+                            double d = obj.getDouble("d") + val*coef;
+                            double f = obj.getDouble("f") + coef;
+
+                            NotificationManagerCompat compat = NotificationManagerCompat.from(this);
+
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
+                            builder.setContentText(obj.getString("name") + ": " + val + " с коэф. " + coef + "\n"
+                                    + "Новый средний балл: " + Math.round(d / f*100)/100d)
+                                    .setContentTitle("Новая оценка")
+                                    .setSmallIcon(R.drawable.alternative)
+                                    .setContentIntent(res);
+                            Notification notif = builder.build();
+                            compat.notify(TheSingleton.getInstance().notification_id++, notif);
+                            break;
+                        }
+                    }
+                } catch (Exception e) {
+                    loge(e);
+                    e.printStackTrace();
                 }
                 break;
             case "msg":
@@ -109,7 +131,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     try {
                         attachCount = new JSONArray(attach_s).length();
                     } catch (JSONException e) {
-                        loge(e.toString());
+                        e.printStackTrace();
                     }
                 }
                 int addrCnt = 0;
@@ -216,7 +238,8 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         notificationManager.createNotificationChannel(channel);
                     }
                 }
-                subjects = TheSingleton.getInstance().getSubjects();
+                ArrayList<PeriodFragment.Subject> subjects = TheSingleton.getInstance().getSubjects();
+                PeriodFragment.Subject s;
                 for (int i = 0; i < subjects.size(); i++) {
                     s = subjects.get(i);
                     if (s.unitid == unitId) {

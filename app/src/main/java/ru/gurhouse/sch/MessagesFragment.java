@@ -1,6 +1,7 @@
 package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
+import static com.crashlytics.android.Crashlytics.log;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
@@ -51,10 +53,10 @@ public class MessagesFragment extends Fragment {
 
     private int PERSON_ID;
     private String[] senders, topics;
-    private int[] threadIds, newCounts;
+    private int[] threadIds, newCounts, types;
     private int[] users = null;
-    private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time;
-    private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds;
+    private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time, s_topics;
+    private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds, f_types;
     private ArrayList<Boolean> s_group;
     private String s_query = "";
     private int count = 25, s_count = 0;
@@ -69,12 +71,13 @@ public class MessagesFragment extends Fragment {
     private View savedView = null, view;
     private int search_mode = -1;
     private Person[] olist;
-    private Context context;
+    private Activity context;
     private boolean READY = false, shown = false;
     private SwipeRefreshLayout refreshL;
     private boolean refreshing = false;
 
-/*    private ActionMode actionMode;
+/*  for future
+  private ActionMode actionMode;
     private ActionMode.Callback actionCallback = new ActionMode.Callback() {
         @Override
         public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -99,7 +102,7 @@ public class MessagesFragment extends Fragment {
                         try {
                             connect("https://app.eschool.center/ec-server/chat/leave?threadId=" + threadId, null);
                         } catch (LoginActivity.NoInternetException e) {
-                            Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show();
                         } catch (Exception e) {loge(e);}
                     }).start();
             }
@@ -174,19 +177,28 @@ public class MessagesFragment extends Fragment {
                 } catch (LoginActivity.NoInternetException e) {
                     new Thread (() -> {
                         while(true) {
-                            if(getActivity() != null) {
-                                TextView tv = getActivity().findViewById(R.id.tv_error);
-                                tv.setText("Нет подключения к Интернету");
-                                tv.setVisibility(View.VISIBLE);
+                            if(getContext() != null) {
+                                getContext().runOnUiThread(() -> {
+                                    TextView tv = getContext().findViewById(R.id.tv_error);
+                                    tv.setText("Нет подключения к Интернету");
+                                    tv.setVisibility(View.VISIBLE);
+                                });
                                 break;
                             }
                         }
                     }).start();
                 } catch (Exception e) {
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
             }
         }.start();
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null)
+            context = getActivity();
     }
 
     @Override
@@ -287,11 +299,11 @@ public class MessagesFragment extends Fragment {
                                     try {
                                         final JSONObject threads = new JSONObject(connect("https://app.eschool.center/ec-server/chat/privateThreads", null));
                                         if (threads.has(prsId + "")) {
-                                            getActivity().runOnUiThread(() -> {
+                                            getContext().runOnUiThread(() -> {
                                                 try {
-                                                    loadChat(threads.getInt(prsId + ""), fio, "", -1, false);
+                                                    loadChat(threads.getInt(prsId + ""), fio, "", 2, -1, false);
                                                 } catch (JSONException e) {
-                                                    loge(e.toString());
+                                                    e.printStackTrace();
                                                 }
                                             });
                                         } else {
@@ -299,13 +311,12 @@ public class MessagesFragment extends Fragment {
                                             final int threadId = Integer.parseInt(connect("https://app.eschool.center/ec-server/chat/saveThread",
                                                     "{\"threadId\":null,\"senderId\":null,\"imageId\":null,\"subject\":null,\"isAllowReplay\":2,\"isGroup\":false,\"interlocutor\":" + prsId + "}",
                                                     true));
-                                            getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", -1, false));
+                                            getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", 2, -1, false));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
-                                        getActivity().runOnUiThread(() ->
+                                        getContext().runOnUiThread(() ->
                                                 Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
-                                    } catch (Exception e) {
-                                        loge(e.toString());}
+                                    } catch (Exception e) {e.printStackTrace();}
                                 }
                             }.start());
 
@@ -343,7 +354,8 @@ public class MessagesFragment extends Fragment {
                             end = mess.toString().length()-1;
                         s = (start == 0?"":"...") + mess.subSequence(start, end+1).toString() + (end == mess.toString().length()-1?"":"...");
                         spannable = new SpannableString(s);
-                        spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        if(s.toLowerCase().contains(query.toLowerCase()))
+                            spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         tv.setText(spannable);
 
                         tv = item.findViewById(R.id.tv_users);
@@ -354,7 +366,7 @@ public class MessagesFragment extends Fragment {
                         img.setVisibility(View.GONE);
                         final int j = i;
                         item.setOnClickListener(v ->
-                                loadChat(s_threadIds.get(j), s_senders.get(j), "", s_msgIds.get(j), s_group.get(j)));
+                                loadChat(s_threadIds.get(j), s_senders.get(j), s_topics.get(j), s_msgIds.get(j), -1, s_group.get(j)));
                         container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         container.addView(inflater.inflate(R.layout.divider, container, false));
                     }
@@ -395,6 +407,8 @@ public class MessagesFragment extends Fragment {
                                 s_time = new ArrayList<>();
                                 s_msgIds = new ArrayList<>();
                                 s_group = new ArrayList<>();
+                                s_topics = new ArrayList<>();
+                                f_types = new ArrayList<>();
 
                                 String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=15&text=" + query, null);
                                 log("search result: " + result);
@@ -428,7 +442,12 @@ public class MessagesFragment extends Fragment {
                                             s_senders.add(A + " " + B.charAt(0) + ". " + C.charAt(0) + ".");
                                             s_messages.add(c.getString("msg"));
                                             s_threadIds.add(c.getInt("threadId"));
+                                            f_types.add(c.getInt("isAllowReplay"));
                                             s_msgIds.add(a.optInt(j));
+                                            if(c.has("subject"))
+                                                s_topics.add(c.getString("subject"));
+                                            else
+                                                s_topics.add("");
                                             Date date = new Date(c.getLong("createDate"));
                                             s_time.add(String.format(Locale.UK, "%02d:%02d", date.getHours(), date.getMinutes()));
 
@@ -445,7 +464,7 @@ public class MessagesFragment extends Fragment {
                             } catch (LoginActivity.NoInternetException e) {
                                 error = "Нет подключения к Интернету";
                             } catch (Exception e) {
-                                loge(e.toString());
+                                e.printStackTrace();
                             }
                         }
                     }.start();
@@ -563,7 +582,7 @@ public class MessagesFragment extends Fragment {
 
     @Override
     public void onResume() {
-        Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+        Toolbar toolbar = getContext().findViewById(R.id.toolbar);
         toolbar.setSubtitle("");
         super.onResume();
     }
@@ -573,7 +592,7 @@ public class MessagesFragment extends Fragment {
         if(READY && !shown)
             show();
         if(READY)
-            if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
+            if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
                 view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
             else
                 view.findViewById(R.id.knock_l).setVisibility(View.GONE);
@@ -603,7 +622,8 @@ public class MessagesFragment extends Fragment {
 
         if(fromNotification) {
             log("fromNotif");
-            loadChat(notifThreadId, (notifCount > 2?f_topics:f_senders).get(f_threadIds.indexOf(notifThreadId)), "", -1, notifCount > 2);
+            int j = f_threadIds.indexOf(notifThreadId);
+            loadChat(notifThreadId, (notifCount > 2?f_topics:f_senders).get(j), s_topics.get(j),f_types.get(j), -1, notifCount > 2);
         }
     }
 
@@ -613,13 +633,15 @@ public class MessagesFragment extends Fragment {
             loge("container null in MessagesFragment");
             return;
         }
+        count = 25;
+        s_count = 0;
         container1.removeAllViews();
-        if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
             view.findViewById(R.id.knock_l).setOnClickListener(v -> {
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 KnockFragment fragment = new KnockFragment();
-                ((MainActivity) getActivity()).set_visible(false);
+                ((MainActivity) getContext()).set_visible(false);
                 transaction.replace(R.id.chat_container, fragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
@@ -685,7 +707,7 @@ public class MessagesFragment extends Fragment {
                     textv.setVisibility(View.INVISIBLE);
                 }
                 loadChat(f_threadIds.get(j), f_senders.get(j),
-                        f_topics.get(j), -1, users > 2);
+                        f_topics.get(j), f_types.get(j), -1, users > 2);
             });
             registerForContextMenu(item);
             item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
@@ -699,14 +721,14 @@ public class MessagesFragment extends Fragment {
             fitems[i] = item;
         }
         final int C = c;
-//        getActivity().runOnUiThread(new Runnable() {
+//        getContext().runOnUiThread(new Runnable() {
 //            @Override
 //            public void run() {
         for (View fitem : fitems) {
             container1.addView(fitem, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             container1.addView(getLayoutInflater().inflate(R.layout.divider, container1, false));
         }
-        BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
+        BottomNavigationView bottomnav = getContext().findViewById(R.id.bottomnav);
         BottomNavigationMenuView bottomNavigationMenuView =
                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
@@ -782,16 +804,19 @@ public class MessagesFragment extends Fragment {
                                                 img1.setImageDrawable(getResources().getDrawable(R.drawable.group));
                                                 tv1.setText(users[i] + "");
                                             }
+                                            if(f_count + 25 - (l - i) >= f_threadIds.size())
+                                                continue;
                                             final int j = i,
                                                     threadId = f_threadIds.get(f_count + 25 - (l - j));
+                                            final int type = f_types.get(f_count + 25 - (l - j));
                                             final String sender = (u > 2?f_topics:f_senders).get(f_count + 25 - (l - j));
                                             item1.setOnClickListener(v -> {
                                                 if (f_count != -1) {
                                                     loadChat(threadId, sender,
-                                                            topics[j], -1, u > 2);
+                                                            topics[j], type, -1, u > 2);
                                                 } else {
                                                     loadChat(threadId, sender,
-                                                            topics[j], -1, u > 2);
+                                                            topics[j],type, -1, u > 2);
                                                 }
                                             });
                                             container.addView(item1, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -843,7 +868,7 @@ public class MessagesFragment extends Fragment {
 //                        img = item.findViewById(R.id.img);
                                             final int j = i;
                                             item1.setOnClickListener(v ->
-                                                    loadChat(s_threadIds.get(j), s_senders.get(j), "", s_msgIds.get(j), s_group.get(j)));
+                                                    loadChat(s_threadIds.get(j), s_senders.get(j), s_topics.get(j),s_threadIds.get(j), s_msgIds.get(j), s_group.get(j)));
                                             container.addView(item1, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                                             container.addView(inflater1.inflate(R.layout.divider, container, false));
                                         }
@@ -859,15 +884,16 @@ public class MessagesFragment extends Fragment {
                                 public void run() {
                                     try {
                                         if (s_senders == null) {
-                                            JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row="
-                                                    + (count + 1) + "&rowsCount=25", null));
                                             if (count == -1)
                                                 return;
+                                            JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row="
+                                                    + (count + 1) + "&rowsCount=25", null));
                                             senders = new String[array.length()];
                                             topics = new String[array.length()];
                                             users = new int[array.length()];
                                             threadIds = new int[array.length()];
                                             newCounts = new int[array.length()];
+                                            types = new int[array.length()];
                                             JSONObject obj;
                                             String a, b, c1;
                                             log(array.length() + "");
@@ -904,6 +930,7 @@ public class MessagesFragment extends Fragment {
                                                 f_senders.add(senders[i]);
                                                 f_topics.add(topics[i]);
                                                 f_newCounts.add(newCounts[i]);
+                                                f_types.add(types[i]);
                                             }
                                             log("first thread: " + senders[0]);
                                             h.sendEmptyMessage(0);
@@ -926,6 +953,7 @@ public class MessagesFragment extends Fragment {
                                                     b = new JSONArray(result);
                                                     c1 = b.getJSONObject(0);
                                                     s_senders.add(c1.getString("senderFio"));
+                                                    s_threadIds.get(c1.getInt("isAllowReplay"));
                                                     s_messages.add(c1.getString("msg"));
                                                     s_threadIds.add(c1.getInt("threadId"));
                                                     s_msgIds.add(a.optInt(j));
@@ -937,30 +965,30 @@ public class MessagesFragment extends Fragment {
                                             h.sendMessage(h.obtainMessage(1, array.length() == 25 ? 0 : 1, 0));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
-                                        getActivity().runOnUiThread(() ->
+                                        getContext().runOnUiThread(() ->
                                                 Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                                     } catch (Exception e) {
-                                        loge(e.toString());
+                                        e.printStackTrace();
                                     }
                                 }
                             }.start();
                         }
                     };
-                    getActivity().runOnUiThread(() -> scroll.getViewTreeObserver()
+                    getContext().runOnUiThread(() -> scroll.getViewTreeObserver()
                             .addOnScrollChangedListener(scrollListener));
                 }
             }.start();
-            Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
+            Toolbar toolbar = getContext().findViewById(R.id.toolbar);
             toolbar.setTitle("Сообщения");
             toolbar.setOnClickListener(v -> {
                 log("click on toolbar");
-                if(!(((MainActivity) getActivity()).getStackTop() instanceof MessagesFragment))
+                if(!(((MainActivity) getContext()).getStackTop() instanceof MessagesFragment))
                     return;
                 final ScrollView scroll1 = view.findViewById(R.id.scroll);
                 scroll1.post(() -> scroll1.scrollTo(0, 0));
             });
             setHasOptionsMenu(true);
-            ((MainActivity)getActivity()).setSupportActionBar(toolbar);
+            ((MainActivity) getContext()).setSupportActionBar(toolbar);
             first_time = false;
         }
 
@@ -968,7 +996,8 @@ public class MessagesFragment extends Fragment {
         view.findViewById(R.id.l_refresh).setVisibility(View.VISIBLE);
         if(fromNotification) {
             log("fromNotif");
-            loadChat(notifThreadId, f_senders.get(f_threadIds.indexOf(notifThreadId)), "", -1, notifCount > 2);
+            int j = f_threadIds.indexOf(notifThreadId);
+            loadChat(notifThreadId, f_senders.get(j), s_topics.get(j),s_threadIds.get(j), -1, notifCount > 2);
         }
         shown = true;
     }
@@ -984,7 +1013,7 @@ public class MessagesFragment extends Fragment {
                         JSONArray array = new JSONArray(pref.getString("muted", "[]"));
                         array.put(item.getIntent().getIntExtra("threadId", -1));
                         pref.edit().putString("muted", array.toString()).apply();
-                    } catch (Exception e) {loge(e.toString());}
+                    } catch (Exception e) {e.printStackTrace();}
                     Toast.makeText(context, "Уведомления отключены", Toast.LENGTH_SHORT).show();
                 } else {
                     log("unmute " + item.getIntent().getIntExtra("threadId", -1));
@@ -997,7 +1026,7 @@ public class MessagesFragment extends Fragment {
                         }
                         pref.edit().putString("muted", a.toString()).apply();
                         Toast.makeText(context, "Уведомления включены", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {loge(e.toString());}
+                    } catch (Exception e) {e.printStackTrace();}
                 }
                 return true;
             case 1:
@@ -1008,8 +1037,9 @@ public class MessagesFragment extends Fragment {
                                 item.getIntent().getIntExtra("threadId", -1), null);
                         refresh();
                     } catch (LoginActivity.NoInternetException e) {
-                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {loge(e);}
+                        getContext().runOnUiThread(() -> Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
+
+                    } catch (Exception e) {log(e.toString());}
                 }).start();
         }
         return super.onContextItemSelected(item);
@@ -1032,7 +1062,7 @@ public class MessagesFragment extends Fragment {
         }
         tv = thread.findViewById(R.id.tv_topic);
         tv.setText(text);
-        BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
+        BottomNavigationView bottomnav = getContext().findViewById(R.id.bottomnav);
         BottomNavigationMenuView bottomNavigationMenuView =
                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
@@ -1055,6 +1085,7 @@ public class MessagesFragment extends Fragment {
         users = new int[array.length()];
         threadIds = new int[array.length()];
         newCounts = new int[array.length()];
+        types = new int[array.length()];
         JSONObject obj;
         String a, b, c;
         log(array.length() + "");
@@ -1079,6 +1110,7 @@ public class MessagesFragment extends Fragment {
             else
                 topics[i] = obj.getString("subject");
             users[i] = obj.getInt("addrCnt");
+            types[i] = obj.getInt("isAllowReplay");
             if(obj.getInt("senderId") == PERSON_ID) {
                 users[i] = 1;
             }
@@ -1090,12 +1122,14 @@ public class MessagesFragment extends Fragment {
         f_senders = new ArrayList<>();
         f_topics = new ArrayList<>();
         f_newCounts = new ArrayList<>();
+        f_types = new ArrayList<>();
         for (int i = 0; i < users.length; i++) {
             f_users.add(users[i]);
             f_threadIds.add(threadIds[i]);
             f_senders.add(senders[i]);
             f_topics.add(topics[i]);
             f_newCounts.add(newCounts[i]);
+            f_types.add(types[i]);
         }
         log("first thread: " + senders[0]);
         if(handler != null)
@@ -1124,7 +1158,7 @@ public class MessagesFragment extends Fragment {
                     if(searchView.isActionViewExpanded()) {
                         searchView.collapseActionView();
 
-                        if(getActivity().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+                        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
                             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
                             view.findViewById(R.id.knock_l).setOnClickListener(v ->  {
                                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -1152,7 +1186,7 @@ public class MessagesFragment extends Fragment {
                         }
                         final ScrollView scroll = view.findViewById(R.id.scroll);
                         scroll.scrollTo(0, 0);
-                        BottomNavigationView bottomnav = getActivity().findViewById(R.id.bottomnav);
+                        BottomNavigationView bottomnav = getContext().findViewById(R.id.bottomnav);
                         BottomNavigationMenuView bottomNavigationMenuView =
                                 (BottomNavigationMenuView) bottomnav.getChildAt(0);
                         final BottomNavigationItemView itemView = (BottomNavigationItemView)  bottomNavigationMenuView.getChildAt(2);
@@ -1212,7 +1246,7 @@ public class MessagesFragment extends Fragment {
                             final int users = f_users.get(i);
                             //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
                             item.setOnClickListener(v -> loadChat(f_threadIds.get(j), f_senders.get(j),
-                                    f_topics.get(j), -1, users > 2));
+                                    f_topics.get(j),f_types.get(j), -1, users > 2));
                             registerForContextMenu(item);
                             item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
                                 contextMenu.add(0, 0, 0,
@@ -1235,10 +1269,11 @@ public class MessagesFragment extends Fragment {
                 try {
                     download(h);
                 } catch (LoginActivity.NoInternetException e) {
-                    getActivity().runOnUiThread(() ->
-                            Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
-                    if(refreshl)
-                        refreshL.setRefreshing(false);
+                    getContext().runOnUiThread(() -> {
+                            Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show();
+                            if(refreshl)
+                                refreshL.setRefreshing(false);}
+                        );
                     refreshing = false;
                 } catch (Exception e) {
                     loge("refreshing: " + e.toString());}
@@ -1247,7 +1282,7 @@ public class MessagesFragment extends Fragment {
     }
     void refresh (){refresh(true);}
 
-    private void loadChat(int threadId, String threadName, String topic, int searchId, boolean group) {
+    private void loadChat(int threadId, String threadName, String topic, int type, int searchId, boolean group) {
         fromNotification = false;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         ChatFragment fragment = new ChatFragment();
@@ -1257,12 +1292,18 @@ public class MessagesFragment extends Fragment {
         fragment.context = context;
         fragment.group = group;
         fragment.topic = topic;
+        fragment.type = type;
         if(searchId != -1)
             fragment.searchMsgId = searchId;
-        ((MainActivity)getActivity()).set_visible(false);
+        ((MainActivity) getContext()).set_visible(false);
         transaction.replace(R.id.chat_container, fragment);
         transaction.addToBackStack(null);
-        transaction.commit();
+        try {
+            transaction.commit();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+            log(e.toString());
+        }
     }
 
     public View getView() {
@@ -1271,7 +1312,7 @@ public class MessagesFragment extends Fragment {
             if(super.getView() != null)
                 return super.getView();
             else
-                return new View(getActivity());
+                return new View(getContext());
         } else
             return view;
     }
@@ -1282,6 +1323,10 @@ public class MessagesFragment extends Fragment {
         String[] words;
         int prsId;
         Person() {}
+    }
+
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 }
 

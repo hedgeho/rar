@@ -1,6 +1,6 @@
 package ru.gurhouse.sch;
 
-import android.content.Context;
+import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -25,8 +25,6 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-import static ru.gurhouse.sch.LoginActivity.loge;
-
 
 public class DayFragment extends Fragment {
 
@@ -36,15 +34,7 @@ public class DayFragment extends Fragment {
     String topic = "";
     String teachername = "";
     ArrayList<PeriodFragment.Subject> subjects;
-    Context context;
-
-    public DayFragment() {
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    Activity context;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -72,7 +62,7 @@ public class DayFragment extends Fragment {
                 Linkify.addLinks(tv1, Linkify.WEB_URLS);
                 tv1.setLinksClickable(true);
             } catch (Exception e) {
-                System.out.println(e.toString());
+                e.printStackTrace();
             }
             tv1.setPadding(50, 50, 50, 0);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -95,8 +85,8 @@ public class DayFragment extends Fragment {
             tv1.setOnClickListener(v -> {
                 try {
                     String url = "https://app.eschool.center/ec-server/files/" + file.id;
-                    ((MainActivity) getActivity()).saveFile(url, file.name, true);
-                } catch (Exception e) {loge(e.toString());}
+                    ((MainActivity) getContext()).saveFile(url, file.name, true);
+                } catch (Exception e) {e.printStackTrace();}
             });
             tv1.setPadding(50, 10, 50, 0);
             linearLayout.addView(tv1);
@@ -137,7 +127,6 @@ public class DayFragment extends Fragment {
                         tv1.setGravity(Gravity.CENTER);
                         tv1.setPadding(80, 10, 80, 10);
                         final int finalI = i;
-                        final int finalJ;
                         tv1.setOnClickListener(v -> {
                             FragmentTransaction transaction = getFragmentManager().beginTransaction();
                             MarkFragment fragment = new MarkFragment();
@@ -196,14 +185,12 @@ public class DayFragment extends Fragment {
         }
 
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
-        //  todo заголовок на тулбаре дня
         toolbar.setTitle(name);
         setHasOptionsMenu(true);
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
         ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         return view;
     }
-
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -212,8 +199,15 @@ public class DayFragment extends Fragment {
     }
 
     @Override
-    public Context getContext() {
-        return context;
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if(getActivity() != null)
+            context = getActivity();
+    }
+
+    @Override
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 }
 

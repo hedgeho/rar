@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
@@ -20,7 +22,6 @@ import java.util.ArrayList;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
-import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class MyBroadcastReceiver extends BroadcastReceiver {
 
@@ -40,6 +41,8 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 StringBuilder s = new StringBuilder("notifications: [");
                 for (int i = 0; i < notifications.size(); i++) {
                     n = notifications.get(i);
+                    if(n == null)
+                        continue;
                     s.append("(").append(n.threadId).append("; ").append(n.notificationId).append("), ");
                     if (n.threadId == intent.getIntExtra("threadId", -1)) {
                         manager.cancel(notifications.get(i).notificationId);
@@ -53,7 +56,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                 }
                 s.delete(s.length() - 2, s.length());
                 s.append("]");
-                log(s.toString());
+                log("not: " + s.toString());
                 log("deleted " + count + " notification" + (count != 1 ? "s" : ""));
 
                 new Thread() {
@@ -63,9 +66,11 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + intent.getIntExtra("threadId", -1),
                                     null);
                         } catch (LoginActivity.NoInternetException e) {
-                            Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show();
+                            Handler handler = new Handler(Looper.getMainLooper());
+                            handler.post(() -> Toast.makeText(context,
+                                            "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                         } catch (IOException e) {
-                            loge(e.toString());
+                            e.printStackTrace();
                         }
                     }
                 }.start();
@@ -88,7 +93,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             try {
                                 request.setDescription("Downloading file from " + new URL(url).getHost());
                             } catch (MalformedURLException e) {
-                                loge(e.toString());
+                                e.printStackTrace();
                                 request.setDescription("Some Description");
                             }
                             request.setTitle(name);
@@ -105,7 +110,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                     }
 
                 } catch (Exception e) {
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
         }
     }

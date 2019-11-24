@@ -13,7 +13,9 @@ public class ThanksActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_thanks);
 
-        /*ImageView smile = findViewById(R.id.img_smile);
+        /* пасхалка
+
+        ImageView smile = findViewById(R.id.img_smile);
         smile.setOnClickListener(v -> {
             SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
             if(!pref.getBoolean("easteregg1", false)) {

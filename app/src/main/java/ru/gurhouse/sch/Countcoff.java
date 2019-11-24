@@ -1,6 +1,7 @@
 package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -17,7 +18,6 @@ import android.text.Spanned;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -42,48 +42,36 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.MainActivity.TYPE_SEM;
 
 public class Countcoff extends Fragment {
 
     String subname;
-    String periodname = "4 четверть"; // пока так
+    String periodname = "4 четверть";
     ArrayList<PeriodFragment.Cell> cells;
     int j;
     int dell = 7;
     String[] period;
     int pernum = 6;
-    Double avg;
+    double avg;
+    boolean periodType;
     Toolbar toolbar;
-    boolean newm = false;
     String[] strings;
     TextView txt1, txt0, txt, txt2;
     AlertDialog.Builder alr, alr1, alr2;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
     String[] marks = {"1", "2", "3", "4", "5"};
 
-    Context context;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    Activity context;
 
     ImageView img;
     LinearLayout layout, cont, linearLayout;
-
-    public Countcoff() {
-    }
-
-    static void sasha(String s) {
-        Log.v("sasha", s);
-    }
 
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
@@ -99,9 +87,7 @@ public class Countcoff extends Fragment {
                 }
                 avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
                 makeMarks();
-//                countNewCoff();
-            } /*else {
-            }*/
+            }
         }
     };
 
@@ -126,7 +112,6 @@ public class Countcoff extends Fragment {
                         log("avg: " + avg);
                         alr2.setSingleChoiceItems(period, pernum, myClickListener);
                         makeMarks();
-//                        countNewCoff();
                     });
                 } else {
                     periodname = periods[pernum].name;
@@ -139,7 +124,6 @@ public class Countcoff extends Fragment {
                     log("avg: " + avg);
                     alr2.setSingleChoiceItems(period, pernum, myClickListener);
                     makeMarks();
-                    //countNewCoff();
                 }
             }
         }
@@ -149,6 +133,17 @@ public class Countcoff extends Fragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         if(getActivity() != null)
             context = getActivity();
+
+        if(periodType == TYPE_SEM) {
+            if (pernum == 3 || pernum == 4) {
+                pernum = 1;
+            } else if (pernum == 5 || pernum == 6) {
+                pernum = 2;
+            }
+            String[] tmp = new String[period.length-4];
+            System.arraycopy(period, 0, tmp, 0, period.length-4);
+            period = tmp;
+        }
 
         View v = inflater.inflate(R.layout.fragment_countcoff, container, false);
         periodname = period[pernum];
@@ -207,7 +202,6 @@ public class Countcoff extends Fragment {
 
                 @Override
                 public void onTextChanged(CharSequence s1, int start, int before, int count) {
-                    sasha(String.valueOf(et2.getText()));
                     try {
                         f[0] = Double.valueOf(String.valueOf(et2.getText()));
                         btn3.setClickable(true);
@@ -243,19 +237,23 @@ public class Countcoff extends Fragment {
             if (subname.equals(i.name)) {
                 j = periods[pernum].subjects.indexOf(i);
             }
-            sasha(i.name);
         }
         cells = new ArrayList<>();
-        for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-            cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+        if(periods[pernum].subjects.size() != 0) {
+            for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+            }
+
+            makeMarks();
+        } else {
+            getContext().onBackPressed();
         }
 
-        makeMarks();
 
         alr = new AlertDialog.Builder(getContext());
         alr.create();
         alr.setSingleChoiceItems(strings, j, myClickListener);
-        alr.setTitle("Выбирете предмет");
+        alr.setTitle("Выберите предмет");
         alr.setPositiveButton("ok", myClickListener);
         txt2.setText(subname);
         txt2.setOnClickListener(v12 -> alr.show());
@@ -287,7 +285,7 @@ public class Countcoff extends Fragment {
                 lin.setOrientation(LinearLayout.HORIZONTAL);
                 lin.setGravity(Gravity.CENTER);
             }
-            final TextView tv1 = new TextView(getActivity());
+            final TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new ConstraintLayout.LayoutParams(
                     ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT));
             final String[] s1 = new String[1];
@@ -315,8 +313,6 @@ public class Countcoff extends Fragment {
                 Button btn1 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(0));
                 Button btn2 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(1));
                 final Button btn3 = ((Button) ((ViewGroup) ((ViewGroup) item).getChildAt(5)).getChildAt(2));
-                final TextView txt1 = ((TextView) ((ViewGroup) item).getChildAt(0));
-                TextView txt2 = ((TextView) ((ViewGroup) item).getChildAt(1));
                 Spinner spinner = ((Spinner) ((ViewGroup) item).getChildAt(2));
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(getContext(), R.layout.spinner_item, marks);
                 spinner.setGravity(Gravity.CENTER);
@@ -355,12 +351,11 @@ public class Countcoff extends Fragment {
 
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        sasha(String.valueOf(et2.getText()));
                         try {
                             f[0] = Double.valueOf(String.valueOf(et2.getText()));
                             btn3.setClickable(true);
                         } catch (Exception e) {
-                            sasha("errr");
+                            e.printStackTrace();
                             btn3.setClickable(false);
                         }
                     }
@@ -412,13 +407,13 @@ public class Countcoff extends Fragment {
     }
 
     void countNewCoff() {
-        Double d = 0.;
-        Double f = 0.;
+        double d = 0.;
+        double f = 0.;
         for (int i = 0; i < cells.size(); i++) {
             if (cells.get(i).markvalue != null && !cells.get(i).markvalue.equals(" "))
                 if (cells.get(i).markvalue.equals("1") || cells.get(i).markvalue.equals("2") || cells.get(i).markvalue.equals("3")
                         || cells.get(i).markvalue.equals("4") || cells.get(i).markvalue.equals("5")) {
-                    d += Double.valueOf(cells.get(i).markvalue) * cells.get(i).mktWt;
+                    d += Double.parseDouble(cells.get(i).markvalue) * cells.get(i).mktWt;
                     f += cells.get(i).mktWt;
                 }
         }
@@ -431,7 +426,7 @@ public class Countcoff extends Fragment {
         linearLayout.removeAllViews();
         txt = new TextView(getContext());
         txt0 = new TextView(getContext());
-        txt.setText(String.format(Locale.UK, "%.2f", Double.valueOf(s) - avg));
+        txt.setText(String.format(Locale.UK, "%.2f", Double.parseDouble(s) - avg));
         txt0.setText(s);
         txt1.setText(String.valueOf(avg));
         txt.setPadding(30, 0, 30, 0);
@@ -453,11 +448,6 @@ public class Countcoff extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         menu.add(0, 2, 0, "Сброс");
@@ -472,15 +462,13 @@ public class Countcoff extends Fragment {
                 cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
             }
             makeMarks();
-//            countNewCoff();
-            sasha("rar");
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public Context getContext() {
-        return context;
+    public Activity getContext() {
+        return (context==null?getActivity():context);
     }
 
     void Download2(Runnable onFinish) {
@@ -514,7 +502,7 @@ public class Countcoff extends Fragment {
                             } catch (LoginActivity.NoInternetException ignore) {
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                loge(e.toString());
+                                e.printStackTrace();
                             }
                         }
                     }.start();
@@ -524,7 +512,7 @@ public class Countcoff extends Fragment {
                                     null));
                     if(!object.has("result"))
                         log("lol no result: " + object.toString());
-                    log(object.toString());
+                    log("RR: " + object.toString());
                     JSONArray array = object.getJSONArray("result");
                     for (int i = 0; i < array.length(); i++) {
                         PeriodFragment.Subject subject = new PeriodFragment.Subject();

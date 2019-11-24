@@ -31,6 +31,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        PeriodFragment.settingsClicked = false;
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -68,15 +69,16 @@ public class SettingsActivity extends AppCompatActivity {
                         connect("https://still-cove-90434.herokuapp.com/new_event",
                                 "firebase_id=" + TheSingleton.getInstance().getFb_id() + "&event=feedback" +
                                         "&msg=" + text + "&time=" + System.currentTimeMillis());
-                    } catch (Exception e) {loge(e.toString());}
+                    } catch (Exception e) {e.printStackTrace();}
                 }
             }.start();
             et.setText("");
             startActivity(new Intent(getApplicationContext(), ThanksActivity.class));
         });
 
-        Switch auto = findViewById(R.id.switch_auto);
         final SharedPreferences pref = getSharedPreferences("pref", 0);
+
+        Switch auto = findViewById(R.id.switch_auto);
         auto.setChecked(pref.getBoolean("auto", true));
         auto.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("auto", isChecked).apply());
 
@@ -88,11 +90,14 @@ public class SettingsActivity extends AppCompatActivity {
         nextday.setChecked(pref.getBoolean("nextday", true));
         nextday.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("nextday", isChecked).apply());
 
+        Switch avgfixed = findViewById(R.id.switch_avgfixed);
+        avgfixed.setChecked(pref.getBoolean("avg_fixed", false));
+        avgfixed.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("avg_fixed", isChecked).apply());
+
         findViewById(R.id.btn_quit).setOnClickListener(v -> {
             setResult(RESULT_OK, new Intent().putExtra("goal", "quit"));
             finish();
         });
-
 
         Switch chat = findViewById(R.id.switch_chat);
         chat.setChecked(pref.getBoolean("show_chat", true));
@@ -121,7 +126,7 @@ public class SettingsActivity extends AppCompatActivity {
                         try {
                             connect("https://warm-bayou-37022.herokuapp.com/update",
                                     "column=name&id=" + pref.getString("knock_id", "") + "&value=" + text);
-                        } catch (Exception e) {loge(e.toString());}
+                        } catch (Exception e) {e.printStackTrace();}
                     }
                 }.start();
             }

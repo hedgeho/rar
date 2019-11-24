@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -39,13 +40,19 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
+import static ru.gurhouse.sch.LoginActivity.isQuit;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class MainActivity extends AppCompatActivity {
+
+    public static final boolean TYPE_Q = true; // четверти
+    public static final boolean TYPE_SEM = false; // полугодия
 
     private PeriodFragment periodFragment;
     private PeriodFragment1 periodFragment1;
@@ -106,7 +113,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
 
@@ -156,9 +162,21 @@ public class MainActivity extends AppCompatActivity {
                             intent.getLongExtra("time", 0), intent.getIntExtra("sender_id", 0),
                             intent.getIntExtra("thread_id", 0));
                 } else if (getStackTop() instanceof ChatFragment) {
-                    ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), intent.getLongExtra("time", 0),
-                            intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
-                            intent.getStringExtra("sender_fio"), intent.getStringExtra("attach"));
+                    try {
+                        ArrayList<ChatFragment.Attach> files = new ArrayList<>();
+                        JSONArray arr = new JSONArray(intent.getStringExtra("attach"));
+                        for (int j = 0; j < arr.length(); j++) {
+                            JSONObject tmp1 = arr.getJSONObject(j);
+                            files.add(new ChatFragment.Attach(tmp1.getInt("fileId"), tmp1.getInt("fileSize"),
+                                    tmp1.getString("fileName"), tmp1.getString("fileType")));
+                        }
+
+                        ((ChatFragment) getStackTop()).newMessage(intent.getStringExtra("text"), new Date(intent.getLongExtra("time", 0)),
+                                intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
+                                intent.getStringExtra("sender_fio"), files,true);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     BottomNavigationMenuView bottomNavigationMenuView =
                             (BottomNavigationMenuView) bottomnav.getChildAt(0);
@@ -222,16 +240,20 @@ public class MainActivity extends AppCompatActivity {
                         view.setVisibility(View.INVISIBLE);
                         findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
                         findViewById(R.id.frame).setVisibility(View.VISIBLE);
-                        try {
-                            if (getIntent().getStringExtra("login") != null) {
-                                login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
-                            }
-                        } catch (LoginActivity.NoInternetException e) {
-                            view.setVisibility(View.VISIBLE);
-                            findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
-                            findViewById(R.id.frame).setVisibility(View.INVISIBLE);
-                        } catch (Exception e) {
-                            loge(e.toString());
+                        if (getIntent().getStringExtra("login") != null) {
+                            new Thread(() -> {
+                                try {
+                                    login(getIntent().getStringExtra("login"), getIntent().getStringExtra("hash"));
+                                } catch (LoginActivity.NoInternetException e) {
+                                    runOnUiThread(() -> {
+                                        view.setVisibility(View.VISIBLE);
+                                        findViewById(R.id.tv_error).setVisibility(View.VISIBLE);
+                                        findViewById(R.id.frame).setVisibility(View.INVISIBLE);
+                                    });
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }).start();
                         }
                     });
                 }
@@ -295,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     scheduleFragment.start();
                 } catch (Exception e) {
-                    loge(e.toString());
+                    e.printStackTrace();
                 }
             }
         }.start();
@@ -328,30 +350,42 @@ public class MainActivity extends AppCompatActivity {
         }
         analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
 
-        KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
-                "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
-        log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id());
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
+                    "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
+                            + "&version=" + version);
+            log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
+                + "&version=" + version);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-    void set(ScheduleFragment.Period[] periods, int pernum, int t) {
+    void set(ScheduleFragment.Period[] periods, int pernum) {
+        set(periods, pernum, true);
+    }
+    void set(ScheduleFragment.Period[] periods, int pernum, boolean show) {
         period = scheduleFragment.period;
-        if (t == 1) {
-            periodFragment1 = new PeriodFragment1();
-            periodFragment1.period = period;
-            periodFragment1.pernum = pernum;
-            periodFragment1.periods = periods;
-            if (state == 1 && !mode0)
-                loadFragment(periodFragment1);
-        } else {
-            periodFragment = new PeriodFragment();
-            periodFragment.period = period;
-            periodFragment.pernum = pernum;
+        if(!show) {
             periodFragment.periods = periods;
-            periodFragment.mode = !mode0;
-            if (state == 1 && mode0)
-                loadFragment(periodFragment);
+            periodFragment1.periods = periods;
+            return;
         }
-        TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
+        periodFragment1 = new PeriodFragment1();
+        periodFragment1.period = period;
+        periodFragment1.pernum = pernum;
+        periodFragment1.periods = periods;
+        if (state == 1 && !mode0)
+            loadFragment(periodFragment1);
+        periodFragment = new PeriodFragment();
+        periodFragment.period = period;
+        periodFragment.pernum = pernum;
+        periodFragment.periods = periods;
+        periodFragment.mode = !mode0;
+        if (state == 1 && mode0)
+            loadFragment(periodFragment);
        // TheSingleton.getInstance().setDays(days);
     }
 
@@ -360,10 +394,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadFragment(Fragment fragment) {
+        printStack();
+        log("loading " + fragment);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.frame, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
+        //printStack();
     }
 
     public void setSupActionBar(android.support.v7.widget.Toolbar toolbar) {
@@ -397,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 request.setDescription("Downloading file from " + new URL(url).getHost());
             } catch (MalformedURLException e) {
-                loge(e.toString());
+                e.printStackTrace();
                 request.setDescription("Some Description");
             }
             request.setTitle(name);
@@ -428,6 +465,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void nullsub(ScheduleFragment.Period[] periods, int pernum) {
+        // todo PF1
         period = scheduleFragment.period;
         periodFragment = new PeriodFragment();
         periodFragment.period = period;
@@ -437,16 +475,68 @@ public class MainActivity extends AppCompatActivity {
         periodFragment.mode = !mode0;
         if (state == 1)
             loadFragment(periodFragment);
-        TheSingleton.getInstance().setSubjects(periods[pernum].subjects);
     }
-    @Override
-    public void onBackPressed() {
+
+    public void updateSubjects(ScheduleFragment.Period[] periods, int pernum) {
+        if(pernum < 3)
+            return;
+        ArrayList<PeriodFragment.Subject> array = periods[pernum].subjects, bigarray;
+        if (pernum == 3 || pernum == 4)
+            bigarray = periods[1].subjects;
+        else
+            bigarray = periods[2].subjects;
+        try {
+            JSONArray subjects = new JSONArray();
+            JSONObject object;
+            ArrayList<PeriodFragment.Cell> cells;
+            double d;
+            double f;
+            for (int i = 0; i < array.size(); i++) {
+                d = 0;
+                f = 0;
+                object = new JSONObject();
+                if(array.get(i).periodType == TYPE_SEM)
+                    cells = bigarray.get(i).cells;
+                else
+                    cells = array.get(i).cells;
+                object.put("name", array.get(i).name);
+                object.put("unitid", array.get(i).unitid);
+                for (int j = 0; j < cells.size(); j++) {
+                    if(cells.get(j).markvalue != null)
+                        if (cells.get(j).markvalue != null && !cells.get(j).markvalue.equals(" "))
+                            if (cells.get(j).markvalue.equals("1") || cells.get(j).markvalue.equals("2")
+                                    || cells.get(j).markvalue.equals("3") || cells.get(j).markvalue.equals("4")
+                                    || cells.get(j).markvalue.equals("5")) {
+                                d += Double.parseDouble(cells.get(j).markvalue) * cells.get(j).mktWt;
+                                f += cells.get(j).mktWt;
+                            }
+                }
+
+                object.put("d", d);
+                object.put("f", f);
+                subjects.put(object);
+            }
+            getSharedPreferences("pref", MODE_PRIVATE).edit().putString("subjects", subjects.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+            loge(e);
+        }
+    }
+
+    public void printStack() {
         log("fragments on MainActivity: " + getSupportFragmentManager().getFragments().size());
         List<Fragment> a = getSupportFragmentManager().getFragments();
         for (int i = 0; i < a.size(); i++) {
             log(a.get(i).toString());
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        log("onBackPressed");
+        printStack();
         //log("top: " + getStackTop());
+        List<Fragment> a = getSupportFragmentManager().getFragments();
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
                 getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
             set_visible(true);
@@ -469,6 +559,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (data!=null)
             if(data.hasExtra("goal"))
                 if(data.getStringExtra("goal").equals("quit"))
@@ -483,15 +574,37 @@ public class MainActivity extends AppCompatActivity {
             registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
             registerReceiver(auth_receiver, new IntentFilter("ru.gurhouse.sch.auth"));
         } catch (Exception e) {
-            loge(e.toString());
+            e.printStackTrace();
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
         if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
             || getStackTop() instanceof Countcoff)) {
-            if (mode0)
-                loadFragment(periodFragment);
-            else
+            log("heeeree, Mode0=" + mode0);
+//            if(!(getStackTop() instanceof PageFragment))
+//                getSupportFragmentManager().popBackStack();
+//            if(getStackTop() instanceof PeriodFragment != mode0)
+//                getSupportFragmentManager().popBackStack();
+            if (mode0) {
+//                getSupportFragmentManager()
+//                        .beginTransaction()
+//                        .detach(periodFragment1)
+//                        .attach(periodFragment)
+//                        .commit();
+//                periodFragment1.view.setVisibility(View.INVISIBLE);
+                //getSupportFragmentManager().popBackStack("PeriodFragment1", FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 loadFragment(periodFragment1);
+                loadFragment(periodFragment);
+            } else {
+//                getSupportFragmentManager()
+//                        .beginTransaction()
+//                        .detach(periodFragment)
+//                        .attach(periodFragment1)
+//                        .commit();
+                //periodFragment1.view.setVisibility(View.VISIBLE);
+                //getSupportFragmentManager().popBackStack("PeriodFragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                loadFragment(periodFragment);
+                loadFragment(periodFragment1);
+            }
         }
     }
 
@@ -503,25 +616,31 @@ public class MainActivity extends AppCompatActivity {
             unregisterReceiver(receiver);
             unregisterReceiver(auth_receiver);
         } catch (Exception e) {
-            loge(e.toString());
+            e.printStackTrace();
         }
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        new Thread(() -> {
-            try {
-                LoginActivity.login();
-            } catch (LoginActivity.NoInternetException e) {
-                runOnUiThread(() -> {
-                    TextView tv = findViewById(R.id.tv_error);
-                    tv.setText("Нет доступа к интернету");
-                    tv.setVisibility(View.VISIBLE);
-                    findViewById(R.id.refresh).setVisibility(View.VISIBLE);
-                });
-            }
-        }).start();
+        log("onRestoreInstanceState");
+        LoginActivity.isRestoreInstance = true;
+        finish();
+
+                /*LoginActivity.login(
+                        getSharedPreferences("pref", 0).getString("login", ""),
+                        getSharedPreferences("pref", 0).getString("hash", ""));
+                runOnUiThread(()->{
+                    bottomnav = findViewById(R.id.bottomnav);
+                    bottomnav.setSelectedItemId(R.id.navigation_diary);
+                    set_visible(true);
+                    Toolbar toolbar = findViewById(R.id.toolbar);
+                    toolbar.setTitle("Дневник");
+                    toolbar.setClickable(false);
+                    scheduleFragment = new ScheduleFragment();
+                    loadFragment(scheduleFragment);
+                    scheduleFragment.show();
+                });*/
     }
 
     @Override
@@ -546,9 +665,13 @@ public class MainActivity extends AppCompatActivity {
         }.start();
         TheSingleton.getInstance().setPERSON_ID(-1);
         TheSingleton.getInstance().setUSER_ID(-1);
+        TheSingleton.getInstance().setCOOKIE("");
+        TheSingleton.getInstance().setROUTE("");
         SharedPreferences pref = getSharedPreferences("pref", 0);
         pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "")
-                .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "").apply();
+                .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "")
+                .putString("muted", "[]").putString("login", "").putString("hash", "").apply();
+        isQuit = true;
         finish();
     }
 
