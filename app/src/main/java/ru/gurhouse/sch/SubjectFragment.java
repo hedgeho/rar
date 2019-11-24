@@ -39,7 +39,6 @@ public class SubjectFragment extends Fragment {
     };*/
 
     String periodname = "";
-
     String subname;
     int pernum = 0;
     ScheduleFragment.Period[] periods = new ScheduleFragment.Period[7];
@@ -47,6 +46,7 @@ public class SubjectFragment extends Fragment {
     String[] period;
     String rating;
     String totalmark;
+    boolean periodType;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -109,6 +109,7 @@ public class SubjectFragment extends Fragment {
                     fragment.avg = avg;
                     fragment.period = period;
                     fragment.pernum = pernum;
+                    fragment.periodType = periodType;
                 } catch (Exception ignore) {
                 }
                 transaction.addToBackStack(null);
