@@ -210,8 +210,8 @@ public class PeriodFragment extends Fragment {
                     txt2.setText(" ");
             }
             final Subject sub = periods[pernum].subjects.get(i);
-            txt2.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark));
-            txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark));
+            txt2.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
+            txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
             layout2.addView(txt2);
             layout1.addView(txt1);
 
@@ -304,7 +304,7 @@ public class PeriodFragment extends Fragment {
         ((MainActivity) getContext()).scheduleFragment.Download2(pernum);
     }
 
-    public void SwitchToSubjectFragment(Double avg, String name, String rating, String totalmark) {
+    public void SwitchToSubjectFragment(Double avg, String name, String rating, String totalmark, boolean periodType) {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         SubjectFragment fragment = new SubjectFragment();
         transaction.replace(R.id.frame, fragment);
@@ -316,6 +316,7 @@ public class PeriodFragment extends Fragment {
             fragment.period = period;
             fragment.pernum = pernum;
             fragment.periods = periods;
+            fragment.periodType = periodType;
         } catch (Exception ignore) {
         }
         transaction.addToBackStack(null);

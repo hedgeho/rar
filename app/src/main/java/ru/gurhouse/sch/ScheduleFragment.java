@@ -46,6 +46,7 @@ import java.util.Locale;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.MainActivity.TYPE_SEM;
 
 public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDateSetListener {
 
@@ -530,10 +531,23 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         subject.rating = obj.getString("rating");
                     if (obj.has("unitId"))
                         subject.unitid = obj.getInt("unitId");
-                    if (obj.has("ttlItCode"))
-                        subject.periodType = obj.getString("ttlItCode").equals("Q");
+                    if (obj.has("ttlItCode") && pernum > 2) {
+                            subject.periodType = obj.getString("ttlItCode").equals("Q");
+                    } else if (obj.has("ttlItCode") || pernum < 3) {
+                        for (int j = 3; j < 7; j++) {
+                            if (periods[j].subjects != null && periods[j].subjects.size() != 0) {
+                                for (int k = 0; k < periods[j].subjects.size(); k++) {
+                                    if (periods[j].subjects.get(k).unitid == subject.unitid) {
+                                        subject.periodType = periods[j].subjects.get(k).periodType;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                     subject.cells = new ArrayList<>();
-                    log((i + 1) + ". name (" + subject.name + "), avg (" + subject.avg + "), tm (" + subject.totalmark + "), rating (" + subject.rating + ")");
+                    log((i + 1) + ". name (" + subject.name + "), avg (" + subject.avg + "), tm (" + subject.totalmark + ")," +
+                            " rating (" + subject.rating + "), periodType = " + (subject.periodType == TYPE_SEM?"SEM":"Q"));
                     periods[pernum].subjects.add(subject);
                 }
                 log(-2);

@@ -191,8 +191,8 @@ public class PeriodFragment1 extends Fragment {
                 }
                 final PeriodFragment.Subject sub = periods[pernum].subjects.get(i);
                 txt2.setOnClickListener(v ->
-                        SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
-                txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.cells, sub.name, sub.rating, sub.totalmark));
+                        SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
+                txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
             }
             layout2.addView(txt2);
             layout1.addView(txt1);
@@ -211,7 +211,7 @@ public class PeriodFragment1 extends Fragment {
         ((MainActivity) getContext()).scheduleFragment.Download2(pernum/*, true, false*/);
     }
 
-    public void SwitchToSubjectFragment(Double avg, ArrayList<PeriodFragment.Cell> cells, String name, String rating, String totalmark) {
+    public void SwitchToSubjectFragment(Double avg, String name, String rating, String totalmark, boolean periodType) {
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         SubjectFragment fragment = new SubjectFragment();
         transaction.replace(R.id.frame, fragment);
@@ -223,6 +223,7 @@ public class PeriodFragment1 extends Fragment {
             fragment.periods = periods;
             fragment.period = period;
             fragment.pernum = pernum;
+            fragment.periodType = periodType;
         } catch (Exception ignore) {
         }
         transaction.addToBackStack(null);
@@ -337,6 +338,7 @@ public class PeriodFragment1 extends Fragment {
                         fragment2.pernum = pernum;
                         fragment2.subname = periods[pernum].subjects.get(0).name;
                         fragment2.avg = periods[pernum].subjects.get(0).avg;
+                        fragment2.periodType = periods[pernum].subjects.get(0).periodType;
                     } catch (Exception ignore) {
                     }
                     transaction.addToBackStack(null);

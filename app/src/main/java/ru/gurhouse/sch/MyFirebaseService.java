@@ -97,8 +97,10 @@ public class MyFirebaseService extends FirebaseMessagingService {
                             NotificationManagerCompat compat = NotificationManagerCompat.from(this);
 
                             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-                            builder.setContentText(obj.getString("name") + ": " + val + " с коэф. " + coef + "\n"
-                                    + "Новый средний балл: " + Math.round(d / f*100)/100d)
+                            String t = obj.getString("name") + ": " + val + " с коэф. " + coef + "\n" + "Новый средний балл: " + Math.round(d / f*100)/100d;
+                            builder.setContentText(t)
+                                    .setStyle(new NotificationCompat.BigTextStyle()
+                                        .bigText(t))
                                     .setContentTitle("Новая оценка")
                                     .setSmallIcon(R.drawable.alternative)
                                     .setContentIntent(res);

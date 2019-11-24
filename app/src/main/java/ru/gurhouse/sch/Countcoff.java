@@ -57,7 +57,7 @@ public class Countcoff extends Fragment {
     ArrayList<PeriodFragment.Cell> cells;
     int j;
     int dell = 7;
-    String[] period;
+    String[] period, periodSEM;
     int pernum = 6;
     double avg;
     boolean periodType;
@@ -79,14 +79,26 @@ public class Countcoff extends Fragment {
             if (which == Dialog.BUTTON_POSITIVE) {
                 j = lv.getCheckedItemPosition();
                 subname = periods[pernum].subjects.get(lv.getCheckedItemPosition()).name;
+                periodType = periods[pernum].subjects.get(lv.getCheckedItemPosition()).periodType;
+                log("periodtype: " + periodType);
                 txt2.setText(subname);
                 alr.setSingleChoiceItems(strings, j, myClickListener);
                 cells = new ArrayList<>();
                 for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
                     cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
                 }
+                if(periodType == TYPE_SEM) {
+                    if (pernum == 3 || pernum == 4) {
+                        pernum = 1;
+                    } else if (pernum == 5 || pernum == 6) {
+                        pernum = 2;
+                    }
+                    alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
+                } else {
+                    alr2.setSingleChoiceItems(period, pernum, myClickListener2);
+                }
                 avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
-                makeMarks();
+                makeMarks(true);
             }
         }
     };
@@ -110,8 +122,11 @@ public class Countcoff extends Fragment {
                         else
                             avg = periods[pernum].subjects.get(j).avg;
                         log("avg: " + avg);
-                        alr2.setSingleChoiceItems(period, pernum, myClickListener);
-                        makeMarks();
+                        if(periodType == TYPE_SEM)
+                            alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
+                        else
+                            alr2.setSingleChoiceItems(period, pernum, myClickListener);
+                        makeMarks(true);
                     });
                 } else {
                     periodname = periods[pernum].name;
@@ -122,8 +137,11 @@ public class Countcoff extends Fragment {
                     }
                     avg = periods[pernum].subjects.get(j).avg;
                     log("avg: " + avg);
-                    alr2.setSingleChoiceItems(period, pernum, myClickListener);
-                    makeMarks();
+                    if(periodType == TYPE_SEM)
+                        alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
+                    else
+                        alr2.setSingleChoiceItems(period, pernum, myClickListener);
+                    makeMarks(true);
                 }
             }
         }
@@ -134,15 +152,16 @@ public class Countcoff extends Fragment {
         if(getActivity() != null)
             context = getActivity();
 
+        log("Countcoff: type " + (periodType == TYPE_SEM?"SEM":"Q"));
+        periodSEM = new String[period.length-4];
+        System.arraycopy(period, 0, periodSEM, 0, period.length-4);
+
         if(periodType == TYPE_SEM) {
             if (pernum == 3 || pernum == 4) {
                 pernum = 1;
             } else if (pernum == 5 || pernum == 6) {
                 pernum = 2;
             }
-            String[] tmp = new String[period.length-4];
-            System.arraycopy(period, 0, tmp, 0, period.length-4);
-            period = tmp;
         }
 
         View v = inflater.inflate(R.layout.fragment_countcoff, container, false);
@@ -244,7 +263,7 @@ public class Countcoff extends Fragment {
                 cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
             }
 
-            makeMarks();
+            makeMarks(true);
         } else {
             getContext().onBackPressed();
         }
@@ -262,8 +281,11 @@ public class Countcoff extends Fragment {
         alr2 = new AlertDialog.Builder(getContext());
         alr2.create();
         periodname = period[pernum];
-        toolbar.setTitle(periodname);
-        alr2.setSingleChoiceItems(period, pernum, myClickListener2);
+        //toolbar.setTitle(periodname);
+        if(periodType == TYPE_SEM)
+            alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
+        else
+            alr2.setSingleChoiceItems(period, pernum, myClickListener2);
         alr2.setTitle("Выберите период");
         alr2.setPositiveButton("ok", myClickListener2);
         toolbar.setOnClickListener(v2 -> alr2.show());
@@ -273,7 +295,8 @@ public class Countcoff extends Fragment {
         return v;
     }
 
-    void makeMarks() {
+    void makeMarks() {makeMarks(false);}
+    void makeMarks(boolean main) {
         layout.removeAllViews();
         LinearLayout lin = new LinearLayout(getContext());
         for (int i = 0; i < cells.size(); i++) {
@@ -402,11 +425,11 @@ public class Countcoff extends Fragment {
             tv1.setLayoutParams(lp);
             lin.addView(tv1);
         }
-        countNewCoff();
+        countNewCoff(main);
         layout.addView(lin);
     }
 
-    void countNewCoff() {
+    void countNewCoff(boolean main) {
         double d = 0.;
         double f = 0.;
         for (int i = 0; i < cells.size(); i++) {
@@ -419,6 +442,9 @@ public class Countcoff extends Fragment {
         }
         double newAvg = Math.round(d / f*100)/100d;
         avg = Math.round(avg*100)/100d;
+        log("avg: " + avg + ", new: " + newAvg);
+        if(main)
+            avg = newAvg;
         String s = String.valueOf(newAvg);
         if (s.length() > 4) {
             s = String.format(Locale.UK, "%.2f", d / f);
