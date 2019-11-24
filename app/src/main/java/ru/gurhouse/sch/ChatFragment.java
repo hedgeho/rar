@@ -322,7 +322,7 @@ public class ChatFragment extends Fragment {
             if(attach.get(i) == null) continue;
             if(attach.get(i).type.contains("image")){
                 ImageView image = new ImageView(context);
-                image.setPadding(15,15,15,15);
+                image.setPadding(5,5,5,5);
 
                 final int i2 = i;
                 (new Thread(() -> {
@@ -334,10 +334,11 @@ public class ChatFragment extends Fragment {
 
                         Bitmap bitmap2 = BitmapFactory.decodeStream(connection.getInputStream());
                         Bitmap bitmap;
-                        if(bitmap2.getWidth() > bitmap2.getHeight())
-                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720,720*bitmap2.getHeight()/bitmap2.getWidth(), false);
-                        else
-                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720*bitmap2.getWidth()/bitmap2.getHeight(),720, false);
+                        if(bitmap2.getWidth() > bitmap2.getHeight()) {
+                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720, 720 * bitmap2.getHeight() / bitmap2.getWidth(), false);
+                        }else {
+                            bitmap = Bitmap.createScaledBitmap(bitmap2, 720 * bitmap2.getWidth() / bitmap2.getHeight(), 720, false);
+                        }
                         RoundedBitmapDrawable roundedBitmap = RoundedBitmapDrawableFactory.create(getResources(),bitmap);
                         roundedBitmap.setCornerRadius(30);
                         getActivity().runOnUiThread(() -> {
@@ -372,6 +373,7 @@ public class ChatFragment extends Fragment {
                 }
                 tv_attach.setText(String.format(Locale.getDefault(), attach.get(i2).name + " (%.2f " + s + ")", size));
                 tv_attach.setTextColor(getResources().getColor(R.color.two));
+                tv_attach.setMaxWidth(tv.getMaxWidth());
                 tv_attach.setOnClickListener(v -> {
                     String url = "https://app.eschool.center/ec-server/files/" + attach.get(i2).fileId;
                     ((MainActivity) getActivity()).saveFile(url, attach.get(i2).name, true);
