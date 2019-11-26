@@ -145,12 +145,14 @@ public class PageFragment extends Fragment {
                         fragment.marks = lesson.marks;
                         fragment.subjects = subjects;
                         fragment.name = lesson.name;
+                        fragment.attends = lesson.attends;
                     } catch (Exception ignore) {
                     }
                     transaction.addToBackStack(null);
                     transaction.commit();
                 });
             } catch (Exception ignore) { }
+
             if (i - day.lessons.size() + 1 == 0) {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
@@ -169,6 +171,48 @@ public class PageFragment extends Fragment {
                 spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv21.setText(spans);
             } catch (Exception ignore) {
+            }
+            if(lesson.attends != null && lesson.attends.name != null) {
+                System.out.println(lesson.attends.id + "-----------------------------------------------------------------------------------------------------------------------------------------------------------");
+                switch (lesson.attends.id) {
+                    case 1:
+                        if (i - day.lessons.size() + 1 == 0)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellsick1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellsick0));
+                        break;
+                    case 6:
+                        if (i - day.lessons.size() + 1 == 0)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun0));
+                        break;
+                    case 2:
+                        if (i - day.lessons.size() + 1 == 0)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.celllate1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.celllate0));
+                        break;
+                    case 3:
+                        if (i - day.lessons.size() + 1 == 0)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellrel1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellrel0));
+                        break;
+                    case 4:
+                        if (i - day.lessons.size() + 1 == 0)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellab1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellab0));
+                        break;
+                    case 8:
+                        if (i - day.lessons.size() + 1 == 0)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellall1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellall0));
+                        break;
+                }
+
             }
             try {
                 String s = lesson.homeWork.stringwork;
@@ -219,10 +263,7 @@ public class PageFragment extends Fragment {
                 tv3.setText(spans1);
             } catch (Exception ignored) {
             }
-            if(lesson.attends != null){
-                System.out.println(lesson.attends.color);
-               // tv1.setBackground(getResources().getDrawable(R.drawable.ringb));
-            }
+
             tbrow.addView(tv1);
             LinearLayout linearLayout = new LinearLayout(getContext());
             linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -324,6 +365,7 @@ public class PageFragment extends Fragment {
     static class Attends{
         String name;
         String color;
+        int id;
         public Attends(){}
     }
 

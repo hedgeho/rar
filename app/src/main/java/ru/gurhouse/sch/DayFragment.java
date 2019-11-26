@@ -24,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 
 public class DayFragment extends Fragment {
@@ -35,6 +36,7 @@ public class DayFragment extends Fragment {
     String teachername = "";
     ArrayList<PeriodFragment.Subject> subjects;
     Activity context;
+    PageFragment.Attends attends;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -121,7 +123,7 @@ public class DayFragment extends Fragment {
                         Spannable spans1 = new SpannableString(s1);
                         spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                         spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                        spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("   "), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                        spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("   "), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                         spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("   "), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         tv1.setText(spans1);
                         tv1.setGravity(Gravity.CENTER);
@@ -163,12 +165,65 @@ public class DayFragment extends Fragment {
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 50);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
+        }
+        if (attends != null) {
+            tv1 = new TextView(getContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+
+            int g = 0;
+
+            String s1 = "Присутствие:" + "\n";
+            Spannable spans1 = new SpannableString(s1);
+            s1 = spans1.toString();
+            switch (attends.id) {
+                case 1:
+                    s1 += "По причине болезни";
+                    spans1 = new SpannableString(s1);
+                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                    break;
+                case 6:
+                    s1 += "Неизвестно";
+                    spans1 = new SpannableString(s1);
+                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                    break;
+                case 2:
+                    s1 += "Опоздал";
+                    spans1 = new SpannableString(s1);
+                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                    break;
+                case 3:
+                    s1 += "Освобожден";
+                    spans1 = new SpannableString(s1);
+                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                    break;
+                case 4:
+                    s1 += "Прогул";
+                    spans1 = new SpannableString(s1);
+                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                    break;
+                case 8:
+                    s1 += "По уважительной причине";
+                    spans1 = new SpannableString(s1);
+                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                    break;
+                default:
+                    g = 1;
+            }
+            spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            if(g == 0) {
+                tv1.setText(spans1);
+                tv1.setPadding(50, 50, 50, 50);
+                tv1.setGravity(Gravity.CENTER_VERTICAL);
+                linearLayout.addView(tv1);
+            }
         }
         if (!teachername.equals(" ") && !teachername.equals("")) {
             tv1 = new TextView(getContext());
@@ -176,7 +231,7 @@ public class DayFragment extends Fragment {
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
             String s1 = teachername;
             Spannable spans1 = new SpannableString(s1);
-            spans1.setSpan(new RelativeSizeSpan(1.1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spans1.setSpan(new RelativeSizeSpan(1.2f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setGravity(Gravity.CENTER);
@@ -188,7 +243,7 @@ public class DayFragment extends Fragment {
         toolbar.setTitle(name);
         setHasOptionsMenu(true);
         ((MainActivity)getActivity()).setSupActionBar(toolbar);
-        ((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
+        Objects.requireNonNull(((MainActivity) getActivity()).getSupportActionBar()).setHomeButtonEnabled(true);
         return view;
     }
 
