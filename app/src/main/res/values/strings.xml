@@ -1,8 +1,11 @@
 <resources>
-    <string name="app_name">RAR</string>
+    <item name="TAG_POSITION" type="id" />
     <string name="title_activity_main">MainActivity</string>
     <string name="title_home"> </string>
     <string name="title_dashboard">Дневник</string>
     <string name="title_notifications">Сообщения</string>
-    <item name="TAG_POSITION" type="id" />
+    <string name="app_name">RAR</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

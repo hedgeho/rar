@@ -569,8 +569,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         cell.attends = new PageFragment.Attends();
                         JSONArray ar = object1.getJSONArray("attends");
                         JSONObject o = (JSONObject) ar.get(0);
-                        cell.attends.name = o.getString("name");
-                        cell.attends.color = "60" + o.getString("color");
+                        if(o.has("name"))
+                            cell.attends.name = o.getString("name");
+                        if(o.has("color"))
+                            cell.attends.color = "50" + o.getString("color");
+                        if(o.has("attendTypeId"))
+                            cell.attends.id = o.getInt("attendTypeId");
+
                     }
                     if (object1.has("lptName"))
                         cell.lptname = object1.getString("lptName");
