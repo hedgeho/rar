@@ -80,22 +80,25 @@ public class Countcoff extends Fragment {
                 j = lv.getCheckedItemPosition();
                 subname = periods[pernum].subjects.get(lv.getCheckedItemPosition()).name;
                 periodType = periods[pernum].subjects.get(lv.getCheckedItemPosition()).periodType;
-                log("periodtype: " + periodType);
+                log("periodtype: " + (periodType==TYPE_SEM?"SEM":"Q"));
                 txt2.setText(subname);
                 alr.setSingleChoiceItems(strings, j, myClickListener);
-                cells = new ArrayList<>();
-                for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
-                }
                 if(periodType == TYPE_SEM) {
                     if (pernum == 3 || pernum == 4) {
                         pernum = 1;
                     } else if (pernum == 5 || pernum == 6) {
                         pernum = 2;
                     }
+                    log("pernum " + pernum);
                     alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
                 } else {
                     alr2.setSingleChoiceItems(period, pernum, myClickListener2);
+                }
+                periodname = periods[pernum].name;
+                toolbar.setTitle(periodname);
+                cells = new ArrayList<>();
+                for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
+                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
                 }
                 avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
                 makeMarks(true);

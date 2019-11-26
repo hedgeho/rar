@@ -94,6 +94,10 @@ public class SettingsActivity extends AppCompatActivity {
         avgfixed.setChecked(pref.getBoolean("avg_fixed", false));
         avgfixed.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("avg_fixed", isChecked).apply());
 
+        Switch odod = findViewById(R.id.switch_odod);
+        odod.setChecked(pref.getBoolean("odod", true));
+        odod.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("odod", isChecked).apply());
+
         findViewById(R.id.btn_quit).setOnClickListener(v -> {
             setResult(RESULT_OK, new Intent().putExtra("goal", "quit"));
             finish();

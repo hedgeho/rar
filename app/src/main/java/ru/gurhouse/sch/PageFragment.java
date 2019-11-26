@@ -1,12 +1,10 @@
 package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -18,7 +16,6 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -40,59 +37,17 @@ public class PageFragment extends Fragment {
     Calendar c;
     ScheduleFragment.Period[] periods;
     int dayofweek;
+    Context context;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_page, container, false);
         tableLayout = v.findViewById(R.id.table);
         linearLayout = v.findViewById(R.id.lin);
-        if (day != null && day.lessons != null) {
-            tableLayout.setColumnStretchable(1, true);
-            tableLayout.setColumnShrinkable(1, true);
-            CreateTable();
-        } else {
-            boolean ok = true;
-            if(periods != null) {
-                int pernum = 0;
-                for (ScheduleFragment.Period period : periods) {
-                    if (period.datestart <= c.getTimeInMillis() && period.datefinish >= c.getTimeInMillis()) {
-                        if (period.days == null) {
-                            ok = false;
-                            pernum = period.num;
-                        } else {
-                            ok = true;
-                            break;
-                        }
-                    }
-                }
-                if(!ok) {
-                    ((MainActivity) getContext()).scheduleFragment.Download2(pernum, false);
-                }
-            }
-            tableLayout.setColumnStretchable(0, true);
-            tableLayout.setColumnShrinkable(0, true);
-            TableRow tbrow1 = new TableRow(getContext());
-            tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
-                    TableLayout.LayoutParams.WRAP_CONTENT));
-            final TextView tv1 = new TextView(getContext());
-            if(ok) {
-                tv1.setText("Уроков нет");
-            } else {
-                tv1.setText("Загрузка...");
-            }
-            tv1.setLayoutParams(new TableRow.LayoutParams(
-                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
-            tbrow1.addView(tv1);
-            tv1.setTextColor(Color.GRAY);
-            tv1.setGravity(Gravity.CENTER);
-            tv1.setTextSize(30);
-            tableLayout.addView(tbrow1);
-        }
-        if(day != null && day.odods != null && day.odods.size() > 0){
-            try {
-                CreateODOD();
-            }catch (Exception e){}
-        }
+        if(getContext() != null)
+            context = super.getContext();
+        draw();
+
         return v;
     }
 
@@ -100,24 +55,24 @@ public class PageFragment extends Fragment {
     public void CreateTable() {
         for (int i = 0; i < day.lessons.size(); i++) {
             final PeriodFragment.Lesson lesson = day.lessons.get(i);
-            TableRow tbrow = new TableRow(getActivity());
+            TableRow tbrow = new TableRow(getContext());
             tbrow.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
                     TableLayout.LayoutParams.WRAP_CONTENT));
             tbrow.setBaselineAligned(false);
 
-            TextView tv21 = new TextView(getActivity().getApplicationContext());
+            TextView tv21 = new TextView(getContext());
             tv21.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-            TextView tv22 = new TextView(getActivity().getApplicationContext());
+            TextView tv22 = new TextView(getContext());
             tv22.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
             LinearLayout linearLayout2 = new LinearLayout(getContext());
 
-            TextView tv1 = new TextView(getActivity().getApplicationContext());
+            TextView tv1 = new TextView(getContext());
             tv1.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
 
-            TextView tv3 = new TextView(getActivity().getApplicationContext());
+            TextView tv3 = new TextView(getContext());
             tv3.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
 
@@ -280,34 +235,12 @@ public class PageFragment extends Fragment {
             linearLayout2.addView(tv22);
 
             linearLayout.addView(linearLayout2);
-//            linearLayout.setOnTouchListener(new View.OnTouchListener() {
-//                @SuppressLint("ResourceAsColor")
-//                @Override
-//                public boolean onTouch(View v, MotionEvent event) {
-//                    switch (event.getAction()) {
-//                        case MotionEvent.ACTION_DOWN: // нажатие
-//                            linearLayout.setBackgroundColor(getResources().getColor(R.color.onTouch));
-//                            break;
-//                        case MotionEvent.ACTION_MOVE: // движение
-//
-//                            break;
-//                        case MotionEvent.ACTION_UP:
-//                            linearLayout.setBackgroundColor(getResources().getColor(R.color.gr1));
-//                        case MotionEvent.ACTION_CANCEL:
-//                            linearLayout.setBackgroundColor(getResources().getColor(R.color.gr1));
-//                            break;
-//                    }
-//                    return false;
-//                }
-//            });
             tbrow.addView(linearLayout);
             tbrow.addView(tv3);
             tableLayout.addView(tbrow);
         }
-
     }
 
-    /** odod is under construction because of a fatal bug**/
     public void CreateODOD(){
         TextView txt = new TextView(getContext());
         txt.setLayoutParams(new LinearLayout.LayoutParams(
@@ -362,11 +295,73 @@ public class PageFragment extends Fragment {
             linearLayout.addView(txt1);
         }
     }
-    static class Attends{
+
+    public void draw() {
+        if(tableLayout == null || getContext() == null) {
+            return;
+        }
+        if (day != null && day.lessons != null) {
+            tableLayout.setColumnStretchable(1, true);
+            tableLayout.setColumnShrinkable(1, true);
+            tableLayout.removeAllViews();
+            linearLayout.removeAllViews();
+            linearLayout.addView(tableLayout);
+            CreateTable();
+        } else {
+            boolean ok = true;
+            if(periods != null) {
+                int pernum = 0;
+                for (int i = 3; i < periods.length; i++) {
+                    ScheduleFragment.Period period = periods[i];
+                    if (period.datestart <= c.getTimeInMillis() && period.datefinish >= c.getTimeInMillis()) {
+                        if (period.days != null || period.nullsub){
+                            ok = true;
+                            break;
+                        } else {
+                            ok = false;
+                            pernum = i;
+                        }
+                    }
+                }
+                if(!ok) {
+                    ((MainActivity) getContext()).scheduleFragment.Download2(pernum, false);
+                }
+            }
+            tableLayout.removeAllViews();
+            tableLayout.setColumnStretchable(0, true);
+            tableLayout.setColumnShrinkable(0, true);
+            TableRow tbrow1 = new TableRow(getContext());
+            tbrow1.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT,
+                    TableLayout.LayoutParams.WRAP_CONTENT));
+            final TextView tv1 = new TextView(getContext());
+            if(ok) {
+                tv1.setText("Уроков нет");
+            } else {
+                tv1.setText("Загрузка...");
+            }
+            tv1.setLayoutParams(new TableRow.LayoutParams(
+                    TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
+            tbrow1.addView(tv1);
+            tv1.setTextColor(Color.GRAY);
+            tv1.setGravity(Gravity.CENTER);
+            tv1.setTextSize(30);
+            tableLayout.addView(tbrow1);
+        }
+        if(day != null && day.odods != null && day.odods.size() > 0
+                && getContext().getSharedPreferences("pref", 0).getBoolean("odod", true)){
+            CreateODOD();
+        }
+    }
+
+    public Context getContext() {
+        return (context == null?super.getContext():context);
+    }
+
+    static class Attends {
         String name;
         String color;
         int id;
-        public Attends(){}
+        Attends(){}
     }
 
 }

@@ -261,7 +261,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    @SuppressLint("HandlerLeak")
     private final Handler h = new Handler() {
         @Override
         public void handleMessage(final Message msg) {
@@ -465,16 +464,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void nullsub(ScheduleFragment.Period[] periods, int pernum) {
+        nullsub(periods, pernum, true);
+    }
+    void nullsub(ScheduleFragment.Period[] periods, int pernum, boolean show) {
+        log("nullsub");
         // todo PF1
         period = scheduleFragment.period;
-        periodFragment = new PeriodFragment();
-        periodFragment.period = period;
         periodFragment.periods = periods;
-        periodFragment.pernum = pernum;
-        periodFragment.nullsub = true;
-        periodFragment.mode = !mode0;
-        if (state == 1)
-            loadFragment(periodFragment);
+        if(show) {
+            periodFragment = new PeriodFragment();
+            periodFragment.period = period;
+            periodFragment.periods = periods;
+            periodFragment.pernum = pernum;
+            periodFragment.nullsub = true;
+            periodFragment.mode = !mode0;
+            if (state == 1)
+                loadFragment(periodFragment);
+        }
+        runOnUiThread(this::updatePages);
     }
 
     public void updateSubjects(ScheduleFragment.Period[] periods, int pernum) {
@@ -491,6 +498,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<PeriodFragment.Cell> cells;
             double d;
             double f;
+            long lastMark = 0;
             for (int i = 0; i < array.size(); i++) {
                 d = 0;
                 f = 0;
@@ -509,17 +517,28 @@ public class MainActivity extends AppCompatActivity {
                                     || cells.get(j).markvalue.equals("5")) {
                                 d += Double.parseDouble(cells.get(j).markvalue) * cells.get(j).mktWt;
                                 f += cells.get(j).mktWt;
+                                lastMark = cells.get(j).lessonid;
                             }
                 }
-
                 object.put("d", d);
                 object.put("f", f);
+                object.put("lastMark", lastMark);
                 subjects.put(object);
             }
             getSharedPreferences("pref", MODE_PRIVATE).edit().putString("subjects", subjects.toString()).apply();
         } catch (Exception e) {
             e.printStackTrace();
             loge(e);
+        }
+    }
+
+    public void updatePages() {
+        List<Fragment> a = getSupportFragmentManager().getFragments();
+        for (int i = 0; i < a.size(); i++) {
+            if(a.get(i) instanceof PageFragment) {
+                PageFragment p = (PageFragment) a.get(i);
+                p.draw();
+            }
         }
     }
 
@@ -606,6 +625,7 @@ public class MainActivity extends AppCompatActivity {
                 loadFragment(periodFragment1);
             }
         }
+        updatePages();
     }
 
     @Override

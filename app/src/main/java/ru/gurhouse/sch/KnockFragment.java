@@ -245,6 +245,8 @@ public class KnockFragment extends Fragment {
             final EditText et = view.findViewById(R.id.et_nickname);
             view.findViewById(R.id.btn_go).setOnClickListener(v -> {
                 final String s = et.getText().toString();
+                if(s.replaceAll(" ", "").equals("") || s.length() > 50)
+                    return;
                 et.setText("");
                 view.findViewById(R.id.l_new).setVisibility(View.INVISIBLE);
                 new Thread() {
@@ -379,7 +381,8 @@ public class KnockFragment extends Fragment {
                             if (!last.getString("uuid").equals(object.getString("uuid"))) {
                                 tv.setText(object.getString("name"));
                                 tv.setVisibility(View.VISIBLE);
-                            }
+                            } else
+                                tv.setVisibility(View.GONE);
                     }
                     tv = item.findViewById(R.id.tv_text);
                     if(object.getString("type").equals("text"))

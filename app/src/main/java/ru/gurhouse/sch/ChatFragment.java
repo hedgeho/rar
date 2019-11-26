@@ -586,7 +586,7 @@ public class ChatFragment extends Fragment {
                                         if (tmp.getInt("attachCount") <= 0) {
                                             msg.files = null;
                                         } else {
-                                            msg.files = new ArrayList<Attach>();
+                                            msg.files = new ArrayList<>();
                                             log(tmp.getString("attachInfo"));
                                             for (int j = 0; j < tmp.getInt("attachCount"); j++) {
                                                 tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
@@ -693,7 +693,6 @@ public class ChatFragment extends Fragment {
                                 }
                             }
                         }.start();
-
                     }
                 }
             };

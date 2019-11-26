@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="0dp"
-        tools:visibility="invisible">
+        tools:visibility="visible">
 
         <ImageView
             android:id="@+id/btn_refresh"
@@ -58,6 +58,20 @@
             app:layout_constraintEnd_toEndOf="@+id/pb"
             app:layout_constraintStart_toStartOf="@+id/pb" />
 
+        <TextView
+            android:id="@+id/tv_ver"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:gravity="center_horizontal"
+            android:text="eeeeee"
+            android:textSize="18sp"
+            android:visibility="invisible"
+            app:layout_constraintEnd_toEndOf="@+id/tv_dead"
+            app:layout_constraintStart_toStartOf="@+id/tv_dead"
+            app:layout_constraintTop_toBottomOf="@+id/btn_refresh"
+            tools:visibility="visible" />
+
     </android.support.constraint.ConstraintLayout>
 
     <android.support.constraint.ConstraintLayout
@@ -65,7 +79,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="invisible"
-        tools:visibility="visible">
+        tools:visibility="invisible">
 
         <EditText
             android:id="@+id/et_login"

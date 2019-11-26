@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.os.Build;
@@ -166,17 +167,31 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     log(token);
                     TheSingleton.getInstance().setFb_id(token);
                 });
-            findViewById(R.id.btn_refresh).setOnClickListener((v)->{
-                    new Thread(()->{
-                        try {
-                            login(settings.getString("login", ""), settings.getString("hash", ""), mode);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }).start();
+        findViewById(R.id.btn_refresh).setOnClickListener((v)->{
+            new Thread(()->{
+                try {
+                    login(settings.getString("login", ""), settings.getString("hash", ""), mode);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
-                    v.setVisibility(View.INVISIBLE);
-            });
+            v.setVisibility(View.INVISIBLE);
+        });
+        new Thread(() -> {
+            try {
+                String s = KnockFragment.connect("https://still-cove-90434.herokuapp.com/ver", null);
+                PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+                String version = pInfo.versionName;
+                log("ver: " + s + ", current: " + version);
+                if(!s.equals(version)) {
+                    getSharedPreferences("pref", 0).edit().putString("ver", s).apply();
+                } else
+                    getSharedPreferences("pref", 0).edit().putString("ver", "").apply();
+            } catch (Exception e) {
+                loge(e);
+            }
+        }).start();
     }
 
     @Override
@@ -275,6 +290,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             if(msg.what == 0) {
                 findViewById(R.id.pb).setVisibility(View.VISIBLE);
                 ((TextView) findViewById(R.id.tv_dead)).setText("Rаботать, Александр, Rаботать");
+                if(!getSharedPreferences("pref", 0).getString("ver", "").equals("")) {
+                    TextView tv = findViewById(R.id.tv_ver);
+                    tv.setText("Доступна новая версия приложения: \n" +
+                            getSharedPreferences("pref", 0).getString("ver", ""));
+                    tv.setVisibility(View.VISIBLE);
+                }
                 findViewById(R.id.l_skip).setVisibility(View.VISIBLE);
                 findViewById(R.id.l_login).setVisibility(View.INVISIBLE);
                 et_login.setText("");

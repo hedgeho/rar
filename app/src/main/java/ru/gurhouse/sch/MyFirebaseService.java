@@ -47,8 +47,14 @@ public class MyFirebaseService extends FirebaseMessagingService {
         switch (data.getStringExtra("type")) {
             case "mark":
                 log("new mark");
-                int val = Integer.parseInt(data.getStringExtra("val")),
-                        unitId = Integer.parseInt(data.getStringExtra("unitId"));
+                String vals = data.getStringExtra("val");
+                int val, unitId = Integer.parseInt(data.getStringExtra("unitId"));
+                if(vals.length() == 1 && vals.charAt(0) >= '1' && vals.charAt(0) <= '9')
+                    val = Integer.parseInt(vals);
+                else if(vals.charAt(0) >= '1' && vals.charAt(0) <= '9')
+                    val = Integer.parseInt(vals.substring(0, 1));
+                else
+                    return;
                 double coef = Double.parseDouble(data.getStringExtra("coef"));
                 NotificationManager notificationManager;
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)  {
@@ -73,31 +79,26 @@ public class MyFirebaseService extends FirebaseMessagingService {
                 try {
                     JSONArray subjects = new JSONArray(getSharedPreferences("pref", MODE_PRIVATE).getString("subjects", ""));
                     JSONObject obj;
-                    // TODO remove /*
-                    if (subjects.length() == 0) {
-                        NotificationManagerCompat compat = NotificationManagerCompat.from(this);
-
-                        NotificationCompat.Builder b = new NotificationCompat.Builder(this, "1");
-                        b.setContentText("Хз какой предмет, блын")
-                                .setContentTitle("Новая оценка")
-                                .setSmallIcon(R.drawable.alternative)
-                                .setContentIntent(res);
-                        Notification notif = b.build();
-                        compat.notify(TheSingleton.getInstance().notification_id++, notif);
-                        return;
-                    }
-                    // TODO */
                     for (int i = 0; i < subjects.length(); i++) {
                         obj = subjects.getJSONObject(i);
                         if (obj.getInt("unitid") == unitId) {
 
-                            double d = obj.getDouble("d") + val*coef;
-                            double f = obj.getDouble("f") + coef;
+                            long lastMark = obj.getLong("lastMark");
+
+                            double d = obj.getDouble("d");
+                            double f = obj.getDouble("f");
+                            if(data.hasExtra("lessonId")
+                                    && lastMark != Long.parseLong(data.getStringExtra("lessonId"))) {
+                                d += val * coef;
+                                f += coef;
+                            }
 
                             NotificationManagerCompat compat = NotificationManagerCompat.from(this);
 
                             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-                            String t = obj.getString("name") + ": " + val + " с коэф. " + coef + "\n" + "Новый средний балл: " + Math.round(d / f*100)/100d;
+                            String t = obj.getString("name") + ": " + vals + " с коэф. " + coef;
+                            if(data.hasExtra("lessonId"))
+                                t += "\n" + "Новый средний балл: " + Math.round(d / f*100)/100d;
                             builder.setContentText(t)
                                     .setStyle(new NotificationCompat.BigTextStyle()
                                         .bigText(t))
