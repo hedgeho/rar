@@ -49,7 +49,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private EditText et_login;
     private EditText et_password;
-    private int threadId = -1;
     private BroadcastReceiver internet = null;
 
     private int mode = -1;
@@ -76,9 +75,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             }
         }.start();
 
-        if(getIntent().getStringExtra("type") != null) {
-            threadId = getIntent().getIntExtra("threadId", -1);
-        }
         NotificationManagerCompat.from(this).cancelAll();
 
         final SharedPreferences settings = getSharedPreferences("pref", 0);
@@ -352,12 +348,16 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 TheSingleton.getInstance().login = login;
                 TheSingleton.getInstance().hash = hash;
 
-                if (threadId != -1)
+                int threadId = getIntent().getIntExtra("threadId", -1);
+
+                if (threadId != -1) {
+                    int count = getIntent().getIntExtra("count", -1);
+                    String senderFio = getIntent().getStringExtra("senderFio");
                     startActivity(new Intent(getApplicationContext(), MainActivity.class)
                             .putExtra("type", "msg").putExtra("notif", true)
                             .putExtra("threadId", threadId).putExtra("login", login).putExtra("hash", hash)
-                            .putExtra("mode", mode).putExtra("count", getIntent().getIntExtra("count", -1)));
-                else
+                            .putExtra("mode", mode).putExtra("count", count).putExtra("senderFio", senderFio));
+                } else
                     startActivity(new Intent(getApplicationContext(), MainActivity.class)
                             .putExtra("login", login).putExtra("hash", hash).putExtra("mode", mode));
             } else {

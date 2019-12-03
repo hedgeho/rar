@@ -57,7 +57,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     String[] period;
     boolean first = true;
     private int USER_ID;
-    private Activity context;
+    Activity context;
 
     TextView []tv = new TextView[7];
     int day;
@@ -151,7 +151,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 //                context.findViewById(R.id.frame), false);
 
         boolean autoChangingDate =
-                context.getSharedPreferences("pref", 0).getBoolean("nextday", true);
+                getContext().getSharedPreferences("pref", 0).getBoolean("nextday", true);
         shown = true;
         try {
             for (int i = 0; i < pageCount; i++) {
@@ -289,12 +289,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             e.printStackTrace();
             loge("show: " + e.toString());
             Toolbar toolbar = context.findViewById(R.id.toolbar);
-            toolbar.setTitle("Дневник");
             toolbar.setClickable(false);
             setHasOptionsMenu(true);
             ((MainActivity) context).setSupportActionBar(toolbar);
-            v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-            v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
+            if(v == null)
+                shown = false;
+            else {
+                toolbar.setTitle("Дневник");
+                v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+                v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -843,7 +847,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     ready = true;
 
-                    getContext().runOnUiThread(() -> show(pernum, pager != null ? pager.getCurrentItem() : -1));
+                    if(getContext() != null)
+                        getContext().runOnUiThread(() -> show(pernum, pager != null ? pager.getCurrentItem() : -1));
 
                     // цикл на ~2 секунды
                     log(2);

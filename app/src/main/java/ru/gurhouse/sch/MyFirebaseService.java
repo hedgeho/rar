@@ -162,7 +162,8 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     // background/not running
                     // Create an Intent for the activity you want to start
                     Intent resultIntent = new Intent(this, LoginActivity.class).putExtra("notif", true)
-                            .putExtra("type", "msg").putExtra("threadId", thread_id).putExtra("count", addrCnt);
+                            .putExtra("type", "msg").putExtra("threadId", thread_id)
+                            .putExtra("senderFio", sender_fio).putExtra("count", addrCnt);
                     // Create the TaskStackBuilder and add the intent, which inflates the back stack
                     TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
                     stackBuilder.addNextIntentWithParentStack(resultIntent);

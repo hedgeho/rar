@@ -757,7 +757,7 @@ public class ChatFragment extends Fragment {
                             AlertDialog.Builder builder = new AlertDialog.Builder(context);
                             builder.setMessage("Сообщение увидит только создатель диалога").setTitle("Вы уверены, что хотите отправить сообщение?").setPositiveButton("Отправить", (dialog, which)->ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis()))
                                     .setNegativeButton("Отмена", null).show();
-                        }else
+                        } else
                             ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
 //                        new Thread() {
 //                            @Override

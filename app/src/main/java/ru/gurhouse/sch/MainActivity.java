@@ -325,8 +325,13 @@ public class MainActivity extends AppCompatActivity {
                 messagesFragment.fromNotification = true;
                 messagesFragment.notifThreadId = getIntent().getIntExtra("threadId", -1);
                 messagesFragment.notifCount = getIntent().getIntExtra("count", -1);
+                messagesFragment.notifSenderFio = getIntent().getStringExtra("senderFio");
+                scheduleFragment.context = this;
+                periodFragment.context = this;
+                periodFragment1.context = this;
             }
         }
+        messagesFragment.context = this;
         messagesFragment.start(h);
         FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
         Bundle bundle = new Bundle();
@@ -468,18 +473,26 @@ public class MainActivity extends AppCompatActivity {
     }
     void nullsub(ScheduleFragment.Period[] periods, int pernum, boolean show) {
         log("nullsub");
-        // todo PF1
         period = scheduleFragment.period;
         periodFragment.periods = periods;
         if(show) {
-            periodFragment = new PeriodFragment();
-            periodFragment.period = period;
-            periodFragment.periods = periods;
-            periodFragment.pernum = pernum;
-            periodFragment.nullsub = true;
-            periodFragment.mode = !mode0;
-            if (state == 1)
-                loadFragment(periodFragment);
+            if(mode0) {
+                periodFragment = new PeriodFragment();
+                periodFragment.period = period;
+                periodFragment.periods = periods;
+                periodFragment.pernum = pernum;
+                periodFragment.nullsub = true;
+                if (state == 1)
+                    loadFragment(periodFragment);
+            } else {
+                periodFragment1 = new PeriodFragment1();
+                periodFragment1.period = period;
+                periodFragment1.periods = periods;
+                periodFragment1.pernum = pernum;
+                periodFragment1.nullsub = true;
+                if (state == 1)
+                    loadFragment(periodFragment1);
+            }
         }
         runOnUiThread(this::updatePages);
     }
