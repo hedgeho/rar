@@ -29,6 +29,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomnav;
     private BottomNavigationItemView itemView;
     private boolean mode0 = false;
+    private int tap = 0;
+    private FrameLayout frameLayout;
 
     ScheduleFragment scheduleFragment;
 
@@ -78,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setHomeButtonEnabled(false);
             switch (item.getItemId()) {
                 case R.id.navigation_period:
+                    tap = 0;
                     toolbar.setClickable(true);
                     state = 1;
                     if(mode0)
@@ -86,12 +90,29 @@ public class MainActivity extends AppCompatActivity {
                         loadFragment(periodFragment1);
                     break;
                 case R.id.navigation_diary:
-                    state = 2;
+                    tap++;
                     toolbar.setTitle("Дневник");
                     toolbar.setClickable(false);
-                    loadFragment(scheduleFragment);
+                    if(tap > 2) {
+                        tap = 1;
+                        try {
+                            scheduleFragment.pager.setCurrentItem(scheduleFragment.pageCount / 2 + 1);
+                        } catch (Exception e) {
+                        }
+                    }
+                    else
+                        if(state == 2)
+                            try {
+                                if(scheduleFragment.pager.getCurrentItem() == scheduleFragment.pageCount / 2 + 1)
+                                    tap = 1;
+                            } catch (Exception e) {
+                            }
+                        else
+                            loadFragment(scheduleFragment);
+                    state = 2;
                     break;
                 case R.id.navigation_messages:
+                    tap = 0;
                     toolbar.setTitle("Сообщения");
                     toolbar.setClickable(false);
                     if(getStackTop() instanceof MessagesFragment)
@@ -120,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
         periodFragment = new PeriodFragment();
         scheduleFragment = new ScheduleFragment();
         messagesFragment = new MessagesFragment();
+        frameLayout = findViewById(R.id.frame);
 
         final String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
         new Thread() {
@@ -404,7 +426,7 @@ public class MainActivity extends AppCompatActivity {
         transaction.replace(R.id.frame, fragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        //printStack();
+        printStack();
     }
 
     public void setSupActionBar(android.support.v7.widget.Toolbar toolbar) {

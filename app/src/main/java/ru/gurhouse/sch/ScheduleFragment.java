@@ -52,7 +52,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     boolean READY = false;
     boolean shown = false;
-    static int pageCount = 5001;
+    final int pageCount = 5001;
     boolean ready = false;
     String[] period;
     boolean first = true;
@@ -767,10 +767,12 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             PageFragment.Attends at = cell.attends;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                             d1 = format.parse(s1).getTime();
-                            if (cell.mktWt != 0) {
+
                                 if (periods[pernum].days.get(i).daymsec - d1 == 0 || periods[pernum].days.get(i).daymsec.equals(d1)) {
                                     for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
                                         if (periods[pernum].days.get(i).lessons.get(k).id.equals(cell.lessonid)) {
+                                            periods[pernum].days.get(i).lessons.get(k).attends = at;
+                                            if (cell.mktWt != 0) {
                                             PeriodFragment.Mark mark = new PeriodFragment.Mark();
                                             mark.cell = cell;
                                             mark.idlesson = cell.lessonid;
@@ -838,7 +840,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                             }
                                             Collections.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid, o2.unitid));
                                             periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
-                                            periods[pernum].days.get(i).lessons.get(k).attends = at;
                                         }
                                     }
                                 }
