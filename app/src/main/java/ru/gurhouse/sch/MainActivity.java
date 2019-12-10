@@ -261,7 +261,6 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    @SuppressLint("HandlerLeak")
     private final Handler h = new Handler() {
         @Override
         public void handleMessage(final Message msg) {
@@ -326,8 +325,13 @@ public class MainActivity extends AppCompatActivity {
                 messagesFragment.fromNotification = true;
                 messagesFragment.notifThreadId = getIntent().getIntExtra("threadId", -1);
                 messagesFragment.notifCount = getIntent().getIntExtra("count", -1);
+                messagesFragment.notifSenderFio = getIntent().getStringExtra("senderFio");
+                scheduleFragment.context = this;
+                periodFragment.context = this;
+                periodFragment1.context = this;
             }
         }
+        messagesFragment.context = this;
         messagesFragment.start(h);
         FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
         Bundle bundle = new Bundle();
@@ -465,16 +469,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void nullsub(ScheduleFragment.Period[] periods, int pernum) {
-        // todo PF1
+        nullsub(periods, pernum, true);
+    }
+    void nullsub(ScheduleFragment.Period[] periods, int pernum, boolean show) {
+        log("nullsub");
         period = scheduleFragment.period;
-        periodFragment = new PeriodFragment();
-        periodFragment.period = period;
         periodFragment.periods = periods;
-        periodFragment.pernum = pernum;
-        periodFragment.nullsub = true;
-        periodFragment.mode = !mode0;
-        if (state == 1)
-            loadFragment(periodFragment);
+        if(show) {
+            if(mode0) {
+                periodFragment = new PeriodFragment();
+                periodFragment.period = period;
+                periodFragment.periods = periods;
+                periodFragment.pernum = pernum;
+                periodFragment.nullsub = true;
+                if (state == 1)
+                    loadFragment(periodFragment);
+            } else {
+                periodFragment1 = new PeriodFragment1();
+                periodFragment1.period = period;
+                periodFragment1.periods = periods;
+                periodFragment1.pernum = pernum;
+                periodFragment1.nullsub = true;
+                if (state == 1)
+                    loadFragment(periodFragment1);
+            }
+        }
+        runOnUiThread(this::updatePages);
     }
 
     public void updateSubjects(ScheduleFragment.Period[] periods, int pernum) {
@@ -491,6 +511,7 @@ public class MainActivity extends AppCompatActivity {
             ArrayList<PeriodFragment.Cell> cells;
             double d;
             double f;
+            long lastMark = 0;
             for (int i = 0; i < array.size(); i++) {
                 d = 0;
                 f = 0;
@@ -509,17 +530,28 @@ public class MainActivity extends AppCompatActivity {
                                     || cells.get(j).markvalue.equals("5")) {
                                 d += Double.parseDouble(cells.get(j).markvalue) * cells.get(j).mktWt;
                                 f += cells.get(j).mktWt;
+                                lastMark = cells.get(j).lessonid;
                             }
                 }
-
                 object.put("d", d);
                 object.put("f", f);
+                object.put("lastMark", lastMark);
                 subjects.put(object);
             }
             getSharedPreferences("pref", MODE_PRIVATE).edit().putString("subjects", subjects.toString()).apply();
         } catch (Exception e) {
             e.printStackTrace();
             loge(e);
+        }
+    }
+
+    public void updatePages() {
+        List<Fragment> a = getSupportFragmentManager().getFragments();
+        for (int i = 0; i < a.size(); i++) {
+            if(a.get(i) instanceof PageFragment) {
+                PageFragment p = (PageFragment) a.get(i);
+                p.draw();
+            }
         }
     }
 
@@ -606,6 +638,7 @@ public class MainActivity extends AppCompatActivity {
                 loadFragment(periodFragment1);
             }
         }
+        updatePages();
     }
 
     @Override

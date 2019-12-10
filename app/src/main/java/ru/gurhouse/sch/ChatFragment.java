@@ -586,7 +586,7 @@ public class ChatFragment extends Fragment {
                                         if (tmp.getInt("attachCount") <= 0) {
                                             msg.files = null;
                                         } else {
-                                            msg.files = new ArrayList<Attach>();
+                                            msg.files = new ArrayList<>();
                                             log(tmp.getString("attachInfo"));
                                             for (int j = 0; j < tmp.getInt("attachCount"); j++) {
                                                 tmp1 = tmp.getJSONArray("attachInfo").getJSONObject(j);
@@ -693,7 +693,6 @@ public class ChatFragment extends Fragment {
                                 }
                             }
                         }.start();
-
                     }
                 }
             };
@@ -758,7 +757,7 @@ public class ChatFragment extends Fragment {
                             AlertDialog.Builder builder = new AlertDialog.Builder(context);
                             builder.setMessage("Сообщение увидит только создатель диалога").setTitle("Вы уверены, что хотите отправить сообщение?").setPositiveButton("Отправить", (dialog, which)->ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis()))
                                     .setNegativeButton("Отмена", null).show();
-                        }else
+                        } else
                             ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis());
 //                        new Thread() {
 //                            @Override

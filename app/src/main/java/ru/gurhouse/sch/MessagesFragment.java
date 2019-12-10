@@ -2,7 +2,6 @@ package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -46,7 +45,6 @@ import java.util.Locale;
 
 import static com.crashlytics.android.Crashlytics.log;
 import static ru.gurhouse.sch.LoginActivity.connect;
-import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class MessagesFragment extends Fragment {
@@ -67,11 +65,12 @@ public class MessagesFragment extends Fragment {
 
     boolean fromNotification = false;
     int notifThreadId, notifCount;
+    String notifSenderFio;
 
     private View savedView = null, view;
     private int search_mode = -1;
     private Person[] olist;
-    private Activity context;
+    Activity context;
     private boolean READY = false, shown = false;
     private SwipeRefreshLayout refreshL;
     private boolean refreshing = false;
@@ -210,7 +209,6 @@ public class MessagesFragment extends Fragment {
             return savedView;
         view = inflater.inflate(R.layout.messages, contain, false);
         container = view.findViewById(R.id.container);
-        //((MainActivity)getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
         return view;
     }
 
@@ -227,6 +225,10 @@ public class MessagesFragment extends Fragment {
             final Handler h = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
+                    if(msg.what == 321) {
+                        getView().findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
+                        return;
+                    }
                     container.removeAllViews();
 
                     if(msg.what == 123) {
@@ -442,7 +444,8 @@ public class MessagesFragment extends Fragment {
                                             s_senders.add(A + " " + B.charAt(0) + ". " + C.charAt(0) + ".");
                                             s_messages.add(c.getString("msg"));
                                             s_threadIds.add(c.getInt("threadId"));
-                                            f_types.add(c.getInt("isAllowReplay"));
+                                            if(c.has("isAllowReplay"))
+                                                f_types.add(c.getInt("isAllowReplay"));
                                             s_msgIds.add(a.optInt(j));
                                             if(c.has("subject"))
                                                 s_topics.add(c.getString("subject"));
@@ -492,7 +495,6 @@ public class MessagesFragment extends Fragment {
                         }
                     }.start();
                 }
-                //myActionMenuItem.collapseActionView();
                 return false;
             }
 
@@ -504,6 +506,7 @@ public class MessagesFragment extends Fragment {
                     return false;
                 if(q.charAt(q.length()-1) == ' ')
                     q = q.substring(0, q.length()-1);
+                if(q.charAt(0) == ' ')
                 if(q.charAt(0) == ' ')
                     q = q.substring(1, q.length()-1);
                 query = q;
@@ -526,15 +529,13 @@ public class MessagesFragment extends Fragment {
                             if (result.size() == 0) {
                                 error = "Нет адресатов, удовлетворяющих условиям поиска";
                                 h.sendEmptyMessage(123);
-                            } else
+                            } else {
+                                h.sendEmptyMessage(321);
                                 h.sendEmptyMessage(0);
+                            }
                         }
                     }.start();
                 }
-                /*if(s.trim().equals("")) {
-//                    h.sendEmptyMessage(2);
-                    onViewCreated(getView(), null);
-                }*/
                 return false;
             }
         });
@@ -549,7 +550,6 @@ public class MessagesFragment extends Fragment {
                 log("collapsing");
                 Bundle bundle = new Bundle();
                 bundle.putBoolean("collapsing", true);
-                //onViewCreated(getView(), bundle);
                 count = 25;
                 s_count = 0;
                 show();
@@ -584,13 +584,13 @@ public class MessagesFragment extends Fragment {
     public void onResume() {
         Toolbar toolbar = getContext().findViewById(R.id.toolbar);
         toolbar.setSubtitle("");
+        if(!shown)
+            show();
         super.onResume();
     }
 
     @Override
     public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
-        if(READY && !shown)
-            show();
         if(READY)
             if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
                 view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
@@ -602,32 +602,23 @@ public class MessagesFragment extends Fragment {
             else if(!savedInstanceState.getBoolean("collapsing"))
                 return;
         log("onViewCreated");
-        /*int I = 0;
-        while(true) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ignore) {}
-            if(I % 20 == 0)
-                log(".");
-            I++;
-            if(users != null)
-                break;
-            if(I==200)
-                start();
-        }*/
-        if(view == null || f_senders == null) {
-            loge("null in MessagesFragment");
-            return;
-        }
-
         if(fromNotification) {
             log("fromNotif");
-            int j = f_threadIds.indexOf(notifThreadId);
-            loadChat(notifThreadId, (notifCount > 2?f_topics:f_senders).get(j), s_topics.get(j),f_types.get(j), -1, notifCount > 2);
+            loadChat(notifThreadId, notifSenderFio, "", (notifCount > 2? 2:0), -1, notifCount > 2);
         }
+        if(READY && !shown)
+            show();
+        if(view == null || f_senders == null) {
+            loge("null in MessagesFragment");
+        }
+
     }
 
     void show() {
+        log("show MF");
+        if(view == null || f_senders == null) {
+            return;
+        }
         final LinearLayout container1 = view.findViewById(R.id.container);
         if(container1 == null) {
             loge("container null in MessagesFragment");
@@ -653,11 +644,7 @@ public class MessagesFragment extends Fragment {
         tv.setVisibility(View.INVISIBLE);
 
         final ScrollView scroll = view.findViewById(R.id.scroll);
-//        new Thread() {
-//            @Override
-//            public void run() {
         View item;
-//                TextView tv;
         ImageView img;
         LayoutInflater inflater = getLayoutInflater();
 
@@ -699,7 +686,6 @@ public class MessagesFragment extends Fragment {
             }
             c += f_newCounts.get(i);
             final int users = f_users.get(i);
-            //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
             item.setOnClickListener(v -> {
                 if(v instanceof ViewGroup) {
                     TextView textv = v.findViewById(R.id.tv_new);
@@ -721,9 +707,6 @@ public class MessagesFragment extends Fragment {
             fitems[i] = item;
         }
         final int C = c;
-//        getContext().runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
         for (View fitem : fitems) {
             container1.addView(fitem, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             container1.addView(getLayoutInflater().inflate(R.layout.divider, container1, false));
@@ -747,15 +730,9 @@ public class MessagesFragment extends Fragment {
             refresh();
         });
         savedView = view;
-//                    }
-//                });
-//            }
-//        }.start();
 
         if(first_time) {
-            new Thread() {
-                @Override
-                public void run() {
+            new Thread(() -> {
                     scrollListener = () -> {
                         if (scroll.getChildAt(0).getBottom() - 200
                                 <= (scroll.getHeight() + scroll.getScrollY()) && !uploading) {
@@ -829,7 +806,6 @@ public class MessagesFragment extends Fragment {
                                         LayoutInflater inflater1 = getLayoutInflater();
                                         View item1;
                                         TextView tv1;
-                                        ImageView img1;
                                         int index;
                                         Spanned mess;
                                         String s;
@@ -953,7 +929,6 @@ public class MessagesFragment extends Fragment {
                                                     b = new JSONArray(result);
                                                     c1 = b.getJSONObject(0);
                                                     s_senders.add(c1.getString("senderFio"));
-                                                    s_threadIds.get(c1.getInt("isAllowReplay"));
                                                     s_messages.add(c1.getString("msg"));
                                                     s_threadIds.add(c1.getInt("threadId"));
                                                     s_msgIds.add(a.optInt(j));
@@ -976,10 +951,10 @@ public class MessagesFragment extends Fragment {
                     };
                     getContext().runOnUiThread(() -> scroll.getViewTreeObserver()
                             .addOnScrollChangedListener(scrollListener));
-                }
-            }.start();
+                }).start();
             Toolbar toolbar = getContext().findViewById(R.id.toolbar);
-            toolbar.setTitle("Сообщения");
+            if(((MainActivity) getContext()).getStackTop() instanceof MessagesFragment)
+                toolbar.setTitle("Сообщения");
             toolbar.setOnClickListener(v -> {
                 log("click on toolbar");
                 if(!(((MainActivity) getContext()).getStackTop() instanceof MessagesFragment))
@@ -994,11 +969,11 @@ public class MessagesFragment extends Fragment {
 
         view.findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.l_refresh).setVisibility(View.VISIBLE);
-        if(fromNotification) {
-            log("fromNotif");
-            int j = f_threadIds.indexOf(notifThreadId);
-            loadChat(notifThreadId, f_senders.get(j), s_topics.get(j),s_threadIds.get(j), -1, notifCount > 2);
-        }
+//        if(fromNotification) {
+//            log("fromNotif");
+//            int j = f_threadIds.indexOf(notifThreadId);
+//            loadChat(notifThreadId, f_senders.get(j), s_topics.get(j),s_threadIds.get(j), -1, notifCount > 2);
+//        }
         shown = true;
     }
 
@@ -1134,6 +1109,8 @@ public class MessagesFragment extends Fragment {
         log("first thread: " + senders[0]);
         if(handler != null)
             handler.sendEmptyMessage(0);
+        if(!shown)
+            getContext().runOnUiThread(this::show);
     }
 
     void refresh(final boolean refreshl) {
@@ -1202,9 +1179,7 @@ public class MessagesFragment extends Fragment {
                         refreshing = false;
                     }
                 };
-                new Thread() {
-                    @Override
-                    public void run() {
+                new Thread(() -> {
                         View item;
                         TextView tv;
                         ImageView img;
@@ -1259,13 +1234,10 @@ public class MessagesFragment extends Fragment {
                             items[i] = item;
                         }
                         h.sendEmptyMessage(c);
-                    }
-                }.start();
+                    }).start();
             }
         };
-        new Thread() {
-            @Override
-            public void run() {
+        new Thread(() -> {
                 try {
                     download(h);
                 } catch (LoginActivity.NoInternetException e) {
@@ -1277,8 +1249,7 @@ public class MessagesFragment extends Fragment {
                     refreshing = false;
                 } catch (Exception e) {
                     loge("refreshing: " + e.toString());}
-            }
-        }.start();
+            }).start();
     }
     void refresh (){refresh(true);}
 

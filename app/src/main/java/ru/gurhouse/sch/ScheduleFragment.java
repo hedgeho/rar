@@ -57,7 +57,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     String[] period;
     boolean first = true;
     private int USER_ID;
-    private Activity context;
+    Activity context;
 
     TextView []tv = new TextView[7];
     int day;
@@ -136,18 +136,22 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         return v;
     }
 
-    void show(int i) {
-        show();
+    void show() {
+        show(pernum);
+    }
+
+    void show(int pernum, int i) {
+        show(pernum);
         if(i != -1 && pager != null) pager.setCurrentItem(i);
     }
 
-    void show() {
+    void show(int pernum) {
         log("show SF");
 //        v = context.getLayoutInflater().inflate(R.layout.fragment_schedule,
 //                context.findViewById(R.id.frame), false);
 
         boolean autoChangingDate =
-                context.getSharedPreferences("pref", 0).getBoolean("nextday", true);
+                getContext().getSharedPreferences("pref", 0).getBoolean("nextday", true);
         shown = true;
         try {
             for (int i = 0; i < pageCount; i++) {
@@ -157,7 +161,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             }
             int y = 0;
             try {
-                log("size: " +  periods[pernum].days.size());
+                log("size: " + periods[pernum].days.size());
                 long daymsec = periods[pernum].days.get(y).daymsec;
                 for (int i = 0; i < pageCount; i++) {
                     //log("page " + periods[pernum].days.get(y));
@@ -174,6 +178,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
 //                    log("daymsec " + new Date(pageFragments.get(i).c.getTimeInMillis()).toString() + "; " + new Date(daymsec).toString());
                 }
+//                for (PageFragment f: pageFragments) {
+//                    f.draw();
+//                }
+                ((MainActivity) getContext()).updatePages();
                 log("y: " + y);
             } catch (Exception e) {
                 loge("show " + e);
@@ -281,12 +289,16 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             e.printStackTrace();
             loge("show: " + e.toString());
             Toolbar toolbar = context.findViewById(R.id.toolbar);
-            toolbar.setTitle("Дневник");
             toolbar.setClickable(false);
             setHasOptionsMenu(true);
             ((MainActivity) context).setSupportActionBar(toolbar);
-            v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
-            v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
+            if(v == null)
+                shown = false;
+            else {
+                toolbar.setTitle("Дневник");
+                v.findViewById(R.id.progressBar).setVisibility(View.INVISIBLE);
+                v.findViewById(R.id.layout_fragment_bp_list).setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -446,8 +458,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         getContext().runOnUiThread(() -> ((MainActivity) getContext()).updateSubjects(periods, 6));
                     } // else summer holidays / other year
                 } catch (LoginActivity.NoInternetException e) {
-                    getContext().runOnUiThread(() ->
-                            Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
+//                    getContext().runOnUiThread(() ->
+//                            Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
                 } catch (Exception e) {
                     loge("Download1() " + e.toString());
                 }
@@ -533,7 +545,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         subject.unitid = obj.getInt("unitId");
                     if (obj.has("ttlItCode") && pernum > 2) {
                             subject.periodType = obj.getString("ttlItCode").equals("Q");
-                    } else if (obj.has("ttlItCode") || pernum < 3) {
+                    } else if (pernum < 3) {
                         for (int j = 3; j < 7; j++) {
                             if (periods[j].subjects != null && periods[j].subjects.size() != 0) {
                                 for (int k = 0; k < periods[j].subjects.size(); k++) {
@@ -597,7 +609,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 }
                 Date date = new Date();
                 if (periods[pernum].cells.size() == 0) {
-                    if (periods[pernum].datestart <= date.getTime() && periods[pernum].datefinish >= date.getTime()) {
+                    if (periods[pernum].datestart <= date.getTime()/* && periods[pernum].datefinish >= date.getTime()*/) {
                         // ескул не прислал оценки, хотя должен был
                         log("trying again");
                         periods[pernum].days = new ArrayList<>();
@@ -608,7 +620,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         Download2(pernum, show);
                     } else {
                         periods[pernum].nullsub = true;
-                        ((MainActivity) getContext()).nullsub(periods, pernum);
+                        ((MainActivity) getContext()).nullsub(periods, pernum, show);
                     }
                     log("SchF/Download2: nullsub, pernum - " + pernum);
                 } else {
@@ -822,7 +834,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                         default:
                                                             periods[pernum].subjects.get(l).shortname = periods[pernum].subjects.get(l).name.substring(0, 3);
                                                     }
-
                                                 }
                                             }
                                             Collections.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid, o2.unitid));
@@ -836,7 +847,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     ready = true;
 
-                    getContext().runOnUiThread(() -> show(pager != null ? pager.getCurrentItem() : -1));
+                    if(getContext() != null)
+                        getContext().runOnUiThread(() -> show(pernum, pager != null ? pager.getCurrentItem() : -1));
 
                     // цикл на ~2 секунды
                     log(2);
@@ -1005,8 +1017,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 //---------------------------------------------------------------------------------------------------------------------------------
             } catch (LoginActivity.NoInternetException e) {
                 syncing = false;
-                getContext().runOnUiThread(() ->
-                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
+//                getContext().runOnUiThread(() ->
+//                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
                 e.printStackTrace();
                 loge("Download2() " + e.toString());

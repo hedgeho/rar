@@ -8,8 +8,8 @@ android {
         applicationId 'ru.gurhouse.sch'
         minSdkVersion 16
         targetSdkVersion 28
-        versionCode 8
-        versionName "1.4.2"
+        versionCode 11
+        versionName "1.5.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true

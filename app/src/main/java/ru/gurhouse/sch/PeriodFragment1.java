@@ -49,6 +49,7 @@ public class PeriodFragment1 extends Fragment {
     boolean first_time = true;
     boolean avg_fixed;
     Activity context;
+    boolean nullsub;
 
     DialogInterface.OnClickListener myClickListener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
@@ -125,7 +126,10 @@ public class PeriodFragment1 extends Fragment {
 //        refreshL.setOnRefreshListener(() -> {
 //            refresh();
 //        });
-
+        if (nullsub) {
+            nullshow();
+            return view;
+        }
         ((MainActivity) getContext()).setSupportActionBar(toolbar);
         if(periods[pernum] != null && !shown)
             show();
@@ -209,6 +213,18 @@ public class PeriodFragment1 extends Fragment {
 
     void refresh() {
         ((MainActivity) getContext()).scheduleFragment.Download2(pernum/*, true, false*/);
+    }
+
+    void nullshow() {
+        TextView txtnull = view.findViewById(R.id.txtnull);
+        txtnull.setTextSize(20);
+        txtnull.setTextColor(Color.LTGRAY);
+        txtnull.setText("Нет оценок за выбранный период");
+        txtnull.setPadding(90, 0, 90, 0);
+        view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
+        txtnull.setVisibility(View.VISIBLE);
+        view.findViewById(R.id.scrollView3).setVisibility(View.INVISIBLE);
+        log("PerF/OnCreateView: nullsub");
     }
 
     public void SwitchToSubjectFragment(Double avg, String name, String rating, String totalmark, boolean periodType) {
