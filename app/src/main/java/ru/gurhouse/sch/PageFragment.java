@@ -128,7 +128,6 @@ public class PageFragment extends Fragment {
             } catch (Exception ignore) {
             }
             if(lesson.attends != null && lesson.attends.name != null) {
-                System.out.println(lesson.attends.id + "-----------------------------------------------------------------------------------------------------------------------------------------------------------");
                 switch (lesson.attends.id) {
                     case 1:
                         if (i - day.lessons.size() + 1 == 0)
