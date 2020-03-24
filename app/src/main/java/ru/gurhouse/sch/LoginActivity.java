@@ -310,12 +310,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         }
     };
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(data != null)
-            log("activity result received, auth = " + data.getStringExtra("auth"));
-    }
-
     private void login(final String login, final String hash, int mode) throws IOException {
         log("login mode " + mode);
         h.sendEmptyMessage(0);
@@ -335,7 +329,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             OutputStream os = con.getOutputStream();
             os.write(("username=" + login + "&password=" + hash).getBytes());
             con.connect();
-            log("code " + con.getResponseCode());
+            log("eschool login code " + con.getResponseCode());
             if(con.getResponseCode() == 200) {
                 Map<String, List<String>> a = con.getHeaderFields();
                 Object[] b = a.entrySet().toArray();
@@ -378,9 +372,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     static <T> void log(T msg) { if(msg != null) Log.v("mylog", msg.toString()); else loge("null log");}
     static <T> void loge(T msg) {
-        if(msg instanceof Exception)
+        if (msg instanceof Exception) {
             ((Exception) msg).printStackTrace();
-        if(msg != null) Log.e("mylog", msg.toString()); else loge("null log");
+            for (StackTraceElement element: ((Exception) msg).getStackTrace()) {
+                log(element.toString());
+                if(element.getClassName().contains("sch")) {
+                    loge(element.getMethodName() + ": " + msg.toString());
+                    break;
+                }
+            }
+        } else if(msg != null)
+            Log.e("mylog", msg.toString());
+        else
+            loge("null log");
     }
 
     static int attemptInARow = 0;
@@ -436,8 +440,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     static void login() throws NoInternetException {
         login(TheSingleton.getInstance().login, TheSingleton.getInstance().hash);
     }
+    static void login(Context context) throws NoInternetException {
+        if(context == null)
+            login();
+        login(context.getSharedPreferences("pref", 0).getString("login", ""),
+                context.getSharedPreferences("pref", 0).getString("hash", ""));
+    }
 
-    static String connect(String url, @Nullable String query, boolean put) throws IOException, NoInternetException {
+    static String connect(String url, @Nullable String query, boolean put, Context context) throws IOException, NoInternetException {
         log("connect " + url.replaceAll("https://app.eschool.center", "") + ", query: " + query);
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
@@ -459,8 +469,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 loge(url);
                 loge("query: '" + query + "'");
                 if(con.getResponseCode() == 401) {
-                    login();
-                    return connect(url, query, put);
+                    login(context);
+                    return connect(url, query, put, context);
 
                 /*con = (HttpURLConnection) new URL(url).openConnection();
                 con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
@@ -498,8 +508,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             throw new NoInternetException();
         }
     }
-    static String connect(String url, @Nullable String query) throws IOException, NoInternetException {
-        return connect(url, query, false);
+    static String connect(String url, @Nullable String query, Context context) throws IOException, NoInternetException {
+        return connect(url, query, false, context);
     }
 
     static class NoInternetException extends Exception {

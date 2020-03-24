@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
@@ -78,8 +79,8 @@ public class Countcoff extends Fragment {
             ListView lv = ((AlertDialog) dialog).getListView();
             if (which == Dialog.BUTTON_POSITIVE) {
                 j = lv.getCheckedItemPosition();
-                subname = periods[pernum].subjects.get(lv.getCheckedItemPosition()).name;
-                periodType = periods[pernum].subjects.get(lv.getCheckedItemPosition()).periodType;
+                subname = periods[pernum].subjects[lv.getCheckedItemPosition()].name;
+                periodType = periods[pernum].subjects[lv.getCheckedItemPosition()].periodType;
                 log("periodtype: " + (periodType==TYPE_SEM?"SEM":"Q"));
                 txt2.setText(subname);
                 alr.setSingleChoiceItems(strings, j, myClickListener);
@@ -97,10 +98,10 @@ public class Countcoff extends Fragment {
                 periodname = periods[pernum].name;
                 toolbar.setTitle(periodname);
                 cells = new ArrayList<>();
-                for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
+                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
                 }
-                avg = periods[pernum].subjects.get(lv.getCheckedItemPosition()).avg;
+                avg = periods[pernum].subjects[lv.getCheckedItemPosition()].avg;
                 makeMarks(true);
             }
         }
@@ -117,13 +118,13 @@ public class Countcoff extends Fragment {
                     toolbar.setTitle(periodname);
                     Download2(() -> {
                         cells = new ArrayList<>();
-                        for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                            cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                        for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
+                            cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
                         }
                         if(periods[pernum].nullsub)
                             avg = 0d;
                         else
-                            avg = periods[pernum].subjects.get(j).avg;
+                            avg = periods[pernum].subjects[j].avg;
                         log("avg: " + avg);
                         if(periodType == TYPE_SEM)
                             alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
@@ -135,10 +136,10 @@ public class Countcoff extends Fragment {
                     periodname = periods[pernum].name;
                     toolbar.setTitle(periodname);
                     cells = new ArrayList<>();
-                    for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                        cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+                    for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
+                        cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
                     }
-                    avg = periods[pernum].subjects.get(j).avg;
+                    avg = periods[pernum].subjects[j].avg;
                     log("avg: " + avg);
                     if(periodType == TYPE_SEM)
                         alr2.setSingleChoiceItems(periodSEM, pernum, myClickListener2);
@@ -225,7 +226,7 @@ public class Countcoff extends Fragment {
                 @Override
                 public void onTextChanged(CharSequence s1, int start, int before, int count) {
                     try {
-                        f[0] = Double.valueOf(String.valueOf(et2.getText()));
+                        f[0] = Double.parseDouble(et2.getText().toString());
                         btn3.setClickable(true);
                     } catch (Exception e) {
                         btn3.setClickable(false);
@@ -251,19 +252,24 @@ public class Countcoff extends Fragment {
 
         layout = v.findViewById(R.id.linear2);
         int y = 0;
-        strings = new String[periods[pernum].subjects.size()];
+        strings = new String[periods[pernum].subjects.length];
 
         for (PeriodFragment.Subject i : periods[pernum].subjects) {
             strings[y] = i.name;
             y++;
             if (subname.equals(i.name)) {
-                j = periods[pernum].subjects.indexOf(i);
+                for (int k = 0; k < periods[pernum].subjects.length; k++) {
+                    if(periods[pernum].subjects[k].equals(i)) {
+                        j = k;
+                        break;
+                    }
+                }
             }
         }
         cells = new ArrayList<>();
-        if(periods[pernum].subjects.size() != 0) {
-            for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+        if(periods[pernum].subjects.length != 0) {
+            for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
             }
 
             makeMarks(true);
@@ -345,7 +351,7 @@ public class Countcoff extends Fragment {
                 spinner.setAdapter(adapter);
                 spinner.setPrompt(s1[0]);
                 try {
-                    int y = Integer.valueOf(s1[0]);
+                    int y = Integer.parseInt(s1[0]);
                     spinner.setSelection(y - 1);
                     newMark[0] = s1[0];
                 } catch (Exception e) {
@@ -378,7 +384,7 @@ public class Countcoff extends Fragment {
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
                         try {
-                            f[0] = Double.valueOf(String.valueOf(et2.getText()));
+                            f[0] = Double.parseDouble(et2.getText().toString());
                             btn3.setClickable(true);
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -487,8 +493,8 @@ public class Countcoff extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == 2) {
             cells = new ArrayList<>();
-            for (int i = 0; i < periods[pernum].subjects.get(j).cells.size(); i++) {
-                cells.add(new PeriodFragment.Cell(periods[pernum].subjects.get(j).cells.get(i)));
+            for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
             }
             makeMarks();
         }
@@ -502,13 +508,13 @@ public class Countcoff extends Fragment {
 
     void Download2(Runnable onFinish) {
         if(TheSingleton.getInstance().t1 == 0) {
-            log("start");
+            log("countcoff start");
             TheSingleton.getInstance().t1 = System.currentTimeMillis();
         }
         int id = periods[pernum].id;
-        periods[pernum].days = new ArrayList<>();
-        periods[pernum].subjects = new ArrayList<>();
-        periods[pernum].lins = new ArrayList<>();
+        periods[pernum].days = null;
+        periods[pernum].subjects = null;
+        periods[pernum].lins = null;
         periods[pernum].cells = new ArrayList<>();
         new Thread() {
             JSONObject object1;
@@ -527,7 +533,7 @@ public class Countcoff extends Fragment {
                             try {
                                 object1 = new JSONObject(
                                         connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
-                                                null));
+                                                null, getContext()));
                             } catch (LoginActivity.NoInternetException ignore) {
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -538,11 +544,12 @@ public class Countcoff extends Fragment {
 
                     JSONObject object = new JSONObject(
                             connect("https://app.eschool.center/ec-server/student/getDiaryUnits?userId=" + USER_ID + "&eiId=" + id,
-                                    null));
+                                    null, getContext()));
                     if(!object.has("result"))
                         log("lol no result: " + object.toString());
                     log("RR: " + object.toString());
                     JSONArray array = object.getJSONArray("result");
+                    periods[pernum].subjects = new PeriodFragment.Subject[array.length()];
                     for (int i = 0; i < array.length(); i++) {
                         PeriodFragment.Subject subject = new PeriodFragment.Subject();
                         JSONObject obj = array.getJSONObject(i);
@@ -563,11 +570,11 @@ public class Countcoff extends Fragment {
                         if (obj.has("unitId"))
                             subject.unitid = obj.getInt("unitId");
                         subject.cells = new ArrayList<>();
-                        periods[pernum].subjects.add(subject);
+                        periods[pernum].subjects[i] = subject;
                         log("subject " + subject.name + ", avg: " + subject.avg);
                     }
 
-                    Collections.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid,o2.unitid));
+                    Arrays.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid,o2.unitid));
 
                     while (object1 == null) {
                         Thread.sleep(10);
@@ -603,9 +610,9 @@ public class Countcoff extends Fragment {
                     Date date = new Date();
                     if (periods[pernum].cells.size() == 0) {
                         if (periods[pernum].datestart <= date.getTime() && periods[pernum].datefinish >= date.getTime()) {
-                            periods[pernum].days = new ArrayList<>();
-                            periods[pernum].subjects = new ArrayList<>();
-                            periods[pernum].lins = new ArrayList<>();
+                            periods[pernum].days = null;
+                            periods[pernum].subjects = null;
+                            periods[pernum].lins = null;
                             periods[pernum].cells = new ArrayList<>();
                             Download2(onFinish);
                         } else {
@@ -619,20 +626,35 @@ public class Countcoff extends Fragment {
                         long d2 = format.parse(s2).getTime();
                         JSONObject object2 = new JSONObject(
                                 connect("https://app.eschool.center/ec-server/student/diary?" +
-                                        "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2, null));
+                                        "userId=" + USER_ID + "&d1=" + d1 + "&d2=" + d2, null, getContext()));
                         JSONArray array2 = object2.getJSONArray("lesson");
 
-                        Long day1 = 0L;
-                        Long date1;
+                        long day1 = 0L, date1;
                         int isODOD;
-                        int index = -1;
+                        int index = -1, len = 0;
                         log(0);
                         for (int i = 0; i < array2.length(); i++) {
                             object2 = array2.getJSONObject(i);
-                            date1 = Long.valueOf(String.valueOf(object2.getString("date")));
+                            date1 = Long.parseLong(object2.getString("date"));
+                            isODOD = object2.getInt("isODOD");
+                            if(isODOD == 0 && date1 != day1) {
+                                date = new Date(date1);
+                                date.setHours(0);
+                                date.setMinutes(0);
+                                date1 = date.getTime();
+                                len++;
+                            }
+                            day1 = date1;
+                        }
+                        day1 = 0;
+                        periods[pernum].days = new PeriodFragment.Day[len];
+                        int ind=0;
+                        for (int i = 0; i < array2.length(); i++) {
+                            object2 = array2.getJSONObject(i);
+                            date1 = Long.parseLong(object2.getString("date"));
                             isODOD = object2.getInt("isODOD");
                             if (isODOD == 0) {
-                                if (!date1.equals(day1)) {
+                                if (date1 != day1) {
                                     index++;
                                     date = new Date(date1);
                                     date.setHours(0);
@@ -670,8 +692,7 @@ public class Countcoff extends Fragment {
                                     }
                                     thisday.lessons = new ArrayList<>();
 //                                log("added day " + date.toString());
-                                    periods[pernum].days
-                                            .add(thisday);
+                                    periods[pernum].days[ind++] = thisday;
                                 }
                                 PeriodFragment.Lesson lesson = new PeriodFragment.Lesson();
                                 lesson.id = object2.getLong("id");
@@ -712,22 +733,22 @@ public class Countcoff extends Fragment {
                                         }
                                     }
                                 }
-                                periods[pernum].days.get(index).lessons.add(lesson);
+                                periods[pernum].days[index].lessons.add(lesson);
                             }
                             day1 = date1;
                         }
 
                         log(1);
-                        for (int i = 0; i < periods[pernum].days.size(); i++) {
+                        for (int i = 0; i < periods[pernum].days.length; i++) {
                             for (int j = 0; j < periods[pernum].cells.size(); j++) {
                                 PeriodFragment.Cell cell = periods[pernum].cells.get(j);
                                 s1 = cell.date;
                                 format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                                 d1 = format.parse(s1).getTime();
                                 if (cell.mktWt != 0) {
-                                    if (periods[pernum].days.get(i).daymsec - d1 == 0 || periods[pernum].days.get(i).daymsec.equals(d1)) {
-                                        for (int k = 0; k < periods[pernum].days.get(i).lessons.size(); k++) {
-                                            if (periods[pernum].days.get(i).lessons.get(k).id.equals(cell.lessonid)) {
+                                    if (periods[pernum].days[i].daymsec - d1 == 0 || periods[pernum].days[i].daymsec == d1) {
+                                        for (int k = 0; k < periods[pernum].days[i].lessons.size(); k++) {
+                                            if (periods[pernum].days[i].lessons.get(k).id == cell.lessonid) {
                                                 PeriodFragment.Mark mark = new PeriodFragment.Mark();
                                                 mark.cell = cell;
                                                 mark.idlesson = cell.lessonid;
@@ -742,12 +763,12 @@ public class Countcoff extends Fragment {
 
                                                 mark.topic = cell.lptname;
                                                 mark.unitid = cell.unitid;
-                                                for (int l = 0; l < periods[pernum].subjects.size(); l++) {
-                                                    if (periods[pernum].subjects.get(l).unitid == mark.unitid) {
-                                                        periods[pernum].subjects.get(l).cells.add(cell);
+                                                for (int l = 0; l < periods[pernum].subjects.length; l++) {
+                                                    if (periods[pernum].subjects[l].unitid == mark.unitid) {
+                                                        periods[pernum].subjects[l].cells.add(cell);
                                                     }
-                                                    if (periods[pernum].subjects.get(l).shortname == null || periods[pernum].subjects.get(l).shortname.isEmpty()) {
-                                                        PeriodFragment.Subject subject = periods[pernum].subjects.get(l);
+                                                    if (periods[pernum].subjects[l].shortname == null || periods[pernum].subjects[l].shortname.isEmpty()) {
+                                                        PeriodFragment.Subject subject = periods[pernum].subjects[l];
                                                         switch (subject.name) {
                                                             case "Физика":
                                                             case "Химия":
@@ -789,23 +810,23 @@ public class Countcoff extends Fragment {
                                                                 subject.shortname = "Физ-ра";
                                                                 break;
                                                             default:
-                                                                periods[pernum].subjects.get(l).shortname = periods[pernum].subjects.get(l).name.substring(0, 3);
+                                                                periods[pernum].subjects[l].shortname = periods[pernum].subjects[l].name.substring(0, 3);
                                                         }
 
                                                     }
-//                                                if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Обществозн."))
+//                                                if (periods[pernum].days[i].lessons.get(k).shortname.equals("Обществозн."))
 //                                                    periods[pernum].subjects.get(l).shortname = "Общест.";
-//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Физ. культ."))
+//                                                else if (periods[pernum].days[i].lessons.get(k).shortname.equals("Физ. культ."))
 //                                                    periods[pernum].subjects.get(l).shortname = "Физ-ра";
-//                                                else if (periods[pernum].days.get(i).lessons.get(k).shortname.equals("Инф. и ИКТ"))
+//                                                else if (periods[pernum].days[i].lessons.get(k).shortname.equals("Инф. и ИКТ"))
 //                                                    periods[pernum].subjects.get(l).shortname = "Информ.";
 //                                                else if (periods[pernum].subjects.get(l).shortname != null)
-//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(k).shortname;
+//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days[i].lessons.get(k).shortname;
 //                                                else
-//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days.get(i).lessons.get(l).name.substring(0,6);
+//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days[i].lessons.get(l).name.substring(0,6);
 //                                            }
                                                 }
-                                                periods[pernum].days.get(i).lessons.get(k).marks.add(mark);
+                                                periods[pernum].days[i].lessons.get(k).marks.add(mark);
                                             }
                                         }
                                     }
@@ -818,11 +839,10 @@ public class Countcoff extends Fragment {
                     //---------------------------------------------------------------------------------------------------------------------------------
                 } catch (LoginActivity.NoInternetException ignored) {
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    loge("Download2() " + e.toString());
-                    periods[pernum].days = new ArrayList<>();
-                    periods[pernum].subjects = new ArrayList<>();
-                    periods[pernum].lins = new ArrayList<>();
+                    loge(e);
+                    periods[pernum].days = null;
+                    periods[pernum].subjects = null;
+                    periods[pernum].lins = null;
                     periods[pernum].cells = new ArrayList<>();
                     Download2(onFinish);
                 }

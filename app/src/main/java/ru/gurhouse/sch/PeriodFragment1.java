@@ -152,7 +152,7 @@ public class PeriodFragment1 extends Fragment {
         layout3.removeAllViews();
         layout2.setOrientation(LinearLayout.VERTICAL);
         layout3.setOrientation(LinearLayout.HORIZONTAL);
-        for (int i = -1; i < periods[pernum].subjects.size(); i++) {
+        for (int i = -1; i < periods[pernum].subjects.length; i++) {
             TextView txt1 = new TextView(getContext().getApplicationContext());
             TextView txt2 = new TextView(getContext().getApplicationContext());
             txt1.setTextColor(Color.WHITE);
@@ -165,20 +165,20 @@ public class PeriodFragment1 extends Fragment {
             txt2.setLayoutParams(lp);
             txt2.setTextColor(getResources().getColor(R.color.two));
             if (i + 1 > 0) {
-                txt1.setText(periods[pernum].subjects.get(i).shortname);
-                if (periods[pernum].subjects.get(i).avg > 0) {
-                    txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                txt1.setText(periods[pernum].subjects[i].shortname);
+                if (periods[pernum].subjects[i].avg > 0) {
+                    txt2.setText(String.valueOf(periods[pernum].subjects[i].avg));
                 } else {
-                    periods[pernum].subjects.get(i).avg = 0;
+                    periods[pernum].subjects[i].avg = 0;
                     Double d = 0.;
                     Double f = 0.;
                     int c = 0;
-                    for (int g = 0; g < periods[pernum].subjects.get(i).cells.size(); g++) {
-                        if (periods[pernum].subjects.get(i).cells.get(g).markvalue != null)
-                            if (periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("1") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("2") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("3")
-                                    || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("4") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("5")) {
-                                d += Double.valueOf(periods[pernum].subjects.get(i).cells.get(g).markvalue) * periods[pernum].subjects.get(i).cells.get(g).mktWt;
-                                f += periods[pernum].subjects.get(i).cells.get(g).mktWt;
+                    for (int g = 0; g < periods[pernum].subjects[i].cells.size(); g++) {
+                        if (periods[pernum].subjects[i].cells.get(g).markvalue != null)
+                            if (periods[pernum].subjects[i].cells.get(g).markvalue.equals("1") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("2") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("3")
+                                    || periods[pernum].subjects[i].cells.get(g).markvalue.equals("4") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("5")) {
+                                d += Double.parseDouble(periods[pernum].subjects[i].cells.get(g).markvalue) * periods[pernum].subjects[i].cells.get(g).mktWt;
+                                f += periods[pernum].subjects[i].cells.get(g).mktWt;
                                 c++;
                             }
                     }
@@ -188,12 +188,12 @@ public class PeriodFragment1 extends Fragment {
                         if (s.length() > 4) {
                             s = String.format(Locale.UK, "%.2f", d / f);
                         }
-                        periods[pernum].subjects.get(i).avg = Double.valueOf(s);
-                        txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                        periods[pernum].subjects[i].avg = Double.parseDouble(s);
+                        txt2.setText(String.valueOf(periods[pernum].subjects[i].avg));
                     } else
                         txt2.setText(" ");
                 }
-                final PeriodFragment.Subject sub = periods[pernum].subjects.get(i);
+                final PeriodFragment.Subject sub = periods[pernum].subjects[i];
                 txt2.setOnClickListener(v ->
                         SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
                 txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
@@ -201,10 +201,10 @@ public class PeriodFragment1 extends Fragment {
             layout2.addView(txt2);
             layout1.addView(txt1);
         }
-        for (int j = 0; j < periods[pernum].lins.size(); j++) {
-            if (periods[pernum].lins.get(j).getParent() != null)
-                ((ViewGroup) periods[pernum].lins.get(j).getParent()).removeView(periods[pernum].lins.get(j));
-            layout3.addView(periods[pernum].lins.get(j));
+        for (int j = 0; j < periods[pernum].lins.length; j++) {
+            if (periods[pernum].lins[j].getParent() != null)
+                ((ViewGroup) periods[pernum].lins[j].getParent()).removeView(periods[pernum].lins[j]);
+            layout3.addView(periods[pernum].lins[j]);
         }
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView3).setVisibility(View.VISIBLE);
@@ -344,7 +344,7 @@ public class PeriodFragment1 extends Fragment {
                 }).start();
                 break;
             case 5:
-                if(!syncing) {
+                if(!syncing && period != null) {
                     transaction = getFragmentManager().beginTransaction();
                     Countcoff fragment2 = new Countcoff();
                     transaction.replace(R.id.frame, fragment2);
@@ -352,9 +352,9 @@ public class PeriodFragment1 extends Fragment {
                         fragment2.periods = periods;
                         fragment2.period = period;
                         fragment2.pernum = pernum;
-                        fragment2.subname = periods[pernum].subjects.get(0).name;
-                        fragment2.avg = periods[pernum].subjects.get(0).avg;
-                        fragment2.periodType = periods[pernum].subjects.get(0).periodType;
+                        fragment2.subname = periods[pernum].subjects[0].name;
+                        fragment2.avg = periods[pernum].subjects[0].avg;
+                        fragment2.periodType = periods[pernum].subjects[0].periodType;
                     } catch (Exception ignore) {
                     }
                     transaction.addToBackStack(null);

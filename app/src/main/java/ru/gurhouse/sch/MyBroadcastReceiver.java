@@ -64,7 +64,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                     public void run() {
                         try {
                             connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + intent.getIntExtra("threadId", -1),
-                                    null);
+                                    null, context);
                         } catch (LoginActivity.NoInternetException e) {
                             Handler handler = new Handler(Looper.getMainLooper());
                             handler.post(() -> Toast.makeText(context,

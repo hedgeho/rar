@@ -7,7 +7,7 @@ class TheSingleton {
     private String COOKIE, ROUTE, fb_id;
     String login, hash;
     private int USER_ID, PERSON_ID;
-    private ArrayList<PeriodFragment.Subject> subjects;
+    private PeriodFragment.Subject[] subjects;
     //private boolean hasNotifications = false;
     int notification_id = 1;
     private ArrayList<Notification> notifications = new ArrayList<>();
@@ -60,11 +60,11 @@ class TheSingleton {
         this.fb_id = fb_id;
     }
 
-    ArrayList<PeriodFragment.Subject> getSubjects() {
+    PeriodFragment.Subject[] getSubjects() {
         return subjects;
     }
 
-    void setSubjects(ArrayList<PeriodFragment.Subject> subjects) {
+    void setSubjects(PeriodFragment.Subject[] subjects) {
         this.subjects = subjects;
     }
 

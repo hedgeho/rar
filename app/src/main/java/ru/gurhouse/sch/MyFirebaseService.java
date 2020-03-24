@@ -242,22 +242,22 @@ public class MyFirebaseService extends FirebaseMessagingService {
                         notificationManager.createNotificationChannel(channel);
                     }
                 }
-                ArrayList<PeriodFragment.Subject> subjects = TheSingleton.getInstance().getSubjects();
-                PeriodFragment.Subject s;
-                for (int i = 0; i < subjects.size(); i++) {
-                    s = subjects.get(i);
-                    if (s.unitid == unitId) {
-                        NotificationManagerCompat compat = NotificationManagerCompat.from(this);
-
-                        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
-                        builder.setContentTitle("Новая клетка")
-                                .setContentText(subject + "/" + s.name + ": коэф " + coef)
-                                .setSmallIcon(R.drawable.alternative);
-                        Notification notif = builder.build();
-                        compat.notify(TheSingleton.getInstance().notification_id++, notif);
-                        break;
-                    }
-                }
+//                ArrayList<PeriodFragment.Subject> subjects = TheSingleton.getInstance().getSubjects();
+//                PeriodFragment.Subject s;
+//                for (int i = 0; i < subjects.length; i++) {
+//                    s = subjects[i];
+//                    if (s.unitid == unitId) {
+//                        NotificationManagerCompat compat = NotificationManagerCompat.from(this);
+//
+//                        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
+//                        builder.setContentTitle("Новая клетка")
+//                                .setContentText(subject + "/" + s.name + ": коэф " + coef)
+//                                .setSmallIcon(R.drawable.alternative);
+//                        Notification notif = builder.build();
+//                        compat.notify(TheSingleton.getInstance().notification_id++, notif);
+//                        break;
+//                    }
+//                }
                 break;
         }
 

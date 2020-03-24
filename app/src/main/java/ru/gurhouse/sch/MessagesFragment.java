@@ -116,7 +116,7 @@ public class MessagesFragment extends Fragment {
 
     public MessagesFragment() {}
 
-    public void start(final Handler h) {
+    public void start(Runnable r) {
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
 
         new Thread() {
@@ -128,8 +128,9 @@ public class MessagesFragment extends Fragment {
                     for (int i = 0; i < f_newCounts.size(); i++) {
                         count += f_newCounts.get(i);
                     }
-                    h.sendMessage(h.obtainMessage(123, count, count));
-                    JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/usr/olist", null));
+                    MainActivity.newCount = count;
+                    r.run();
+                    JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/usr/olist", null, getContext()));
                     JSONObject obj;
                     String fio, info = "";
                     olist = new Person[array.length()];
@@ -172,15 +173,19 @@ public class MessagesFragment extends Fragment {
                     }
                     log("olist l: " + olist.length);
                     READY = true;
-                    h.sendEmptyMessage(431412574);
+                    r.run();
                 } catch (LoginActivity.NoInternetException e) {
                     new Thread (() -> {
                         while(true) {
                             if(getContext() != null) {
                                 getContext().runOnUiThread(() -> {
-                                    TextView tv = getContext().findViewById(R.id.tv_error);
-                                    tv.setText("Нет подключения к Интернету");
-                                    tv.setVisibility(View.VISIBLE);
+                                    if(getContext() != null) {
+                                        TextView tv = getContext().findViewById(R.id.tv_error);
+                                        if (tv != null) {
+                                            tv.setText("Нет подключения к Интернету");
+                                            tv.setVisibility(View.VISIBLE);
+                                        }
+                                    }
                                 });
                                 break;
                             }
@@ -231,12 +236,14 @@ public class MessagesFragment extends Fragment {
                     }
                     container.removeAllViews();
 
-                    if(msg.what == 123) {
+                    if(msg.what == 123 && getView() != null) {
                         getView().findViewById(R.id.loading_bar).setVisibility(View.INVISIBLE);
                         getView().findViewById(R.id.scroll).setVisibility(View.VISIBLE);
                         TextView tv = getView().findViewById(R.id.tv_error);
-                        tv.setText(error);
-                        tv.setVisibility(View.VISIBLE);
+                        if(tv != null) {
+                            tv.setText(error);
+                            tv.setVisibility(View.VISIBLE);
+                        }
                         return;
                     }
 
@@ -299,7 +306,7 @@ public class MessagesFragment extends Fragment {
                                 @Override
                                 public void run() {
                                     try {
-                                        final JSONObject threads = new JSONObject(connect("https://app.eschool.center/ec-server/chat/privateThreads", null));
+                                        final JSONObject threads = new JSONObject(connect("https://app.eschool.center/ec-server/chat/privateThreads", null, getContext()));
                                         if (threads.has(prsId + "")) {
                                             getContext().runOnUiThread(() -> {
                                                 try {
@@ -312,7 +319,7 @@ public class MessagesFragment extends Fragment {
                                             log("hasn't prsId " + prsId);
                                             final int threadId = Integer.parseInt(connect("https://app.eschool.center/ec-server/chat/saveThread",
                                                     "{\"threadId\":null,\"senderId\":null,\"imageId\":null,\"subject\":null,\"isAllowReplay\":2,\"isGroup\":false,\"interlocutor\":" + prsId + "}",
-                                                    true));
+                                                    true, getContext()));
                                             getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", 2, -1, false));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
@@ -412,7 +419,7 @@ public class MessagesFragment extends Fragment {
                                 s_topics = new ArrayList<>();
                                 f_types = new ArrayList<>();
 
-                                String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=15&text=" + query, null);
+                                String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=1&rowsCount=15&text=" + query, null, getContext());
                                 log("search result: " + result);
                                 JSONArray array = new JSONArray(result), a, b;
                                 if (array.length() == 0) {
@@ -428,7 +435,7 @@ public class MessagesFragment extends Fragment {
                                         a = obj.getJSONArray("filterNumbers");
                                         for (int j = 0; j < a.length(); j++) {
                                             result = connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&rowStart=0&rowsCount=1" +
-                                                    "&threadId=" + obj.getInt("threadId") + "&msgStart=" + (a.optInt(j) + 1), null);
+                                                    "&threadId=" + obj.getInt("threadId") + "&msgStart=" + (a.optInt(j) + 1), null, getContext());
                                             log("result: " + result);
                                             b = new JSONArray(result);
                                             c = b.getJSONObject(0);
@@ -863,7 +870,7 @@ public class MessagesFragment extends Fragment {
                                             if (count == -1)
                                                 return;
                                             JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row="
-                                                    + (count + 1) + "&rowsCount=25", null));
+                                                    + (count + 1) + "&rowsCount=25", null, getContext()));
                                             senders = new String[array.length()];
                                             topics = new String[array.length()];
                                             users = new int[array.length()];
@@ -911,7 +918,7 @@ public class MessagesFragment extends Fragment {
                                             log("first thread: " + senders[0]);
                                             h.sendEmptyMessage(0);
                                         } else if (s_count != -1 && search_mode != 1) {
-                                            String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=" + s_count + "&rowsCount=25&text=" + s_query, null);
+                                            String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=" + s_count + "&rowsCount=25&text=" + s_query, null, getContext());
                                             log("search result: " + result);
                                             JSONArray array = new JSONArray(result), a, b;
                                             if (array.length() == 0) {
@@ -924,7 +931,7 @@ public class MessagesFragment extends Fragment {
                                                 a = obj.getJSONArray("filterNumbers");
                                                 for (int j = 0; j < a.length(); j++) {
                                                     result = connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&rowStart=0&rowsCount=1" +
-                                                            "&threadId=" + obj.getInt("threadId") + "&msgStart=" + (/*obj.getInt("msgNum")*/a.optInt(j) + 1), null);
+                                                            "&threadId=" + obj.getInt("threadId") + "&msgStart=" + (/*obj.getInt("msgNum")*/a.optInt(j) + 1), null, getContext());
 
                                                     b = new JSONArray(result);
                                                     c1 = b.getJSONObject(0);
@@ -1009,12 +1016,12 @@ public class MessagesFragment extends Fragment {
                 new Thread(() -> {
                     try {
                         connect("https://app.eschool.center/ec-server/chat/leave?threadId=" +
-                                item.getIntent().getIntExtra("threadId", -1), null);
+                                item.getIntent().getIntExtra("threadId", -1), null, getContext());
                         refresh();
                     } catch (LoginActivity.NoInternetException e) {
                         getContext().runOnUiThread(() -> Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
 
-                    } catch (Exception e) {log(e.toString());}
+                    } catch (Exception e) {loge(e);}
                 }).start();
         }
         return super.onContextItemSelected(item);
@@ -1054,7 +1061,7 @@ public class MessagesFragment extends Fragment {
     private void download(Handler handler) throws JSONException, IOException, LoginActivity.NoInternetException {
         JSONArray array = new JSONArray(
                 connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row=1&rowsCount=25",
-                        null));
+                        null, getContext()));
         senders = new String[array.length()];
         topics = new String[array.length()];
         users = new int[array.length()];
@@ -1272,8 +1279,7 @@ public class MessagesFragment extends Fragment {
         try {
             transaction.commit();
         } catch (IllegalStateException e) {
-            e.printStackTrace();
-            log(e.toString());
+            loge(e);
         }
     }
 

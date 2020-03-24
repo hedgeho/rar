@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.ScheduleFragment.syncing;
 
 public class SubjectFragment extends Fragment {
 
@@ -99,6 +100,8 @@ public class SubjectFragment extends Fragment {
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
             tv1.setOnClickListener(v1 -> {
+                if(syncing || period == null)
+                    return;
                 log("SubF: onClick(avg)");
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 Countcoff fragment = new Countcoff();

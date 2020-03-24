@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ConstraintLayout main, chat;
     private String[] period;
     private int state = 2;
-    private BroadcastReceiver receiver,  auth_receiver;
+    private BroadcastReceiver receiver;
     private BottomNavigationView bottomnav;
     private BottomNavigationItemView itemView;
     private boolean mode0 = false;
@@ -99,16 +99,11 @@ public class MainActivity extends AppCompatActivity {
                             scheduleFragment.pager.setCurrentItem(scheduleFragment.pageCount / 2 + 1);
                         } catch (Exception e) {
                         }
-                    }
-                    else
-                        if(state == 2)
-                            try {
-                                if(scheduleFragment.pager.getCurrentItem() == scheduleFragment.pageCount / 2 + 1)
-                                    tap = 1;
-                            } catch (Exception e) {
-                            }
-                        else
-                            loadFragment(scheduleFragment);
+                    } else if(state == 2) {
+                        if (scheduleFragment.pager != null && scheduleFragment.pager.getCurrentItem() == scheduleFragment.pageCount / 2 + 1)
+                            tap = 1;
+                    } else
+                        loadFragment(scheduleFragment);
                     state = 2;
                     break;
                 case R.id.navigation_messages:
@@ -213,14 +208,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-        auth_receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                log("auth received");
-                MainActivity.this.setResult(239, new Intent().putExtra("auth", "true"));
-                finish();
-            }
-        };
 
         main = findViewById(R.id.main_container);
         chat = findViewById(R.id.chat_container);
@@ -282,21 +269,18 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
-
-    private final Handler h = new Handler() {
-        @Override
-        public void handleMessage(final Message msg) {
-            if(getStackTop() instanceof MessagesFragment)
-                messagesFragment.show();
-            else
-                runOnUiThread(() -> {
-                        TextView tv = itemView.findViewById(R.id.tv_badge);
-                        if(msg.arg1 == 0)
-                            tv.setVisibility(View.INVISIBLE);
-                        else
-                            tv.setText(msg.arg1 + "");
-                });
-        }
+    static int newCount = 0;
+    private final Runnable r = () -> {
+        if(getStackTop() instanceof MessagesFragment)
+            messagesFragment.show();
+        else
+            runOnUiThread(() -> {
+                TextView tv = itemView.findViewById(R.id.tv_badge);
+                if(newCount == 0)
+                    tv.setVisibility(View.INVISIBLE);
+                else
+                    tv.setText(newCount + "");
+            });
     };
 
     private void login(String login, String hash) throws IOException, JSONException, LoginActivity.NoInternetException {
@@ -306,14 +290,14 @@ public class MainActivity extends AppCompatActivity {
         if(pref.getInt("userId", -1) == -1 || !pref.getBoolean("auto", true)) {
          //if(true) {
             log("userId not found, calling state");
-            String result = connect("https://app.eschool.center/ec-server/state?menu=false", null);
+            String result = connect("https://app.eschool.center/ec-server/state?menu=false", null, this);
 
             log( "state: " + result);
             JSONObject obj = new JSONObject(result);
             if (obj.has("userId"))
                 userId = obj.getInt("userId");
             if (!obj.getJSONObject("user").getJSONArray("roles").getString(0).equals("ROLE_STUDENT")) {
-                result = connect("https://app.eschool.center/ec-server/profile/" + userId + "/children", null);
+                result = connect("https://app.eschool.center/ec-server/profile/" + userId + "/children", null, this);
                 obj = new JSONArray(result).getJSONObject(0);
                 userId = obj.getInt("userId");
                 prsId = obj.getInt("prsId");
@@ -332,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
         log("userId: " + userId + ", prsId: " + prsId + ", name: " + name);
         TheSingleton.getInstance().setUSER_ID(userId);
         TheSingleton.getInstance().setPERSON_ID(prsId);
+        scheduleFragment.context = this;
         new Thread() {
             @Override
             public void run() {
@@ -354,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         messagesFragment.context = this;
-        messagesFragment.start(h);
+        messagesFragment.start(r);
         FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
         Bundle bundle = new Bundle();
         switch (getIntent().getIntExtra("mode", -1)) {
@@ -372,18 +357,19 @@ public class MainActivity extends AppCompatActivity {
                 bundle.putString(FirebaseAnalytics.Param.METHOD, "hash");
                 break;
             default:
-                bundle.putString(FirebaseAnalytics.Param.METHOD, "some_method");
+                bundle.putString(FirebaseAnalytics.Param.METHOD, "bruh");
         }
         analytics.logEvent(FirebaseAnalytics.Event.LOGIN, bundle);
 
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
             String version = pInfo.versionName;
-            KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
-                    "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
-                            + "&version=" + version);
-            log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
-                + "&version=" + version);
+            if(TheSingleton.getInstance().getFb_id() != null)
+                KnockFragment.connect("https://still-cove-90434.herokuapp.com/login",
+                        "login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
+                                + "&version=" + version);
+//            log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
+//                + "&version=" + version);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
@@ -520,9 +506,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateSubjects(ScheduleFragment.Period[] periods, int pernum) {
+        // todo for average in notifications ?
         if(pernum < 3)
             return;
-        ArrayList<PeriodFragment.Subject> array = periods[pernum].subjects, bigarray;
+        PeriodFragment.Subject[] array = periods[pernum].subjects, bigarray;
         if (pernum == 3 || pernum == 4)
             bigarray = periods[1].subjects;
         else
@@ -534,16 +521,16 @@ public class MainActivity extends AppCompatActivity {
             double d;
             double f;
             long lastMark = 0;
-            for (int i = 0; i < array.size(); i++) {
+            for (int i = 0; i < array.length; i++) {
                 d = 0;
                 f = 0;
                 object = new JSONObject();
-                if(array.get(i).periodType == TYPE_SEM)
-                    cells = bigarray.get(i).cells;
+                if(array[i].periodType == TYPE_SEM)
+                    cells = bigarray[i].cells;
                 else
-                    cells = array.get(i).cells;
-                object.put("name", array.get(i).name);
-                object.put("unitid", array.get(i).unitid);
+                    cells = array[i].cells;
+                object.put("name", array[i].name);
+                object.put("unitid", array[i].unitid);
                 for (int j = 0; j < cells.size(); j++) {
                     if(cells.get(j).markvalue != null)
                         if (cells.get(j).markvalue != null && !cells.get(j).markvalue.equals(" "))
@@ -626,7 +613,6 @@ public class MainActivity extends AppCompatActivity {
         log("onResume MainActivity");
         try {
             registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
-            registerReceiver(auth_receiver, new IntentFilter("ru.gurhouse.sch.auth"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -669,7 +655,6 @@ public class MainActivity extends AppCompatActivity {
         log("onPause");
         try {
             unregisterReceiver(receiver);
-            unregisterReceiver(auth_receiver);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -712,7 +697,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
                     connect("https://still-cove-90434.herokuapp.com/logout",
-                            "firebase_id=" + TheSingleton.getInstance().getFb_id());
+                            "firebase_id=" + TheSingleton.getInstance().getFb_id(), getApplicationContext());
                 } catch (Exception e) {
                     loge("logout: " + e.toString());
                 }
@@ -725,7 +710,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getSharedPreferences("pref", 0);
         pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "")
                 .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "")
-                .putString("muted", "[]").putString("login", "").putString("hash", "").apply();
+                .putString("muted", "[]").putString("login", "").putString("hash", "").putString("periods2", "").apply();
         isQuit = true;
         finish();
     }

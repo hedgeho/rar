@@ -34,7 +34,7 @@ public class DayFragment extends Fragment {
     ArrayList<PeriodFragment.Mark> marks = new ArrayList<>();
     String topic = "";
     String teachername = "";
-    ArrayList<PeriodFragment.Subject> subjects;
+    PeriodFragment.Subject[] subjects;
     Activity context;
     PageFragment.Attends attends;
 
@@ -141,9 +141,9 @@ public class DayFragment extends Fragment {
                                 fragment.teachname = cell.teachFio;
                                 fragment.topic = cell.lptname;
                                 fragment.value = cell.markvalue;
-                                for (int j = 0; j < subjects.size(); j++) {
-                                    if (marks.get(finalI).unitid - subjects.get(j).unitid == 0) {
-                                        fragment.subject = subjects.get(j).name;
+                                for (int j = 0; j < subjects.length; j++) {
+                                    if (marks.get(finalI).unitid - subjects[j].unitid == 0) {
+                                        fragment.subject = subjects[j].name;
                                         break;
                                     }
                                 }

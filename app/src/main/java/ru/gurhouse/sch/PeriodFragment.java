@@ -25,6 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.log;
@@ -46,6 +47,10 @@ public class PeriodFragment extends Fragment {
     TextView txtnull;
     boolean mode, avg_fixed;
     Activity context;
+
+     static final double[] coefs = {0.5, 1, 1.25, 1.35, 1.5, 1.75, 2};
+     static final int[] colors = {R.color.coff1, R.color.coff2, R.color.coff3, R.color.coff4, R.color.coff5,
+            R.color.coff6, R.color.coff7, R.color.coff8};
 
     static boolean settingsClicked = false;
 
@@ -75,13 +80,13 @@ public class PeriodFragment extends Fragment {
                     } else {
                         log("PerF: show()");
                         ((MainActivity) getContext()).set(periods, pernum);
-                        if (((MainActivity) getContext()).getMode0()) {
+                        /*if (((MainActivity) getContext()).getMode0()) {
                             log("PerF");
 
                         } else {
                             log("PerF1");
 
-                        }
+                        }*/
                     }
                 }
             }
@@ -165,10 +170,10 @@ public class PeriodFragment extends Fragment {
         layout3 = view.findViewById(R.id.linear3);
         layout3.removeAllViews();
         log("PerF/show: names of subjects");
-        for (int i = 0; i < periods[pernum].subjects.size(); i++) {
-            log((i + 1) + ". " + periods[pernum].subjects.get(i).shortname);
+        for (int i = 0; i < periods[pernum].subjects.length; i++) {
+            log((i + 1) + ". " + periods[pernum].subjects[i].shortname);
         }
-        for (int i = 0; i < periods[pernum].subjects.size(); i++) {
+        for (int i = 0; i < periods[pernum].subjects.length; i++) {
             TextView txt1 = new TextView(getContext());
             TextView txt2 = new TextView(getContext());
             LinearLayout linearLayout = new LinearLayout(getContext());
@@ -181,21 +186,21 @@ public class PeriodFragment extends Fragment {
             txt2.setTextSize(20);
             txt2.setLayoutParams(lp);
             txt2.setTextColor(getResources().getColor(R.color.two));
-            txt1.setText(periods[pernum].subjects.get(i).shortname);
+            txt1.setText(periods[pernum].subjects[i].shortname);
 
-            if (periods[pernum].subjects.get(i).avg > 0) {
-                txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+            if (periods[pernum].subjects[i].avg > 0) {
+                txt2.setText(String.valueOf(periods[pernum].subjects[i].avg));
             } else {
-                periods[pernum].subjects.get(i).avg = 0;
+                periods[pernum].subjects[i].avg = 0;
                 Double d = 0.;
                 Double f = 0.;
                 int c = 0;
-                for (int g = 0; g < periods[pernum].subjects.get(i).cells.size(); g++) {
-                    if (periods[pernum].subjects.get(i).cells.get(g).markvalue != null)
-                        if (periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("1") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("2") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("3")
-                                || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("4") || periods[pernum].subjects.get(i).cells.get(g).markvalue.equals("5")) {
-                            d += Double.valueOf(periods[pernum].subjects.get(i).cells.get(g).markvalue) * periods[pernum].subjects.get(i).cells.get(g).mktWt;
-                            f += periods[pernum].subjects.get(i).cells.get(g).mktWt;
+                for (int g = 0; g < periods[pernum].subjects[i].cells.size(); g++) {
+                    if (periods[pernum].subjects[i].cells.get(g).markvalue != null)
+                        if (periods[pernum].subjects[i].cells.get(g).markvalue.equals("1") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("2") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("3")
+                                || periods[pernum].subjects[i].cells.get(g).markvalue.equals("4") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("5")) {
+                            d += Double.parseDouble(periods[pernum].subjects[i].cells.get(g).markvalue) * periods[pernum].subjects[i].cells.get(g).mktWt;
+                            f += periods[pernum].subjects[i].cells.get(g).mktWt;
                             c++;
                         }
                 }
@@ -204,22 +209,22 @@ public class PeriodFragment extends Fragment {
                     if (s.length() > 4) {
                         s = String.format(Locale.UK, "%.2f", d / f);
                     }
-                    periods[pernum].subjects.get(i).avg = Double.valueOf(s);
-                    txt2.setText(String.valueOf(periods[pernum].subjects.get(i).avg));
+                    periods[pernum].subjects[i].avg = Double.parseDouble(s);
+                    txt2.setText(String.valueOf(periods[pernum].subjects[i].avg));
                 } else
                     txt2.setText(" ");
             }
-            final Subject sub = periods[pernum].subjects.get(i);
+            final Subject sub = periods[pernum].subjects[i];
             txt2.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
             txt1.setOnClickListener(v -> SwitchToSubjectFragment(sub.avg, sub.name, sub.rating, sub.totalmark, sub.periodType));
             layout2.addView(txt2);
             layout1.addView(txt1);
 
-            int g = 0;
-            for (int j = 0; j < periods[pernum].subjects.get(i).cells.size(); j++) {
-                if (periods[pernum].subjects.get(i).cells.get(j).markvalue != null && periods[pernum].subjects.get(i).cells.get(j).markvalue != "") {
+            int g = 0, color;
+            for (int j = 0; j < periods[pernum].subjects[i].cells.size(); j++) {
+                if (periods[pernum].subjects[i].cells.get(j).markvalue != null && periods[pernum].subjects[i].cells.get(j).markvalue != "") {
                     g++;
-                    double d = periods[pernum].subjects.get(i).cells.get(j).mktWt;
+                    double d = periods[pernum].subjects[i].cells.get(j).mktWt;
                     txts.add(new TextView(getContext()));
                     LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     lp1.setMargins(0, 0, 10, 10);
@@ -233,13 +238,13 @@ public class PeriodFragment extends Fragment {
                             MarkFragment fragment = new MarkFragment();
                             transaction.replace(R.id.frame, fragment);
                             try {
-                                fragment.coff = periods[pernum].subjects.get(finalI).cells.get(finalJ).mktWt;
-                                fragment.data = periods[pernum].subjects.get(finalI).cells.get(finalJ).date;
-                                fragment.markdata = periods[pernum].subjects.get(finalI).cells.get(finalJ).markdate;
-                                fragment.teachname = periods[pernum].subjects.get(finalI).cells.get(finalJ).teachFio;
-                                fragment.topic = periods[pernum].subjects.get(finalI).cells.get(finalJ).lptname;
-                                fragment.value = periods[pernum].subjects.get(finalI).cells.get(finalJ).markvalue;
-                                fragment.subject = periods[pernum].subjects.get(finalI).name;
+                                fragment.coff = periods[pernum].subjects[finalI].cells.get(finalJ).mktWt;
+                                fragment.data = periods[pernum].subjects[finalI].cells.get(finalJ).date;
+                                fragment.markdata = periods[pernum].subjects[finalI].cells.get(finalJ).markdate;
+                                fragment.teachname = periods[pernum].subjects[finalI].cells.get(finalJ).teachFio;
+                                fragment.topic = periods[pernum].subjects[finalI].cells.get(finalJ).lptname;
+                                fragment.value = periods[pernum].subjects[finalI].cells.get(finalJ).markvalue;
+                                fragment.subject = periods[pernum].subjects[finalI].name;
                             } catch (Exception ignore) {
                             }
                             transaction.addToBackStack(null);
@@ -251,26 +256,15 @@ public class PeriodFragment extends Fragment {
                     txts.get(txts.size() - 1).setTextColor(Color.WHITE);
                     txts.get(txts.size() - 1).setBackground(getResources().getDrawable(R.drawable.gradient_list));
                     txts.get(txts.size() - 1).setPadding(15, 0, 15, 0);
-//
-                    if (d <= 0.5)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff1));
-                    else if (d <= 1)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff2));
-                    else if (d <= 1.25)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff3));
-                    else if (d <= 1.35)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff4));
-                    else if (d <= 1.5)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff5));
-                    else if (d <= 1.75)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff6));
-                    else if (d <= 2)
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff7));
-                    else
-                        txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(R.color.coff8));
 
-                    if (periods[pernum].subjects.get(i).cells.get(j).markvalue != null)
-                        txts.get(txts.size() - 1).setText(periods[pernum].subjects.get(i).cells.get(j).markvalue);
+                    color = Arrays.binarySearch(coefs, d);
+                    if(color < 0)
+                        color = -color-1;
+
+                    txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(colors[color]));
+
+                    if (periods[pernum].subjects[i].cells.get(j).markvalue != null)
+                        txts.get(txts.size() - 1).setText(periods[pernum].subjects[i].cells.get(j).markvalue);
                     else {
                         txts.get(txts.size() - 1).setText("7");
                         txts.get(txts.size() - 1).setTextColor(Color.TRANSPARENT);
@@ -360,7 +354,7 @@ public class PeriodFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
-//        item = menu.add(0, 2, 0, "Оценки");
+//        item = menu.add(0, 2, 0, "Итоговые");
 //        item.setIcon(R.drawable.results);
 //        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 5, 0, "Калькулятор");
@@ -376,19 +370,18 @@ public class PeriodFragment extends Fragment {
     }
 
     static class ODOD {
-        Long daymsec;
+        long daymsec;
         String day, name;
         int duration;
         int ODODid;
-        ArrayList<Lesson> lessons;
 
         ODOD() {
         }
     }
 
     static class Day {
-        Long daymsec;
-        String day, name;
+        long daymsec;
+        String day;
         int numday;
         ArrayList<ODOD> odods;
         ArrayList<Lesson> lessons;
@@ -398,11 +391,11 @@ public class PeriodFragment extends Fragment {
     }
 
     static class Lesson {
-        int numInDay, numDay;
+        int numInDay;
         String name = "", teachername = "", topic = "", shortname = "";
         HomeWork homeWork;
         ArrayList<Mark> marks = new ArrayList<>();
-        Long id;
+        long id;
         long unitId = 0;
         PageFragment.Attends attends;
         Lesson() {
@@ -426,7 +419,7 @@ public class PeriodFragment extends Fragment {
         int unitid;
         String value, teachFio, date, topic, markdate;
         double coefficient;
-        Long idlesson;
+        long idlesson;
         Cell cell;
 
         Mark() {
@@ -447,7 +440,7 @@ public class PeriodFragment extends Fragment {
     static class Cell {
         String lptname, markvalue, date;
         double mktWt = 0;
-        Long lessonid;
+        long lessonid;
         String markdate, teachFio;
         int unitid;
         PageFragment.Attends attends;
@@ -503,7 +496,7 @@ public class PeriodFragment extends Fragment {
                 refresh();
                 new Thread(() -> {
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(300);
                         getContext().runOnUiThread(() -> {
                             item.setEnabled(true);
                             toolbar.getMenu().getItem(0).setEnabled(false);
@@ -512,16 +505,16 @@ public class PeriodFragment extends Fragment {
                 }).start();
                 break;
             case 5:
-                if(!syncing /*&& (itemRefresh == null || itemRefresh.isEnabled())*/) {
+                if(!syncing && period != null /*&& (itemRefresh == null || itemRefresh.isEnabled())*/) {
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
                     Countcoff fragment2 = new Countcoff();
                     transaction.replace(R.id.frame, fragment2);
                     fragment2.periods = periods;
                     fragment2.period = period;
                     fragment2.pernum = pernum;
-                    fragment2.subname = periods[pernum].subjects.get(0).name;
-                    fragment2.avg = periods[pernum].subjects.get(0).avg;
-                    fragment2.periodType = periods[pernum].subjects.get(0).periodType;
+                    fragment2.subname = periods[pernum].subjects[0].name;
+                    fragment2.avg = periods[pernum].subjects[0].avg;
+                    fragment2.periodType = periods[pernum].subjects[0].periodType;
                     transaction.addToBackStack(null);
                     transaction.commit();
                 }

@@ -68,7 +68,7 @@ public class TotalMarks extends Fragment {
                 try {
                     JSONArray array1 = new JSONArray(
                             connect("https://app.eschool.center/ec-server/yearplan/academyears",
-                                    null));
+                                    null, getContext()));
                     JSONObject object1;
                     for (int i = 0; i < array1.length(); i++) {
                         object1 = array1.getJSONObject(i);
@@ -79,7 +79,7 @@ public class TotalMarks extends Fragment {
                     }
                     JSONObject object = new JSONObject(
                             connect("https://app.eschool.center/ec-server/student/getTotalMarks?yearid=" + yearid + "&userid=" + USER_ID + "&json=true",
-                                    null));
+                                    null, getContext()));
                     object = object.getJSONObject("RegisterOfClass");
                     object = object.getJSONObject("User");
                     JSONArray array = object.getJSONArray("Result");

@@ -247,7 +247,7 @@ public class ChatFragment extends Fragment {
                 @Override
                 public void run() {
                     try {
-                        connect("https://app.eschool.center/ec-server/chat/leave?threadId=" + threadId, null);
+                        connect("https://app.eschool.center/ec-server/chat/leave?threadId=" + threadId, null, getContext());
                     } catch (LoginActivity.NoInternetException e) {
                         getContext().runOnUiThread(() ->
                                 Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show());
@@ -404,7 +404,8 @@ public class ChatFragment extends Fragment {
 
         if(toBottom) container.addView(item);
         else container.addView(item,0);
-        scroll.post(() -> scroll.scrollTo(0, scroll.getChildAt(0).getBottom()));
+        if(scroll != null)
+            scroll.post(() -> scroll.scrollTo(0, scroll.getChildAt(0).getBottom()));
     }
 
     @SuppressLint("HandlerLeak")
@@ -565,7 +566,7 @@ public class ChatFragment extends Fragment {
                                     JSONArray array;
                                     try {
                                         array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                                "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null));
+                                                "isSearch=false&rowStart=1&rowsCount=25&threadId=" + threadId + "&msgStart=" + last_msg, null, getContext()));
                                     } catch (LoginActivity.NoInternetException e) {
                                         getContext().runOnUiThread(() -> Toast.makeText(getContext(), "Нет интернета", Toast.LENGTH_SHORT).show());
                                         return;
@@ -651,7 +652,8 @@ public class ChatFragment extends Fragment {
                             public void run() {
                                 try {
                                     JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&" +
-                                            "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1), null));
+                                            "isSearch=false&rowStart=0&rowsCount=25&threadId=" + threadId + "&msgStart=" + (first_msgs.get(first_msgs.size() - 1) + 1),
+                                            null, getContext()));
 
                                     messages = new Msg[array.length()];
                                     for (int i = 0; i < messages.length; i++) {
@@ -828,7 +830,7 @@ public class ChatFragment extends Fragment {
             @Override
             public void run() {
                 try {
-                    connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null);
+                    connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, getContext());
                 } catch (LoginActivity.NoInternetException ignore) {
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -844,7 +846,7 @@ public class ChatFragment extends Fragment {
         last_msg = -1;
         do {
             JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/messages?getNew=false&isSearch=false&" +
-                    "rowStart=1&rowsCount=25&threadId=" + threadId + (last_msg == -1?"":"&msgStart="+last_msg), null));
+                    "rowStart=1&rowsCount=25&threadId=" + threadId + (last_msg == -1?"":"&msgStart="+last_msg), null, getContext()));
             messages = new Msg[array.length()];
             for (int i = 0; i < messages.length; i++) {
                 messages[i] = new Msg();
@@ -1167,7 +1169,7 @@ public class ChatFragment extends Fragment {
                 newstring = newstring + copyTo.get(replacewith);
             } else {
                 // keep the original character, not in replace list
-                newstring = newstring + String.valueOf(onechar);
+                newstring = newstring + onechar;
             }
         }
 

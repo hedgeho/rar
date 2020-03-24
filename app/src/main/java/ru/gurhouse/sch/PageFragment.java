@@ -28,12 +28,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
+import static ru.gurhouse.sch.LoginActivity.log;
+
 public class PageFragment extends Fragment {
 
     TableLayout tableLayout;
     LinearLayout linearLayout;
     PeriodFragment.Day day;
-    ArrayList<PeriodFragment.Subject> subjects;
+    PeriodFragment.Subject[] subjects;
     Calendar c;
     ScheduleFragment.Period[] periods;
     int dayofweek;
@@ -166,7 +168,6 @@ public class PageFragment extends Fragment {
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellall0));
                         break;
                 }
-
             }
             try {
                 String s = lesson.homeWork.stringwork;
@@ -299,6 +300,7 @@ public class PageFragment extends Fragment {
         if(tableLayout == null || getContext() == null) {
             return;
         }
+        log("draw(), " + dayofweek);
         if (day != null && day.lessons != null) {
             tableLayout.setColumnStretchable(1, true);
             tableLayout.setColumnShrinkable(1, true);
