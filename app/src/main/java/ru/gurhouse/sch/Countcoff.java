@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
@@ -98,8 +99,8 @@ public class Countcoff extends Fragment {
                 periodname = periods[pernum].name;
                 toolbar.setTitle(periodname);
                 cells = new ArrayList<>();
-                for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
-                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
+                for (int i = 0; i < periods[pernum].subjects[j].cells.length; i++) {
+                    cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells[i]));
                 }
                 avg = periods[pernum].subjects[lv.getCheckedItemPosition()].avg;
                 makeMarks(true);
@@ -118,8 +119,8 @@ public class Countcoff extends Fragment {
                     toolbar.setTitle(periodname);
                     Download2(() -> {
                         cells = new ArrayList<>();
-                        for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
-                            cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
+                        for (int i = 0; i < periods[pernum].subjects[j].cells.length; i++) {
+                            cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells[i]));
                         }
                         if(periods[pernum].nullsub)
                             avg = 0d;
@@ -136,8 +137,8 @@ public class Countcoff extends Fragment {
                     periodname = periods[pernum].name;
                     toolbar.setTitle(periodname);
                     cells = new ArrayList<>();
-                    for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
-                        cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
+                    for (int i = 0; i < periods[pernum].subjects[j].cells.length; i++) {
+                        cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells[i]));
                     }
                     avg = periods[pernum].subjects[j].avg;
                     log("avg: " + avg);
@@ -268,8 +269,8 @@ public class Countcoff extends Fragment {
         }
         cells = new ArrayList<>();
         if(periods[pernum].subjects.length != 0) {
-            for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
-                cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
+            for (int i = 0; i < periods[pernum].subjects[j].cells.length; i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells[i]));
             }
 
             makeMarks(true);
@@ -493,8 +494,8 @@ public class Countcoff extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == 2) {
             cells = new ArrayList<>();
-            for (int i = 0; i < periods[pernum].subjects[j].cells.size(); i++) {
-                cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells.get(i)));
+            for (int i = 0; i < periods[pernum].subjects[j].cells.length; i++) {
+                cells.add(new PeriodFragment.Cell(periods[pernum].subjects[j].cells[i]));
             }
             makeMarks();
         }
@@ -515,7 +516,7 @@ public class Countcoff extends Fragment {
         periods[pernum].days = null;
         periods[pernum].subjects = null;
         periods[pernum].lins = null;
-        periods[pernum].cells = new ArrayList<>();
+        periods[pernum].cells = null;
         new Thread() {
             JSONObject object1;
             int USER_ID = TheSingleton.getInstance().getUSER_ID();
@@ -569,7 +570,7 @@ public class Countcoff extends Fragment {
                             subject.rating = obj.getString("rating");
                         if (obj.has("unitId"))
                             subject.unitid = obj.getInt("unitId");
-                        subject.cells = new ArrayList<>();
+                        subject.cells = null;
                         periods[pernum].subjects[i] = subject;
                         log("subject " + subject.name + ", avg: " + subject.avg);
                     }
@@ -581,6 +582,7 @@ public class Countcoff extends Fragment {
                     }
 
                     JSONArray arraydaylessons = object1.getJSONArray("result");
+                    periods[pernum].cells = new PeriodFragment.Cell[arraydaylessons.length()];
                     for (int i = 0; i < arraydaylessons.length(); i++) {
                         object1 = arraydaylessons.getJSONObject(i);
                         PeriodFragment.Cell cell = new PeriodFragment.Cell();
@@ -605,22 +607,22 @@ public class Countcoff extends Fragment {
                             cell.date = object1.getString("startDt");
                         if (object1.has("unitId"))
                             cell.unitid = object1.getInt("unitId");
-                        periods[pernum].cells.add(cell);
+                        periods[pernum].cells[i] = cell;
                     }
                     Date date = new Date();
-                    if (periods[pernum].cells.size() == 0) {
+                    if (periods[pernum].cells.length == 0) {
                         if (periods[pernum].datestart <= date.getTime() && periods[pernum].datefinish >= date.getTime()) {
                             periods[pernum].days = null;
                             periods[pernum].subjects = null;
                             periods[pernum].lins = null;
-                            periods[pernum].cells = new ArrayList<>();
+                            periods[pernum].cells = null;
                             Download2(onFinish);
                         } else {
                             periods[pernum].nullsub = true;
                         }
                     } else {
-                        String s1 = periods[pernum].cells.get(0).date;
-                        String s2 = periods[pernum].cells.get(periods[pernum].cells.size() - 1).date;
+                        String s1 = periods[pernum].cells[0].date;
+                        String s2 = periods[pernum].cells[periods[pernum].cells.length - 1].date;
                         DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                         long d1 = format.parse(s1).getTime();
                         long d2 = format.parse(s2).getTime();
@@ -739,9 +741,13 @@ public class Countcoff extends Fragment {
                         }
 
                         log(1);
+                        LinkedList<PeriodFragment.Cell>[] subjects = new LinkedList[periods[pernum].subjects.length];
+                        for (int i = 0; i < subjects.length; i++) {
+                            subjects[i] = new LinkedList<>();
+                        }
                         for (int i = 0; i < periods[pernum].days.length; i++) {
-                            for (int j = 0; j < periods[pernum].cells.size(); j++) {
-                                PeriodFragment.Cell cell = periods[pernum].cells.get(j);
+                            for (int j = 0; j < periods[pernum].cells.length; j++) {
+                                PeriodFragment.Cell cell = periods[pernum].cells[j];
                                 s1 = cell.date;
                                 format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                                 d1 = format.parse(s1).getTime();
@@ -765,7 +771,7 @@ public class Countcoff extends Fragment {
                                                 mark.unitid = cell.unitid;
                                                 for (int l = 0; l < periods[pernum].subjects.length; l++) {
                                                     if (periods[pernum].subjects[l].unitid == mark.unitid) {
-                                                        periods[pernum].subjects[l].cells.add(cell);
+                                                        subjects[l].add(cell);
                                                     }
                                                     if (periods[pernum].subjects[l].shortname == null || periods[pernum].subjects[l].shortname.isEmpty()) {
                                                         PeriodFragment.Subject subject = periods[pernum].subjects[l];
@@ -814,17 +820,6 @@ public class Countcoff extends Fragment {
                                                         }
 
                                                     }
-//                                                if (periods[pernum].days[i].lessons.get(k).shortname.equals("Обществозн."))
-//                                                    periods[pernum].subjects.get(l).shortname = "Общест.";
-//                                                else if (periods[pernum].days[i].lessons.get(k).shortname.equals("Физ. культ."))
-//                                                    periods[pernum].subjects.get(l).shortname = "Физ-ра";
-//                                                else if (periods[pernum].days[i].lessons.get(k).shortname.equals("Инф. и ИКТ"))
-//                                                    periods[pernum].subjects.get(l).shortname = "Информ.";
-//                                                else if (periods[pernum].subjects.get(l).shortname != null)
-//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days[i].lessons.get(k).shortname;
-//                                                else
-//                                                    periods[pernum].subjects.get(l).shortname = periods[pernum].days[i].lessons.get(l).name.substring(0,6);
-//                                            }
                                                 }
                                                 periods[pernum].days[i].lessons.get(k).marks.add(mark);
                                             }
@@ -832,6 +827,9 @@ public class Countcoff extends Fragment {
                                     }
                                 }
                             }
+                        }
+                        for (int i = 0; i < subjects.length; i++) {
+                            periods[pernum].subjects[i].cells = subjects[i].toArray(new PeriodFragment.Cell[0]);
                         }
                     }
 
@@ -843,7 +841,7 @@ public class Countcoff extends Fragment {
                     periods[pernum].days = null;
                     periods[pernum].subjects = null;
                     periods[pernum].lins = null;
-                    periods[pernum].cells = new ArrayList<>();
+                    periods[pernum].cells = null;
                     Download2(onFinish);
                 }
             }

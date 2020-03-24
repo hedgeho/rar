@@ -300,7 +300,7 @@ public class PageFragment extends Fragment {
         if(tableLayout == null || getContext() == null) {
             return;
         }
-        log("draw(), " + dayofweek);
+//        log("draw(), " + dayofweek);
         if (day != null && day.lessons != null) {
             tableLayout.setColumnStretchable(1, true);
             tableLayout.setColumnShrinkable(1, true);

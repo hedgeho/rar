@@ -195,12 +195,12 @@ public class PeriodFragment extends Fragment {
                 Double d = 0.;
                 Double f = 0.;
                 int c = 0;
-                for (int g = 0; g < periods[pernum].subjects[i].cells.size(); g++) {
-                    if (periods[pernum].subjects[i].cells.get(g).markvalue != null)
-                        if (periods[pernum].subjects[i].cells.get(g).markvalue.equals("1") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("2") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("3")
-                                || periods[pernum].subjects[i].cells.get(g).markvalue.equals("4") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("5")) {
-                            d += Double.parseDouble(periods[pernum].subjects[i].cells.get(g).markvalue) * periods[pernum].subjects[i].cells.get(g).mktWt;
-                            f += periods[pernum].subjects[i].cells.get(g).mktWt;
+                for (int g = 0; g < periods[pernum].subjects[i].cells.length; g++) {
+                    if (periods[pernum].subjects[i].cells[g].markvalue != null)
+                        if (periods[pernum].subjects[i].cells[g].markvalue.equals("1") || periods[pernum].subjects[i].cells[g].markvalue.equals("2") || periods[pernum].subjects[i].cells[g].markvalue.equals("3")
+                                || periods[pernum].subjects[i].cells[g].markvalue.equals("4") || periods[pernum].subjects[i].cells[g].markvalue.equals("5")) {
+                            d += Double.parseDouble(periods[pernum].subjects[i].cells[g].markvalue) * periods[pernum].subjects[i].cells[g].mktWt;
+                            f += periods[pernum].subjects[i].cells[g].mktWt;
                             c++;
                         }
                 }
@@ -221,10 +221,10 @@ public class PeriodFragment extends Fragment {
             layout1.addView(txt1);
 
             int g = 0, color;
-            for (int j = 0; j < periods[pernum].subjects[i].cells.size(); j++) {
-                if (periods[pernum].subjects[i].cells.get(j).markvalue != null && periods[pernum].subjects[i].cells.get(j).markvalue != "") {
+            for (int j = 0; j < periods[pernum].subjects[i].cells.length; j++) {
+                if (periods[pernum].subjects[i].cells[j].markvalue != null && periods[pernum].subjects[i].cells[j].markvalue != "") {
                     g++;
-                    double d = periods[pernum].subjects[i].cells.get(j).mktWt;
+                    double d = periods[pernum].subjects[i].cells[j].mktWt;
                     txts.add(new TextView(getContext()));
                     LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
                     lp1.setMargins(0, 0, 10, 10);
@@ -238,12 +238,12 @@ public class PeriodFragment extends Fragment {
                             MarkFragment fragment = new MarkFragment();
                             transaction.replace(R.id.frame, fragment);
                             try {
-                                fragment.coff = periods[pernum].subjects[finalI].cells.get(finalJ).mktWt;
-                                fragment.data = periods[pernum].subjects[finalI].cells.get(finalJ).date;
-                                fragment.markdata = periods[pernum].subjects[finalI].cells.get(finalJ).markdate;
-                                fragment.teachname = periods[pernum].subjects[finalI].cells.get(finalJ).teachFio;
-                                fragment.topic = periods[pernum].subjects[finalI].cells.get(finalJ).lptname;
-                                fragment.value = periods[pernum].subjects[finalI].cells.get(finalJ).markvalue;
+                                fragment.coff = periods[pernum].subjects[finalI].cells[finalJ].mktWt;
+                                fragment.data = periods[pernum].subjects[finalI].cells[finalJ].date;
+                                fragment.markdata = periods[pernum].subjects[finalI].cells[finalJ].markdate;
+                                fragment.teachname = periods[pernum].subjects[finalI].cells[finalJ].teachFio;
+                                fragment.topic = periods[pernum].subjects[finalI].cells[finalJ].lptname;
+                                fragment.value = periods[pernum].subjects[finalI].cells[finalJ].markvalue;
                                 fragment.subject = periods[pernum].subjects[finalI].name;
                             } catch (Exception ignore) {
                             }
@@ -263,8 +263,8 @@ public class PeriodFragment extends Fragment {
 
                     txts.get(txts.size() - 1).setBackgroundColor(getResources().getColor(colors[color]));
 
-                    if (periods[pernum].subjects[i].cells.get(j).markvalue != null)
-                        txts.get(txts.size() - 1).setText(periods[pernum].subjects[i].cells.get(j).markvalue);
+                    if (periods[pernum].subjects[i].cells[j].markvalue != null)
+                        txts.get(txts.size() - 1).setText(periods[pernum].subjects[i].cells[j].markvalue);
                     else {
                         txts.get(txts.size() - 1).setText("7");
                         txts.get(txts.size() - 1).setTextColor(Color.TRANSPARENT);
@@ -430,7 +430,7 @@ public class PeriodFragment extends Fragment {
         String name, rating = "", shortname = "", totalmark;
         double avg = 0;
         int unitid;
-        ArrayList<Cell> cells;
+        Cell[] cells;
         boolean periodType;
 
         Subject() {

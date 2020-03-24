@@ -517,7 +517,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             JSONArray subjects = new JSONArray();
             JSONObject object;
-            ArrayList<PeriodFragment.Cell> cells;
+            PeriodFragment.Cell[] cells;
             double d;
             double f;
             long lastMark = 0;
@@ -531,15 +531,15 @@ public class MainActivity extends AppCompatActivity {
                     cells = array[i].cells;
                 object.put("name", array[i].name);
                 object.put("unitid", array[i].unitid);
-                for (int j = 0; j < cells.size(); j++) {
-                    if(cells.get(j).markvalue != null)
-                        if (cells.get(j).markvalue != null && !cells.get(j).markvalue.equals(" "))
-                            if (cells.get(j).markvalue.equals("1") || cells.get(j).markvalue.equals("2")
-                                    || cells.get(j).markvalue.equals("3") || cells.get(j).markvalue.equals("4")
-                                    || cells.get(j).markvalue.equals("5")) {
-                                d += Double.parseDouble(cells.get(j).markvalue) * cells.get(j).mktWt;
-                                f += cells.get(j).mktWt;
-                                lastMark = cells.get(j).lessonid;
+                for (int j = 0; j < cells.length; j++) {
+                    if(cells[j].markvalue != null)
+                        if (cells[j].markvalue != null && !cells[j].markvalue.equals(" "))
+                            if (cells[j].markvalue.equals("1") || cells[j].markvalue.equals("2")
+                                    || cells[j].markvalue.equals("3") || cells[j].markvalue.equals("4")
+                                    || cells[j].markvalue.equals("5")) {
+                                d += Double.parseDouble(cells[j].markvalue) * cells[j].mktWt;
+                                f += cells[j].mktWt;
+                                lastMark = cells[j].lessonid;
                             }
                 }
                 object.put("d", d);

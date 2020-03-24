@@ -173,12 +173,12 @@ public class PeriodFragment1 extends Fragment {
                     Double d = 0.;
                     Double f = 0.;
                     int c = 0;
-                    for (int g = 0; g < periods[pernum].subjects[i].cells.size(); g++) {
-                        if (periods[pernum].subjects[i].cells.get(g).markvalue != null)
-                            if (periods[pernum].subjects[i].cells.get(g).markvalue.equals("1") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("2") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("3")
-                                    || periods[pernum].subjects[i].cells.get(g).markvalue.equals("4") || periods[pernum].subjects[i].cells.get(g).markvalue.equals("5")) {
-                                d += Double.parseDouble(periods[pernum].subjects[i].cells.get(g).markvalue) * periods[pernum].subjects[i].cells.get(g).mktWt;
-                                f += periods[pernum].subjects[i].cells.get(g).mktWt;
+                    for (int g = 0; g < periods[pernum].subjects[i].cells.length; g++) {
+                        if (periods[pernum].subjects[i].cells[g].markvalue != null)
+                            if (periods[pernum].subjects[i].cells[g].markvalue.equals("1") || periods[pernum].subjects[i].cells[g].markvalue.equals("2") || periods[pernum].subjects[i].cells[g].markvalue.equals("3")
+                                    || periods[pernum].subjects[i].cells[g].markvalue.equals("4") || periods[pernum].subjects[i].cells[g].markvalue.equals("5")) {
+                                d += Double.parseDouble(periods[pernum].subjects[i].cells[g].markvalue) * periods[pernum].subjects[i].cells[g].mktWt;
+                                f += periods[pernum].subjects[i].cells[g].mktWt;
                                 c++;
                             }
                     }

@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
@@ -211,7 +212,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
                 @Override
                 public void onPageSelected(int position) {
-                    log("onPageSelected");
                     int w;
                     if(pager.getCurrentItem() == -1) {
                         loge("current item is -1");
@@ -248,7 +248,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     day = w;
                     date.add(Calendar.DAY_OF_WEEK, -1);
                     okras(tv, date.get(Calendar.DAY_OF_WEEK)-1);
-                    log("onPageSelected end");
                 }
 
                 @Override
@@ -528,7 +527,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         periods[pernum].days = null;
         periods[pernum].subjects = null;
         periods[pernum].lins = null;
-        periods[pernum].cells = new ArrayList<>();
+        periods[pernum].cells = null;
         new Thread(() -> {
             try {
                 //------------------------------------------------------------------------------------------------
@@ -577,7 +576,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             }
                         }
                     }
-                    subject.cells = new ArrayList<>();
+                    subject.cells = null;
                     log((i + 1) + ". name (" + subject.name + "), avg (" + subject.avg + "), tm (" + subject.totalmark + ")," +
                             " rating (" + subject.rating + "), periodType = " + (subject.periodType == TYPE_SEM?"SEM":"Q"));
                     periods[pernum].subjects[i] = subject;
@@ -598,6 +597,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 JSONArray arraydaylessons = object1.getJSONArray("result");
                 log("SchF/Download2: arraydaylessons.length = " + arraydaylessons.length());
                 PeriodFragment.Cell cell;
+                periods[pernum].cells = new PeriodFragment.Cell[arraydaylessons.length()];
                 for (int i = 0; i < arraydaylessons.length(); i++) {
                     object1 = arraydaylessons.getJSONObject(i);
                     cell = new PeriodFragment.Cell();
@@ -629,17 +629,17 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         cell.date = object1.getString("startDt");
                     if (object1.has("unitId"))
                         cell.unitid = object1.getInt("unitId");
-                    periods[pernum].cells.add(cell);
+                    periods[pernum].cells[i] = cell;
                 }
                 Date date = new Date();
-                if (periods[pernum].cells.size() == 0) {
+                if (periods[pernum].cells.length == 0) {
                     if (periods[pernum].datestart <= date.getTime()/* && periods[pernum].datefinish >= date.getTime()*/) {
                         // ескул не прислал оценки, хотя должен был
                         log("trying again");
                         periods[pernum].days = null;
                         periods[pernum].subjects = null;
                         periods[pernum].lins = null;
-                        periods[pernum].cells = new ArrayList<>();
+                        periods[pernum].cells = null;;
                         syncing = false;
                         Download2(pernum, show);
                     } else {
@@ -648,8 +648,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
                     log("SchF/Download2: nullsub, pernum - " + pernum);
                 } else {
-                    String s1 = periods[pernum].cells.get(0).date;
-                    String s2 = periods[pernum].cells.get(periods[pernum].cells.size() - 1).date;
+                    String s1 = periods[pernum].cells[0].date;
+                    String s2 = periods[pernum].cells[periods[pernum].cells.length - 1].date;
                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
                     long d1 = format.parse(s1).getTime();
                     long d2 = format.parse(s2).getTime();
@@ -798,9 +798,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     }
 
                     log(1);
+                    LinkedList<PeriodFragment.Cell>[] subjects = new LinkedList[periods[pernum].subjects.length];
+                    for (int i = 0; i < subjects.length; i++) {
+                        subjects[i] = new LinkedList<>();
+                    }
                     for (int i = 0; i < periods[pernum].days.length; i++) {
-                        for (int j = 0; j < periods[pernum].cells.size(); j++) {
-                            cell = periods[pernum].cells.get(j);
+                        for (int j = 0; j < periods[pernum].cells.length; j++) {
+                            cell = periods[pernum].cells[j];
                             s1 = cell.date;
                             PageFragment.Attends at = cell.attends;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
@@ -827,7 +831,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                             mark.unitid = cell.unitid;
                                             for (int l = 0; l < periods[pernum].subjects.length; l++) {
                                                 if (periods[pernum].subjects[l].unitid == mark.unitid) {
-                                                    periods[pernum].subjects[l].cells.add(cell);
+                                                    subjects[l].add(cell);
                                                 }
                                                 if (periods[pernum].subjects[l].shortname == null || periods[pernum].subjects[l].shortname.isEmpty()) {
                                                     subject = periods[pernum].subjects[l];
@@ -883,6 +887,9 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 }
                             }
                         }
+                    }
+                    for (int i = 0; i < subjects.length; i++) {
+                        periods[pernum].subjects[i].cells = subjects[i].toArray(new PeriodFragment.Cell[0]);
                     }
                     ready = true;
 
@@ -1056,7 +1063,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 periods[pernum].days = null;
                 periods[pernum].subjects = null;
                 periods[pernum].lins = null;
-                periods[pernum].cells = new ArrayList<>();
+                periods[pernum].cells = null;;
                 syncing = false;
                 Download2(pernum, show);
             }
@@ -1172,7 +1179,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
         @Override
         public Fragment getItem(int position) {
-            log("getItem");
             if(position == 0)
                 return pageFragments.get(pageFragments.size()-1);
             return pageFragments.get(position - 1);
@@ -1189,13 +1195,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         long datefinish;
         String name;
         boolean nullsub = false;
-        int num;
         int id;
 //        ArrayList<PeriodFragment.Subject> subjects;
         PeriodFragment.Subject[] subjects;
 //        ArrayList<PeriodFragment.Day> days;
         PeriodFragment.Day[] days;
-        ArrayList<PeriodFragment.Cell> cells;
+//        ArrayList<PeriodFragment.Cell> cells;
+        PeriodFragment.Cell[] cells;
 //        ArrayList<LinearLayout> lins;
         LinearLayout[] lins;
 
