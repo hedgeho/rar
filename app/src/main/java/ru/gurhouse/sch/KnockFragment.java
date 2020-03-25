@@ -104,7 +104,7 @@ public class KnockFragment extends Fragment {
                         socket_write.sendText(object.toString());
                         //socket_write.disconnect();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        loge(e);
                         if(e.getMessage().contains("503 Service Unavailable")) {
                             Toast.makeText(context, "Сервер недоступен (#503)", Toast.LENGTH_SHORT).show();
                         }}
@@ -169,7 +169,7 @@ public class KnockFragment extends Fragment {
                                         try {
                                             getNewToken();
                                         } catch (Exception e) {
-                                            e.printStackTrace();
+                                            loge(e);
                                         }
                                     }
                                 }.start();
@@ -214,7 +214,7 @@ public class KnockFragment extends Fragment {
                                         socket_write.sendText(object.toString());
                                     }
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    loge(e);
                                 }
                             }
                         }
@@ -236,7 +236,7 @@ public class KnockFragment extends Fragment {
                         view.findViewById(R.id.btn_refresh).setVisibility(View.VISIBLE);
                     });
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    loge(e);
                 }
             }
         };
@@ -271,7 +271,7 @@ public class KnockFragment extends Fragment {
                         } catch (LoginActivity.NoInternetException e) {
                             getContext().runOnUiThread(() ->
                                     Toast.makeText(getContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
-                        } catch (Exception e) {e.printStackTrace();}
+                        } catch (Exception e) {loge(e);}
                     }
                 }.start();
             });
@@ -318,7 +318,7 @@ public class KnockFragment extends Fragment {
                         }
                         Thread.sleep(1000);
                     } catch (Exception e) {
-                        e.printStackTrace();}
+                        loge(e);}
                 }
             }
         }.start();
@@ -342,7 +342,7 @@ public class KnockFragment extends Fragment {
                     obj.put("token", token);
                     socket_read.sendText(obj.toString());
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    loge(e);
                 }
             }
         };
@@ -396,7 +396,7 @@ public class KnockFragment extends Fragment {
                             tv.setText(name);
                             tv.setTextColor(getResources().getColor(R.color.two));
                             final String link = object.getString("text");
-                            tv.setOnClickListener(v -> ((MainActivity) getContext()).saveFile(link, name, true));
+                            tv.setOnClickListener(v -> ((MainActivity) getContext()).saveFile(link, name));
                             ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                         }
                     }

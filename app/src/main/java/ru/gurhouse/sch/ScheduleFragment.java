@@ -296,8 +296,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
-            loge("show: " + e.toString());
+            loge(e);
+            loge("show");
             Toolbar toolbar = context.findViewById(R.id.toolbar);
             toolbar.setClickable(false);
             setHasOptionsMenu(true);
@@ -507,8 +507,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 null, getContext()));
             } catch (LoginActivity.NoInternetException ignore) {
             } catch (Exception e) {
-                e.printStackTrace();
-                e.printStackTrace();
+                loge(e);
             }
         }).start();
 
@@ -1058,7 +1057,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 //                getContext().runOnUiThread(() ->
 //                        Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
-                e.printStackTrace();
                 loge(e);
                 periods[pernum].days = null;
                 periods[pernum].subjects = null;

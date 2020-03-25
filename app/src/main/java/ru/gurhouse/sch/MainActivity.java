@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
@@ -192,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
                                 intent.getIntExtra("sender_id", 0), intent.getIntExtra("thread_id", 0),
                                 intent.getStringExtra("sender_fio"), files,true);
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        loge(e);
                     }
                 } else {
                     BottomNavigationMenuView bottomNavigationMenuView =
@@ -260,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
                                         findViewById(R.id.frame).setVisibility(View.INVISIBLE);
                                     });
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    loge(e);
                                 }
                             }).start();
                         }
@@ -323,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     scheduleFragment.start();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    loge(e);
                 }
             }
         }.start();
@@ -371,7 +372,7 @@ public class MainActivity extends AppCompatActivity {
 //            log("login=" + login + "&password=" + hash + "&firebase_id=" + TheSingleton.getInstance().getFb_id()
 //                + "&version=" + version);
         } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            loge(e);
         }
     }
 
@@ -401,10 +402,6 @@ public class MainActivity extends AppCompatActivity {
        // TheSingleton.getInstance().setDays(days);
     }
 
-    boolean getMode0() {
-        return mode0;
-    }
-
     private void loadFragment(Fragment fragment) {
         printStack();
         log("loading " + fragment);
@@ -432,45 +429,54 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void saveFile(String url, String name, boolean useCookies) {
+    public void saveFile(String url, String name) {
         log("saving " + name);
         int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
         if (permissionCheck < 0) {
             log("requesting permission to save file");
             this.url = url;
             this.name = name;
-            this.useCookies = useCookies;
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 12345);
         } else {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
             try {
                 request.setDescription("Downloading file from " + new URL(url).getHost());
             } catch (MalformedURLException e) {
-                e.printStackTrace();
-                request.setDescription("Some Description");
+                loge(e);
+                request.setDescription("Downloading file");
             }
             request.setTitle(name);
-            if (useCookies)
-                request.addRequestHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app;" +
-                        " route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-            request.allowScanningByMediaScanner();
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+            SharedPreferences pref = getSharedPreferences("pref", 0);
+            new Thread(() -> {
+                if(System.currentTimeMillis() - pref.getLong("cookieTime", 0) > 60*60*1000) {
+                    try {
+                        LoginActivity.login(getApplicationContext());
+                    } catch (LoginActivity.NoInternetException e) {
+                        loge(e);
+                    }
+                }
+                runOnUiThread(() -> {
+                    request.addRequestHeader("Cookie", pref.getString("cookie", "") + "; site_ver=app;" +
+                            " route=" + pref.getString("route", "") + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                    request.allowScanningByMediaScanner();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
 
-            // get download service and enqueue file
-            DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            manager.enqueue(request);
+                    // get download service and enqueue file
+                    DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                    manager.enqueue(request);
+                });
+            }).start();
         }
     }
 
     private String url = null, name;
-    private boolean useCookies;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if(url != null && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             log("permission granted: " + permissions[0]);
-            saveFile(url, name, useCookies);
+            saveFile(url, name);
         } else
             log("permission denied: " + permissions[0]);
         url = null;
@@ -549,7 +555,6 @@ public class MainActivity extends AppCompatActivity {
             }
             getSharedPreferences("pref", MODE_PRIVATE).edit().putString("subjects", subjects.toString()).apply();
         } catch (Exception e) {
-            e.printStackTrace();
             loge(e);
         }
     }
@@ -614,7 +619,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
         } catch (Exception e) {
-            e.printStackTrace();
+            loge(e);
         }
         mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
         if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
@@ -656,7 +661,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             unregisterReceiver(receiver);
         } catch (Exception e) {
-            e.printStackTrace();
+            loge(e);
         }
     }
 
@@ -705,12 +710,11 @@ public class MainActivity extends AppCompatActivity {
         }.start();
         TheSingleton.getInstance().setPERSON_ID(-1);
         TheSingleton.getInstance().setUSER_ID(-1);
-        TheSingleton.getInstance().setCOOKIE("");
-        TheSingleton.getInstance().setROUTE("");
         SharedPreferences pref = getSharedPreferences("pref", 0);
         pref.edit().putBoolean("first_time", true).putInt("userId", -1).putInt("prsId", -1).putString("name", "")
                 .putString("knock_token", "").putString("knock_name", "").putString("knock_id", "")
-                .putString("muted", "[]").putString("login", "").putString("hash", "").putString("periods2", "").apply();
+                .putString("muted", "[]").putString("login", "").putString("hash", "").putString("periods2", "")
+                .putString("cookie", "").putString("route", "").putLong("cookie_time", 0).apply();
         isQuit = true;
         finish();
     }

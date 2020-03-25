@@ -26,6 +26,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import static ru.gurhouse.sch.LoginActivity.loge;
+
 
 public class DayFragment extends Fragment {
 
@@ -64,7 +66,7 @@ public class DayFragment extends Fragment {
                 Linkify.addLinks(tv1, Linkify.WEB_URLS);
                 tv1.setLinksClickable(true);
             } catch (Exception e) {
-                e.printStackTrace();
+                loge(e);
             }
             tv1.setPadding(50, 50, 50, 0);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -87,8 +89,8 @@ public class DayFragment extends Fragment {
             tv1.setOnClickListener(v -> {
                 try {
                     String url = "https://app.eschool.center/ec-server/files/" + file.id;
-                    ((MainActivity) getContext()).saveFile(url, file.name, true);
-                } catch (Exception e) {e.printStackTrace();}
+                    ((MainActivity) getContext()).saveFile(url, file.name);
+                } catch (Exception e) {loge(e);}
             });
             tv1.setPadding(50, 10, 50, 0);
             linearLayout.addView(tv1);

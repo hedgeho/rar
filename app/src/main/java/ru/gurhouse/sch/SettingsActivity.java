@@ -69,7 +69,7 @@ public class SettingsActivity extends AppCompatActivity {
                         connect("https://still-cove-90434.herokuapp.com/new_event",
                                 "firebase_id=" + TheSingleton.getInstance().getFb_id() + "&event=feedback" +
                                         "&msg=" + text + "&time=" + System.currentTimeMillis());
-                    } catch (Exception e) {e.printStackTrace();}
+                    } catch (Exception e) {loge(e);}
                 }
             }.start();
             et.setText("");
@@ -130,7 +130,7 @@ public class SettingsActivity extends AppCompatActivity {
                         try {
                             connect("https://warm-bayou-37022.herokuapp.com/update",
                                     "column=name&id=" + pref.getString("knock_id", "") + "&value=" + text);
-                        } catch (Exception e) {e.printStackTrace();}
+                        } catch (Exception e) {loge(e);}
                     }
                 }.start();
             }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 class TheSingleton {
     private static final TheSingleton ourInstance = new TheSingleton();
-    private String COOKIE, ROUTE, fb_id;
+    private String fb_id;
     String login, hash;
     private int USER_ID, PERSON_ID;
     private PeriodFragment.Subject[] subjects;
@@ -20,28 +20,12 @@ class TheSingleton {
 
     private TheSingleton() {}
 
-    String getCOOKIE() {
-        return COOKIE;
-    }
-
-    void setCOOKIE(String COOKIE) {
-        this.COOKIE = COOKIE;
-    }
-
     int getUSER_ID() {
         return USER_ID;
     }
 
     void setUSER_ID(int USER_ID) {
         this.USER_ID = USER_ID;
-    }
-
-    String getROUTE() {
-        return ROUTE;
-    }
-
-    void setROUTE(String ROUTE) {
-        this.ROUTE = ROUTE;
     }
 
     int getPERSON_ID() {

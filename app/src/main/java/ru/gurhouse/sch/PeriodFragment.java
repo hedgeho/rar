@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.ScheduleFragment.syncing;
 
 public class PeriodFragment extends Fragment {
@@ -501,7 +502,7 @@ public class PeriodFragment extends Fragment {
                             item.setEnabled(true);
                             toolbar.getMenu().getItem(0).setEnabled(false);
                         });
-                    } catch (Exception e) {e.printStackTrace();}
+                    } catch (Exception e) {loge(e);}
                 }).start();
                 break;
             case 5:

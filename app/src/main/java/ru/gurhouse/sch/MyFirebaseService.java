@@ -112,7 +112,6 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     }
                 } catch (Exception e) {
                     loge(e);
-                    e.printStackTrace();
                 }
                 break;
             case "msg":
@@ -134,7 +133,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
                     try {
                         attachCount = new JSONArray(attach_s).length();
                     } catch (JSONException e) {
-                        e.printStackTrace();
+                        loge(e);
                     }
                 }
                 int addrCnt = 0;

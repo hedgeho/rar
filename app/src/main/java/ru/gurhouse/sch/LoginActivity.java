@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationManagerCompat;
@@ -90,7 +91,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     try {
                         login(settings.getString("login", ""), settings.getString("hash", ""), 1);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        loge(e);
                     }
                 }
             }.start();
@@ -168,7 +169,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 try {
                     login(settings.getString("login", ""), settings.getString("hash", ""), mode);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    loge(e);
                 }
             }).start();
 
@@ -199,7 +200,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 SharedPreferences pref = getSharedPreferences("pref", 0);
                 login(pref.getString("login", ""), pref.getString("hash", ""), 1);
             } catch (Exception e) {
-                e.printStackTrace();
+                loge(e);
             }
         }
         if(isQuit) {
@@ -269,13 +270,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     try {
                         login(login, pw, 2);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        loge(e);
                     }
                 }
             }.start();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            loge(e);
         }
     }
 
@@ -337,10 +338,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
 
                 log("login: " + COOKIE2);
-                TheSingleton.getInstance().setCOOKIE(COOKIE2);
-                TheSingleton.getInstance().setROUTE(route);
                 TheSingleton.getInstance().login = login;
                 TheSingleton.getInstance().hash = hash;
+
+                getSharedPreferences("pref", 0).edit().putString("cookie", COOKIE2)
+                        .putLong("cookie_time", System.currentTimeMillis()).putString("route", route).apply();
 
                 int threadId = getIntent().getIntExtra("threadId", -1);
 
@@ -375,8 +377,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (msg instanceof Exception) {
             ((Exception) msg).printStackTrace();
             for (StackTraceElement element: ((Exception) msg).getStackTrace()) {
-                log(element.toString());
                 if(element.getClassName().contains("sch")) {
+                    log(element.toString());
                     loge(element.getMethodName() + ": " + msg.toString());
                     break;
                 }
@@ -387,13 +389,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             loge("null log");
     }
 
+    // login to get new cookie
     static int attemptInARow = 0;
-    static void login(String login, String password) throws NoInternetException {
+    static void login(String login, String password, Context context) throws NoInternetException {
         try {
             TheSingleton.getInstance().login = login;
             TheSingleton.getInstance().hash = password;
-            URL Url = new URL("https://app.eschool.center/ec-server/login");
-            HttpURLConnection con = (HttpURLConnection) Url.openConnection();
+            URL url = new URL("https://app.eschool.center/ec-server/login");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Cookie", "_pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
             con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -410,7 +413,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 loge("bad cookie: \n" + b[8]);
                 if(attemptInARow < 10) {
                     attemptInARow++;
-                    login(login, password);
+                    login(login, password, context);
                 } else {
                     attemptInARow = 0;
                     throw new NoInternetException();
@@ -418,8 +421,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             } else {
                 String route = String.valueOf(b[8]).split("route=")[1].split(";")[0];
                 String COOKIE2 = "JSESSIONID=" + String.valueOf(b[8]).split("ID=")[1].split(";")[0];
-                TheSingleton.getInstance().setROUTE(route);
-                TheSingleton.getInstance().setCOOKIE(COOKIE2);
+                context.getSharedPreferences("pref", 0).edit().putString("cookie", COOKIE2)
+                        .putLong("cookie_time", System.currentTimeMillis()).putString("route", route).apply();
                 log("route: " + route + ", cookie: " + COOKIE2);
             }
             attemptInARow = 0;
@@ -434,24 +437,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             throw new NoInternetException();
         } catch (IOException e) {
             attemptInARow = 0;
-            e.printStackTrace();
+            loge(e);
         }
     }
-    static void login() throws NoInternetException {
-        login(TheSingleton.getInstance().login, TheSingleton.getInstance().hash);
-    }
     static void login(Context context) throws NoInternetException {
-        if(context == null)
-            login();
         login(context.getSharedPreferences("pref", 0).getString("login", ""),
-                context.getSharedPreferences("pref", 0).getString("hash", ""));
+            context.getSharedPreferences("pref", 0).getString("hash", ""), context);
     }
 
     static String connect(String url, @Nullable String query, boolean put, Context context) throws IOException, NoInternetException {
-        log("connect " + url.replaceAll("https://app.eschool.center", "") + ", query: " + query);
+        if(!url.contains("groupPersons"))
+            log("connect " + url.replaceAll("https://app.eschool.center", "") + ", query: " + query);
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-            con.setRequestProperty("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app; route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+            SharedPreferences pref = context.getSharedPreferences("pref", 0);
+            if(System.currentTimeMillis() - pref.getLong("cookie_time", 0) > 60*60*1000) {
+                login(context);
+            }
+            con.setRequestProperty("Cookie", pref.getString("cookie", "") + "; site_ver=app; route=" + pref.getString("route", "") + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
             if (query == null) {
                 con.setRequestMethod("GET");
                 con.connect();
@@ -471,18 +474,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 if(con.getResponseCode() == 401) {
                     login(context);
                     return connect(url, query, put, context);
-
-                /*con = (HttpURLConnection) new URL(url).openConnection();
-                con.setRequestProperty("Cookie", COOKIE2 + "; site_ver=app; route=" + route + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                if(query == null) {
-                    con.setRequestMethod("GET");
-                    con.connect();
-                } else {
-                    con.setRequestMethod("POST");
-                    con.setDoOutput(true);
-                    con.connect();
-                    con.getOutputStream().write(query.getBytes());
-                }*/
                 } else {
                     return "";
                 }
@@ -496,7 +487,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 }
                 rd.close();
                 //log("flag \n" + result.toString());
-                log("connect result: " + result.toString());
+                if(!url.contains("groupPersons"))
+                    log("connect result: " + result.toString());
                 return result.toString();
             } else
                 return "";
@@ -518,7 +510,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             StackTraceElement[] s = getStackTrace();
             loge("\tat " + s[s.length-1].toString());
             System.err.println("NO INTERNET");
-
         }
     }
 }

@@ -388,7 +388,7 @@ public class Countcoff extends Fragment {
                             f[0] = Double.parseDouble(et2.getText().toString());
                             btn3.setClickable(true);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            loge(e);
                             btn3.setClickable(false);
                         }
                     }
@@ -537,8 +537,7 @@ public class Countcoff extends Fragment {
                                                 null, getContext()));
                             } catch (LoginActivity.NoInternetException ignore) {
                             } catch (Exception e) {
-                                e.printStackTrace();
-                                e.printStackTrace();
+                                loge(e);
                             }
                         }
                     }.start();

@@ -4,6 +4,7 @@ import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
@@ -22,6 +23,8 @@ import java.util.ArrayList;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.LoginActivity.login;
 
 public class MyBroadcastReceiver extends BroadcastReceiver {
 
@@ -70,7 +73,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             handler.post(() -> Toast.makeText(context,
                                             "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            loge(e);
                         }
                     }
                 }.start();
@@ -84,6 +87,10 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                     int permissionCheck = ContextCompat.checkSelfPermission(context, "android.permission.WRITE_EXTERNAL_STORAGE");
                     log("perm check: " + permissionCheck);
                     if (permissionCheck >= 0) {
+                        SharedPreferences pref = context.getSharedPreferences("pref", 0);
+                        if(System.currentTimeMillis() - pref.getLong("cookie_time", 0) > 60*60*1000) {
+                            login(context);
+                        }
                         for (int i = 0; i < array.length(); i++) {
                             obj = array.getJSONObject(i);
                             name = obj.getString("fileName");
@@ -93,12 +100,12 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             try {
                                 request.setDescription("Downloading file from " + new URL(url).getHost());
                             } catch (MalformedURLException e) {
-                                e.printStackTrace();
+                                loge(e);
                                 request.setDescription("Some Description");
                             }
                             request.setTitle(name);
-                            request.addRequestHeader("Cookie", TheSingleton.getInstance().getCOOKIE() + "; site_ver=app;" +
-                                    " route=" + TheSingleton.getInstance().getROUTE() + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
+                            request.addRequestHeader("Cookie", pref.getString("cookie", "") + "; site_ver=app;" +
+                                    " route=" + pref.getString("route", "") + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
                             request.allowScanningByMediaScanner();
                             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                             request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
@@ -110,7 +117,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    loge(e);
                 }
         }
     }

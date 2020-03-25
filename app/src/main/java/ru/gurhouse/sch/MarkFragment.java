@@ -25,6 +25,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import static ru.gurhouse.sch.LoginActivity.loge;
+
 public class MarkFragment extends Fragment {
 
     String value;
@@ -114,7 +116,7 @@ public class MarkFragment extends Fragment {
                 format = new SimpleDateFormat("EEEE, d MMMM yyyy", myDateFormatSymbols);
                 s1 = format.format(date);
             } catch (ParseException e) {
-                e.printStackTrace();
+                loge(e);
             }
             s1 = "Оценка поставлена на \n" + s1;
             Spannable spans1 = new SpannableString(s1);
@@ -136,7 +138,7 @@ public class MarkFragment extends Fragment {
                 format = new SimpleDateFormat("EEEE, d MMMM yyyy, 'в' HH:mm ", myDateFormatSymbols);
                 s1 = format.format(date);
             } catch (ParseException e) {
-                e.printStackTrace();
+                loge(e);
             }
             s1 = "Оценка выставлена в \n" + s1;
             Spannable spans1 = new SpannableString(s1);

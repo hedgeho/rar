@@ -41,6 +41,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.Locale;
 
 import static com.crashlytics.android.Crashlytics.log;
@@ -130,7 +131,7 @@ public class MessagesFragment extends Fragment {
                     }
                     MainActivity.newCount = count;
                     r.run();
-                    JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/usr/olist", null, getContext()));
+                    /*JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/usr/olist", null, getContext()));
                     JSONObject obj;
                     String fio, info = "";
                     olist = new Person[array.length()];
@@ -170,6 +171,57 @@ public class MessagesFragment extends Fragment {
                         } else
                             olist[i].words = fio.split(" ");
                         olist[i].info = info;
+                    }*/
+                    JSONArray tree = new JSONArray(connect("https://app.eschool.center/ec-server/groups/tree", null,
+                            getContext()));//?bEmployees=true
+                    JSONArray array = new JSONArray();
+                    for (int i = 0; i < tree.length(); i++) {
+                        if(tree.getJSONObject(i).getInt("groupTypeId") == 1) {
+                            array = tree.getJSONObject(i).getJSONArray("children");
+                        }
+                    }
+                    int classes_count = 0;
+                    for (int i = 0; i < array.length(); i++) {
+                        classes_count += array.getJSONObject(i).getJSONArray("children").length();
+                    }
+                    JSONArray[] classes = new JSONArray[classes_count];
+                    String[] class_names = new String[classes_count];
+                    int ind = 0;
+                    JSONArray children;
+                    for (int i = 0; i < array.length(); i++) {
+                        children = array.getJSONObject(i).getJSONArray("children");
+                        for (int j = 0; j < children.length(); j++) {
+                            class_names[ind] = children.getJSONObject(j).getString("groupTypeName");
+                            classes[ind++] = new JSONArray(connect(
+                                    "https://app.eschool.center/ec-server/groups/groupPersons?groupId=" +
+                                            children.getJSONObject(j)
+                                                    .getJSONArray("groups").getJSONObject(0).getInt("groupId"),
+                                    null, getContext()));
+                        }
+                    }
+                    int people_count = 0;
+                    for (int i = 0; i < classes_count; i++) {
+                        people_count += classes[i].length();
+                    }
+                    olist = new Person[people_count];
+                    ind = 0;
+                    Person person;
+                    JSONObject obj;
+                    String[] spl;
+                    for (int i = 0; i < classes_count; i++) {
+                        for (int j = 0; j < classes[i].length(); j++) {
+                            obj = classes[i].getJSONObject(j);
+                            person = new Person();
+                            person.fio = obj.getString("fio");
+                            person.prsId = obj.getInt("prsId");
+                            person.info = "Ученик (" + class_names[i] + ")";
+                            person.words = new String[4];
+                            spl = person.fio.split(" ");
+                            person.words = new String[spl.length + 1];
+                            System.arraycopy(spl, 0, person.words, 0, spl.length);
+                            person.words[spl.length] = class_names[i];
+                            olist[ind++] = person;
+                        }
                     }
                     log("olist l: " + olist.length);
                     READY = true;
@@ -192,7 +244,7 @@ public class MessagesFragment extends Fragment {
                         }
                     }).start();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    loge(e);
                 }
             }
         }.start();
@@ -260,7 +312,7 @@ public class MessagesFragment extends Fragment {
                         s_count = -1;
                         count = -1;
                         Person person;
-                        for (int i = 0; i < (result.size() > 100? 100: result.size()); i++) {
+                        for (int i = 0; i < Math.min(result.size(), 100); i++) {
                             person = result.get(i);
                             item = inflater.inflate(R.layout.person_item, container, false);
                             tv = item.findViewById(R.id.tv_fio);
@@ -312,7 +364,7 @@ public class MessagesFragment extends Fragment {
                                                 try {
                                                     loadChat(threads.getInt(prsId + ""), fio, "", 2, -1, false);
                                                 } catch (JSONException e) {
-                                                    e.printStackTrace();
+                                                    loge(e);
                                                 }
                                             });
                                         } else {
@@ -325,7 +377,7 @@ public class MessagesFragment extends Fragment {
                                     } catch (LoginActivity.NoInternetException e) {
                                         getContext().runOnUiThread(() ->
                                                 Toast.makeText(context, "Нет интернета", Toast.LENGTH_SHORT).show());
-                                    } catch (Exception e) {e.printStackTrace();}
+                                    } catch (Exception e) {loge(e);}
                                 }
                             }.start());
 
@@ -474,7 +526,7 @@ public class MessagesFragment extends Fragment {
                             } catch (LoginActivity.NoInternetException e) {
                                 error = "Нет подключения к Интернету";
                             } catch (Exception e) {
-                                e.printStackTrace();
+                                loge(e);
                             }
                         }
                     }.start();
@@ -950,7 +1002,7 @@ public class MessagesFragment extends Fragment {
                                         getContext().runOnUiThread(() ->
                                                 Toast.makeText(context, "Нет доступа к интернету", Toast.LENGTH_SHORT).show());
                                     } catch (Exception e) {
-                                        e.printStackTrace();
+                                        loge(e);
                                     }
                                 }
                             }.start();
@@ -995,7 +1047,7 @@ public class MessagesFragment extends Fragment {
                         JSONArray array = new JSONArray(pref.getString("muted", "[]"));
                         array.put(item.getIntent().getIntExtra("threadId", -1));
                         pref.edit().putString("muted", array.toString()).apply();
-                    } catch (Exception e) {e.printStackTrace();}
+                    } catch (Exception e) {loge(e);}
                     Toast.makeText(context, "Уведомления отключены", Toast.LENGTH_SHORT).show();
                 } else {
                     log("unmute " + item.getIntent().getIntExtra("threadId", -1));
@@ -1008,7 +1060,7 @@ public class MessagesFragment extends Fragment {
                         }
                         pref.edit().putString("muted", a.toString()).apply();
                         Toast.makeText(context, "Уведомления включены", Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {e.printStackTrace();}
+                    } catch (Exception e) {loge(e);}
                 }
                 return true;
             case 1:
