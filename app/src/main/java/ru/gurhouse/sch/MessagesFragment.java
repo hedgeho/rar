@@ -34,6 +34,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.common.collect.ImmutableSet;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,15 +43,18 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Set;
 
-import static com.crashlytics.android.Crashlytics.log;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.LoginActivity.log;
 
 public class MessagesFragment extends Fragment {
 
+    private static final Set<String> GROUP_NAMES = ImmutableSet.of("Директор", "Завуч", "Педагог дополнительного образования", "Педагог-психолог", "Преподаватель");
     private int PERSON_ID;
     private String[] senders, topics;
     private int[] threadIds, newCounts, types;
@@ -130,50 +135,21 @@ public class MessagesFragment extends Fragment {
                         count += f_newCounts.get(i);
                     }
                     MainActivity.newCount = count;
-                    r.run();
-                    /*JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/usr/olist", null, getContext()));
+                    getContext().runOnUiThread(r);
+                    JSONArray userList = new JSONArray(connect("https://app.eschool.center/ec-server/usr/getUserListSearch", null, getContext()));
                     JSONObject obj;
-                    String fio, info = "";
-                    olist = new Person[array.length()];
-                    for (int i = 0; i < array.length(); i++) {
-                        obj = array.getJSONObject(i);
-                        olist[i] = new Person();
-                        if (obj.has("isExternal")) {
-                            if (obj.getBoolean("isExternal")) {
-                                olist[i].words = new String[0];
-                                continue;
-                            }
-                        }
-                        fio = obj.getString("fio");
-                        if (fio == null) {
-                            olist[i].words = new String[0];
-                            continue;
-                        }
-                        olist[i].prsId = obj.getInt("prsId");
-                        olist[i].fio = fio;
-                        if (obj.has("isStudent"))
-                            info = "Ученик ";
-                        else if (obj.has("isParent"))
-                            info = "Родитель ";
-                        else if (obj.has("isEmployee")) {
-                            if (obj.getBoolean("isEmployee"))
-                                info = "Учитель";
-                        } else {
-                            info = "";
-                        }
-                        if (obj.has("groupName")) {
-                            info += "(" + obj.getString("groupName") + ")";
-                            olist[i].words = new String[fio.split(" ").length + 1];
-                            for (int j = 0; j < fio.split(" ").length; j++) {
-                                olist[i].words[j] = fio.split(" ")[j];
-                            }
-                            olist[i].words[fio.split(" ").length] = obj.getString("groupName");
-                        } else
-                            olist[i].words = fio.split(" ");
-                        olist[i].info = info;
-                    }*/
-                    JSONArray tree = new JSONArray(connect("https://app.eschool.center/ec-server/groups/tree", null,
-                            getContext()));//?bEmployees=true
+                    String fio, info;
+//                    olist = new Person[array.length()];
+                    // counting parents
+                    int parents_l = 0;
+                    for (int i = 0; i < userList.length(); i++) {
+                        obj = userList.getJSONObject(i);
+                        if(obj.has("isParent") && obj.getInt("isParent") == 1)
+                            parents_l++;
+                    }
+
+                    JSONArray tree = new JSONArray(connect("https://app.eschool.center/ec-server/groups/tree?bEmployees=true", null,
+                            getContext()));
                     JSONArray array = new JSONArray();
                     for (int i = 0; i < tree.length(); i++) {
                         if(tree.getJSONObject(i).getInt("groupTypeId") == 1) {
@@ -200,14 +176,75 @@ public class MessagesFragment extends Fragment {
                         }
                     }
                     int people_count = 0;
+                    // counting students
                     for (int i = 0; i < classes_count; i++) {
                         people_count += classes[i].length();
                     }
-                    olist = new Person[people_count];
+                    // counting teachers
+                    array = null;
+                    for (int i = 0; i < tree.length(); i++) {
+                        if(tree.getJSONObject(i).getInt("groupTypeId") == -10000) {
+                            array = tree.getJSONObject(i).getJSONArray("groups");
+                        }
+                    }
+                    if(array != null) {
+                        HashSet<Integer> prsIds = new HashSet<>();
+                        String groupName;
+                        JSONArray a;
+                        for (int i = 0; i < array.length(); i++) {
+                            groupName = array.getJSONObject(i).getString("groupName");
+                            if(GROUP_NAMES.contains(groupName)) {
+                                a = array.getJSONObject(i).getJSONArray("users");
+                                for (int j = 0; j < a.length(); j++) {
+                                    prsIds.add(a.getJSONObject(j).getInt("prsId"));
+                                }
+                            }
+                        }
+                        people_count+=prsIds.size();
+                    }
+
+                    olist = new Person[parents_l + people_count];
+
                     ind = 0;
                     Person person;
-                    JSONObject obj;
-                    String[] spl;
+                    HashSet<Integer> prsIds = new HashSet<>();
+                    if(array != null) {
+                        String groupName;
+                        JSONArray a;
+                        for (int i = 0; i < array.length(); i++) {
+                            groupName = array.getJSONObject(i).getString("groupName");
+                            if (GROUP_NAMES.contains(groupName)) {
+                                a = array.getJSONObject(i).getJSONArray("users");
+                                for (int j = 0; j < a.length(); j++) {
+                                    if(prsIds.add(a.getJSONObject(j).getInt("prsId"))) {
+                                        obj = a.getJSONObject(j);
+                                        person = new Person();
+                                        person.prsId = obj.getInt("prsId");
+                                        person.fio = obj.getString("fio");
+                                        person.info = groupName;
+                                        olist[ind++] = person;
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+                    for (int i = 0; i < userList.length(); i++) {
+                        obj = userList.getJSONObject(i);
+                        if(!obj.has("isParent") || obj.getInt("isParent") != 1 || !prsIds.add(obj.getInt("prsId")))
+                            continue;
+                        person = new Person();
+                        fio = obj.getString("fio");
+                        if (fio == null) {
+                            person.info = "";
+                            olist[ind++] = person;
+                            continue;
+                        }
+                        person.prsId = obj.getInt("prsId");
+                        person.fio = fio;
+                        person.info = "Родитель";
+                        olist[ind++] = person;
+                    }
                     for (int i = 0; i < classes_count; i++) {
                         for (int j = 0; j < classes[i].length(); j++) {
                             obj = classes[i].getJSONObject(j);
@@ -215,17 +252,13 @@ public class MessagesFragment extends Fragment {
                             person.fio = obj.getString("fio");
                             person.prsId = obj.getInt("prsId");
                             person.info = "Ученик (" + class_names[i] + ")";
-                            person.words = new String[4];
-                            spl = person.fio.split(" ");
-                            person.words = new String[spl.length + 1];
-                            System.arraycopy(spl, 0, person.words, 0, spl.length);
-                            person.words[spl.length] = class_names[i];
                             olist[ind++] = person;
                         }
                     }
+
                     log("olist l: " + olist.length);
                     READY = true;
-                    r.run();
+                    getContext().runOnUiThread(r);
                 } catch (LoginActivity.NoInternetException e) {
                     new Thread (() -> {
                         while(true) {
@@ -276,7 +309,7 @@ public class MessagesFragment extends Fragment {
         final SearchView searchView = (SearchView) myActionMenuItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             String query;
-            ArrayList<Person> result;
+            Person[] result;
             String error;
             @SuppressLint("HandlerLeak")
             final Handler h = new Handler() {
@@ -308,29 +341,33 @@ public class MessagesFragment extends Fragment {
                     Spanned mess;
                     String s;
                     if(search_mode == 1) {
-                        log("result: " + result.size());
+                        log("result: " + result.length);
                         s_count = -1;
                         count = -1;
                         Person person;
-                        for (int i = 0; i < Math.min(result.size(), 100); i++) {
-                            person = result.get(i);
+                        boolean infio;
+                        for (int i = 0; i < Math.min(result.length, 100); i++) {
+                            person = result[i];
                             item = inflater.inflate(R.layout.person_item, container, false);
                             tv = item.findViewById(R.id.tv_fio);
-                            index = person.fio.toLowerCase().indexOf(query.toLowerCase());
-
+//                            index = person.fio.toLowerCase().indexOf(query.toLowerCase());
                             int start, end;
-                            if(index != -1) {
-                                if (index > 30)
-                                    start = index - 30;
-                                else
-                                    start = 0;
-                                if (person.fio.length() > index + query.length() + 30)
-                                    end = index + query.length() + 30;
-                                else
-                                    end = person.fio.length() - 1;
-                                s = (start == 0 ? "" : "...") + person.fio.subSequence(start, end + 1).toString() + (end == person.fio.length() - 1 ? "" : "...");
+                            if(person.fio.toLowerCase().contains(query.toLowerCase())) {
+//                                if (index > 30)
+//                                    start = index - 30;
+//                                else
+//                                    start = 0;
+//                                if (person.fio.length() > index + query.length() + 30)
+//                                    end = index + query.length() + 30;
+//                                else
+//                                    end = person.fio.length() - 1;
+//
+//                                s = (start == 0 ? "" : "...") + person.fio.subSequence(start, end + 1).toString() + (end == person.fio.length() - 1 ? "" : "...");
+                                s = person.fio;
                                 spannable = new SpannableString(s);
-                                spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                s = s.toLowerCase();
+                                int ind = s.indexOf(query);
+                                spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), ind, ind + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                 tv.setText(spannable);
                                 tv = item.findViewById(R.id.tv_info);
                                 tv.setText(person.info);
@@ -347,7 +384,10 @@ public class MessagesFragment extends Fragment {
                                     end = person.info.length() - 1;
                                 s = (start == 0 ? "" : "...") + person.info.subSequence(start, end + 1).toString() + (end == person.info.length() - 1 ? "" : "...");
                                 spannable = new SpannableString(s);
-                                spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                s = s.toLowerCase();
+                                int ind = s.indexOf(query);
+                                spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)),
+                                        ind, ind + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                 tv = item.findViewById(R.id.tv_info);
                                 tv.setText(spannable);
                             }
@@ -535,18 +575,16 @@ public class MessagesFragment extends Fragment {
                     new Thread() {
                         @Override
                         public void run() {
-                            result = new ArrayList<>();
+                            LinkedList<Person> list = new LinkedList<>();
                             for (Person person: olist) {
-                                if(person.words.length == 0)
+                                if(person == null)
                                     continue;
-                                for (String s: person.words) {
-                                    if(s.toLowerCase().contains(query.toLowerCase())) {
-                                        result.add(person);
-                                        break;
-                                    }
-                                }
+                                if(!person.fio.contains(query) && !person.info.contains(query))
+                                    continue;
+                                list.add(person);
                             }
-                            if (result.size() == 0) {
+                            result = list.toArray(new Person[0]);
+                            if (result.length == 0) {
                                 error = "Нет адресатов, удовлетворяющих условиям поиска";
                                 h.sendEmptyMessage(123);
                             } else
@@ -574,18 +612,16 @@ public class MessagesFragment extends Fragment {
                     new Thread() {
                         @Override
                         public void run() {
-                            result = new ArrayList<>();
-                            for (Person person : olist) {
-                                if (person.words.length == 0)
+                            LinkedList<Person> list = new LinkedList<>();
+                            for (Person person: olist) {
+                                if(person == null)
                                     continue;
-                                for (String s : person.words) {
-                                    if (s.toLowerCase().contains(query.toLowerCase())) {
-                                        result.add(person);
-                                        break;
-                                    }
-                                }
+                                if(person.fio.toLowerCase().contains(query.toLowerCase()) ||
+                                        person.info.toLowerCase().contains(query.toLowerCase()))
+                                    list.add(person);
                             }
-                            if (result.size() == 0) {
+                            result = list.toArray(new Person[0]);
+                            if (result.length == 0) {
                                 error = "Нет адресатов, удовлетворяющих условиям поиска";
                                 h.sendEmptyMessage(123);
                             } else {
@@ -1349,7 +1385,6 @@ public class MessagesFragment extends Fragment {
     class Person {
         String fio;
         String info;
-        String[] words;
         int prsId;
         Person() {}
     }

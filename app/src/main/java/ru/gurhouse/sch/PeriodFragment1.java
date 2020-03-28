@@ -212,47 +212,6 @@ public class PeriodFragment1 extends Fragment {
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView3).setVisibility(View.VISIBLE);
         view.setVisibility(View.VISIBLE);
-//        ViewGroup group = ((ViewGroup) view), group1;
-//        for (int i = 0; i < group.getChildCount(); i++) {
-//            group.setVisibility(View.VISIBLE);
-//            if(group.getChildAt(i) instanceof ViewGroup) {
-//                group1 = (ViewGroup) group.getChildAt(i);
-//                for (int j = 0; j < group1.getChildCount(); j++) {
-//                    group1.getChildAt(j).setVisibility(View.VISIBLE);
-//                    if(group1.getChildAt(j) instanceof ViewGroup) {
-//                        for (int k = 0; k < ((ViewGroup) group1.getChildAt(j)).getChildCount(); k++) {
-//                            ((ViewGroup) group1.getChildAt(j)).getChildAt(k).setVisibility(View.VISIBLE);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
-        StringBuilder b = new StringBuilder();
-        ViewGroup group = (ViewGroup) view, g;
-        b.append(group.getChildCount()).append(": ");
-        for (int i = 0; i < group.getChildCount(); i++) {
-            if(group.getChildAt(i) instanceof ViewGroup) {
-                g = (ViewGroup) group.getChildAt(i);
-                b.append(g.getChildCount()).append(" (");
-                for (int j = 0; j < g.getChildCount(); j++) {
-                    if(g.getChildAt(j) instanceof ViewGroup) {
-                        b.append(((ViewGroup) g.getChildAt(j)).getChildCount()).append("; ");
-                    } else
-                        b.append("_; ");
-                }
-                b.delete(b.length()-2, b.length()).append(") ");
-            }
-        }
-        log(b.toString());
-        b = new StringBuilder("cells: ");
-        for (int i = 0; i < periods[pernum].subjects.length; i++) {
-            b.append(periods[pernum].subjects[i].cells.length).append(" ");
-        }
-        log(b.toString());
-        log("lins: " + periods[pernum].lins.length);
-        log(getContext().findViewById(R.id.frame).getHeight() + " vs " + view.getHeight());
-
         f = 1;
     }
 
