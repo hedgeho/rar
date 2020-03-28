@@ -358,7 +358,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             @Override
             public void run() {
                 try {
-                    String periods2;
+                    /*String periods2;
                     SharedPreferences pref = getContext().getSharedPreferences("pref", 0);
                     if(pref.getString("periods2", "").equals("")) {
                         periods2 = connect("https://app.eschool.center/ec-server/dict/periods2?year=" + yearname,
@@ -366,7 +366,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                         pref.edit().putString("periods2", periods2).apply();
                     } else
                         periods2 = pref.getString("periods2", "");
-                    JSONArray array3 = new JSONArray(periods2);
+                    JSONArray array3 = new JSONArray(periods2);*/
+                    JSONArray array3 = new JSONArray(
+                            connect("https://app.eschool.center/ec-server/dict/periods2?year=" + yearname,
+                                    null, getContext()));
                     for (int i = 0; i < array3.length(); i++) {
                         if (array3.getJSONObject(i).getInt("typeId") == 1) {
                             JSONArray array4 = array3.getJSONObject(i).getJSONArray("items");
@@ -505,7 +508,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 object1 = new JSONObject(
                         connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
                                 null, getContext()));
-            } catch (LoginActivity.NoInternetException ignore) {
+            } catch (LoginActivity.NoInternetException e) {
+                loge(e);
             } catch (Exception e) {
                 loge(e);
             }

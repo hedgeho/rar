@@ -158,7 +158,7 @@ public class PeriodFragment extends Fragment {
 
     void show() {
         shown = true;
-        log("show() PerF, pernum " + pernum);
+        log("show() PerF, pernum " + pernum + ", len: " + periods[pernum].subjects.length);
         if (getContext().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
             getContext().getSharedPreferences("pref", 0).edit().putString("firstperiod", "dvssc").apply();
@@ -193,8 +193,8 @@ public class PeriodFragment extends Fragment {
                 txt2.setText(String.valueOf(periods[pernum].subjects[i].avg));
             } else {
                 periods[pernum].subjects[i].avg = 0;
-                Double d = 0.;
-                Double f = 0.;
+                double d = 0.;
+                double f = 0.;
                 int c = 0;
                 for (int g = 0; g < periods[pernum].subjects[i].cells.length; g++) {
                     if (periods[pernum].subjects[i].cells[g].markvalue != null)
@@ -246,12 +246,14 @@ public class PeriodFragment extends Fragment {
                                 fragment.topic = periods[pernum].subjects[finalI].cells[finalJ].lptname;
                                 fragment.value = periods[pernum].subjects[finalI].cells[finalJ].markvalue;
                                 fragment.subject = periods[pernum].subjects[finalI].name;
-                            } catch (Exception ignore) {
+                            } catch (Exception e) {
+                                loge(e);
                             }
                             transaction.addToBackStack(null);
                             transaction.commit();
                         });
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
+                        loge(e);
                     }
                     txts.get(txts.size() - 1).setTextSize(20);
                     txts.get(txts.size() - 1).setTextColor(Color.WHITE);
@@ -292,7 +294,6 @@ public class PeriodFragment extends Fragment {
         view.findViewById(R.id.txtnull).setVisibility(View.INVISIBLE);
         ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
-
     }
 
     void refresh() {
@@ -312,7 +313,8 @@ public class PeriodFragment extends Fragment {
             fragment.pernum = pernum;
             fragment.periods = periods;
             fragment.periodType = periodType;
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            loge(e);
         }
         transaction.addToBackStack(null);
         transaction.commit();

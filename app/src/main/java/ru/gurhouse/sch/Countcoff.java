@@ -535,7 +535,8 @@ public class Countcoff extends Fragment {
                                 object1 = new JSONObject(
                                         connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
                                                 null, getContext()));
-                            } catch (LoginActivity.NoInternetException ignore) {
+                            } catch (LoginActivity.NoInternetException e) {
+                                loge(e);
                             } catch (Exception e) {
                                 loge(e);
                             }

@@ -149,7 +149,8 @@ public class DayFragment extends Fragment {
                                         break;
                                     }
                                 }
-                            } catch (Exception ignore) {
+                            } catch (Exception e) {
+                                loge(e);
                             }
                             transaction.addToBackStack(null);
                             transaction.commit();

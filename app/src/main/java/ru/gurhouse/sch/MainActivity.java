@@ -243,7 +243,8 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             try {
                 Thread.sleep(100);
-            } catch (Exception ignore) {}
+            } catch (Exception e) {
+                loge(e);}
             runOnUiThread(() -> {
                 if(findViewById(R.id.refresh) != null) {
                     findViewById(R.id.refresh).setOnClickListener((view) -> {

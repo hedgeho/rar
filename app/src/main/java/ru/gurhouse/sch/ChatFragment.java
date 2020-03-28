@@ -836,7 +836,8 @@ public class ChatFragment extends Fragment {
             public void run() {
                 try {
                     connect("https://app.eschool.center/ec-server/chat/readAll?threadId=" + threadId, null, getContext());
-                } catch (LoginActivity.NoInternetException ignore) {
+                } catch (LoginActivity.NoInternetException e) {
+                    loge(e);
                 } catch (Exception e) {
                     loge(e);
                 }

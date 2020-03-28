@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.ScheduleFragment.syncing;
 
 public class SubjectFragment extends Fragment {
@@ -113,7 +114,8 @@ public class SubjectFragment extends Fragment {
                     fragment.period = period;
                     fragment.pernum = pernum;
                     fragment.periodType = periodType;
-                } catch (Exception ignore) {
+                } catch (Exception e) {
+                    loge(e);
                 }
                 transaction.addToBackStack(null);
                 transaction.commit();

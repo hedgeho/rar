@@ -29,6 +29,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.LoginActivity.loge;
 
 public class PageFragment extends Fragment {
 
@@ -103,12 +104,14 @@ public class PageFragment extends Fragment {
                         fragment.subjects = subjects;
                         fragment.name = lesson.name;
                         fragment.attends = lesson.attends;
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
+                        loge(e);
                     }
                     transaction.addToBackStack(null);
                     transaction.commit();
                 });
-            } catch (Exception ignore) { }
+            } catch (Exception e) {
+                loge(e); }
 
             if (i - day.lessons.size() + 1 == 0) {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
@@ -127,7 +130,8 @@ public class PageFragment extends Fragment {
                 spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                 spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv21.setText(spans);
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                loge(e);
             }
             if(lesson.attends != null && lesson.attends.name != null) {
                 switch (lesson.attends.id) {
@@ -172,10 +176,12 @@ public class PageFragment extends Fragment {
             try {
                 String s = lesson.homeWork.stringwork;
                 Spannable spans = new SpannableString(s);
-                spans.setSpan(new RelativeSizeSpan(1f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                if(s.contains("\n"))
+                    spans.setSpan(new RelativeSizeSpan(1f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                 spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv22.setText(spans);
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                loge(e);
             }
             tv1.setPadding(15, 0, 30, 0);
             tv21.setPadding(30, 30, 30, 15);

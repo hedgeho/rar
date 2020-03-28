@@ -20,6 +20,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -138,7 +139,8 @@ public class PeriodFragment1 extends Fragment {
     }
 
     void show() {
-        log("show() PerF1, pernum " + pernum);
+        log("show() PerF1, pernum " + pernum + ", len: " + periods[pernum].subjects.length
+            + ", len lin: " + periods[pernum].lins.length);
         shown = true;
         if (getContext().getSharedPreferences("pref", 0).getString("firstperiod", "").equals("")) {
             Toast.makeText(getContext(), "Вы можете поменять участок времени, нажав на него в верху экрана", Toast.LENGTH_LONG).show();
@@ -171,8 +173,8 @@ public class PeriodFragment1 extends Fragment {
                     txt2.setText(String.valueOf(periods[pernum].subjects[i].avg));
                 } else {
                     periods[pernum].subjects[i].avg = 0;
-                    Double d = 0.;
-                    Double f = 0.;
+                    double d = 0.;
+                    double f = 0.;
                     int c = 0;
                     for (int g = 0; g < periods[pernum].subjects[i].cells.length; g++) {
                         if (periods[pernum].subjects[i].cells[g].markvalue != null)
@@ -209,6 +211,48 @@ public class PeriodFragment1 extends Fragment {
         }
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
         view.findViewById(R.id.scrollView3).setVisibility(View.VISIBLE);
+        view.setVisibility(View.VISIBLE);
+//        ViewGroup group = ((ViewGroup) view), group1;
+//        for (int i = 0; i < group.getChildCount(); i++) {
+//            group.setVisibility(View.VISIBLE);
+//            if(group.getChildAt(i) instanceof ViewGroup) {
+//                group1 = (ViewGroup) group.getChildAt(i);
+//                for (int j = 0; j < group1.getChildCount(); j++) {
+//                    group1.getChildAt(j).setVisibility(View.VISIBLE);
+//                    if(group1.getChildAt(j) instanceof ViewGroup) {
+//                        for (int k = 0; k < ((ViewGroup) group1.getChildAt(j)).getChildCount(); k++) {
+//                            ((ViewGroup) group1.getChildAt(j)).getChildAt(k).setVisibility(View.VISIBLE);
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        StringBuilder b = new StringBuilder();
+        ViewGroup group = (ViewGroup) view, g;
+        b.append(group.getChildCount()).append(": ");
+        for (int i = 0; i < group.getChildCount(); i++) {
+            if(group.getChildAt(i) instanceof ViewGroup) {
+                g = (ViewGroup) group.getChildAt(i);
+                b.append(g.getChildCount()).append(" (");
+                for (int j = 0; j < g.getChildCount(); j++) {
+                    if(g.getChildAt(j) instanceof ViewGroup) {
+                        b.append(((ViewGroup) g.getChildAt(j)).getChildCount()).append("; ");
+                    } else
+                        b.append("_; ");
+                }
+                b.delete(b.length()-2, b.length()).append(") ");
+            }
+        }
+        log(b.toString());
+        b = new StringBuilder("cells: ");
+        for (int i = 0; i < periods[pernum].subjects.length; i++) {
+            b.append(periods[pernum].subjects[i].cells.length).append(" ");
+        }
+        log(b.toString());
+        log("lins: " + periods[pernum].lins.length);
+        log(getContext().findViewById(R.id.frame).getHeight() + " vs " + view.getHeight());
+
         f = 1;
     }
 
@@ -241,7 +285,8 @@ public class PeriodFragment1 extends Fragment {
             fragment.period = period;
             fragment.pernum = pernum;
             fragment.periodType = periodType;
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            loge(e);
         }
         transaction.addToBackStack(null);
         transaction.commit();
@@ -356,7 +401,8 @@ public class PeriodFragment1 extends Fragment {
                         fragment2.subname = periods[pernum].subjects[0].name;
                         fragment2.avg = periods[pernum].subjects[0].avg;
                         fragment2.periodType = periods[pernum].subjects[0].periodType;
-                    } catch (Exception ignore) {
+                    } catch (Exception e) {
+                        loge(e);
                     }
                     transaction.addToBackStack(null);
                     transaction.commit();
