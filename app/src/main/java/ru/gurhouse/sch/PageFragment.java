@@ -104,6 +104,7 @@ public class PageFragment extends Fragment {
                         fragment.subjects = subjects;
                         fragment.name = lesson.name;
                         fragment.attends = lesson.attends;
+                        fragment.meetingInvite = lesson.meetingInvite;
                     } catch (Exception e) {
                         loge(e);
                     }
@@ -111,9 +112,10 @@ public class PageFragment extends Fragment {
                     transaction.commit();
                 });
             } catch (Exception e) {
-                loge(e); }
+                loge(e);
+            }
 
-            if (i - day.lessons.size() + 1 == 0) {
+            if (i == day.lessons.size() - 1) {
                 tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
                 linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
@@ -136,37 +138,37 @@ public class PageFragment extends Fragment {
             if(lesson.attends != null && lesson.attends.name != null) {
                 switch (lesson.attends.id) {
                     case 1:
-                        if (i - day.lessons.size() + 1 == 0)
+                        if (i == day.lessons.size() - 1)
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellsick1));
                         else
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellsick0));
                         break;
-                    case 6:
-                        if (i - day.lessons.size() + 1 == 0)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun1));
-                        else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun0));
-                        break;
                     case 2:
-                        if (i - day.lessons.size() + 1 == 0)
+                        if (i == day.lessons.size() - 1)
                             tv1.setBackground(getResources().getDrawable(R.drawable.celllate1));
                         else
                             tv1.setBackground(getResources().getDrawable(R.drawable.celllate0));
                         break;
                     case 3:
-                        if (i - day.lessons.size() + 1 == 0)
+                        if (i == day.lessons.size() - 1)
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellrel1));
                         else
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellrel0));
                         break;
                     case 4:
-                        if (i - day.lessons.size() + 1 == 0)
+                        if (i == day.lessons.size() - 1)
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellab1));
                         else
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellab0));
                         break;
+                    case 6:
+                        if (i == day.lessons.size() - 1)
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun1));
+                        else
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun0));
+                        break;
                     case 8:
-                        if (i - day.lessons.size() + 1 == 0)
+                        if (i == day.lessons.size() - 1)
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellall1));
                         else
                             tv1.setBackground(getResources().getDrawable(R.drawable.cellall0));
@@ -231,13 +233,20 @@ public class PageFragment extends Fragment {
             linearLayout.addView(tv21);
 
             linearLayout2.setOrientation(LinearLayout.HORIZONTAL);
-            ImageView image = new ImageView(getContext());
-            image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.attach), tv22.getLineHeight(), tv22.getLineHeight(), true));
-            image.setPadding(30,0,0,10);
-
             if(lesson.homeWork.files != null && !lesson.homeWork.files.isEmpty()){
+                ImageView image = new ImageView(getContext());
+                image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.attach), tv22.getLineHeight(), tv22.getLineHeight(), true));
+                image.setPadding(30,0,0,10);
                 linearLayout2.addView(image);
             }
+
+            if(lesson.meetingInvite != null && !lesson.meetingInvite.replaceAll(" ", "").equals("")) {
+                ImageView image = new ImageView(getContext());
+                image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.video), tv22.getLineHeight(), tv22.getLineHeight(), true));
+                image.setPadding(30,0,0,10);
+                linearLayout2.addView(image);
+            }
+
             linearLayout2.addView(tv22);
 
             linearLayout.addView(linearLayout2);

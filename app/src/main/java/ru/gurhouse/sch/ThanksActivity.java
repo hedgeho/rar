@@ -1,5 +1,6 @@
 package ru.gurhouse.sch;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
@@ -11,6 +12,14 @@ public class ThanksActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final SharedPreferences pref = getSharedPreferences("pref", 0);
+        switch (pref.getString("theme", "dark")) {
+            case "dark":
+                setTheme(R.style.MyDarkTheme);
+                break;
+            case "light":
+                setTheme(R.style.MyLightTheme);
+        }
         setContentView(R.layout.activity_thanks);
 
         /* пасхалка

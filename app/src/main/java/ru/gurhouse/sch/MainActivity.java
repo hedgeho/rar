@@ -1,7 +1,6 @@
 package ru.gurhouse.sch;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,13 +9,12 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
-import android.provider.Settings;
+import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
@@ -28,9 +26,10 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -50,6 +49,7 @@ import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.isQuit;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.restartActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationItemView itemView;
     private boolean mode0 = false;
     private int tap = 0;
-    private FrameLayout frameLayout;
+    private String theme;
 
     ScheduleFragment scheduleFragment;
 
@@ -79,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
             if(getSupportActionBar() == null)
                 setSupportActionBar(toolbar);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            getSupportActionBar().setHomeButtonEnabled(false);
             switch (item.getItemId()) {
                 case R.id.navigation_period:
                     tap = 0;
@@ -129,15 +128,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final SharedPreferences pref = getSharedPreferences("pref", 0);
+        switch (pref.getString("theme", "dark")) {
+            case "dark":
+                setTheme(R.style.MyDarkTheme);
+                break;
+            case "light":
+                setTheme(R.style.MyLightTheme);
+        }
+        theme = pref.getString("theme", "dark");
         setContentView(R.layout.activity_main);
 
-        mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
+        mode0 = pref.getBoolean("period_normal", false);
 
         periodFragment1 = new PeriodFragment1();
         periodFragment = new PeriodFragment();
         scheduleFragment = new ScheduleFragment();
         messagesFragment = new MessagesFragment();
-        frameLayout = findViewById(R.id.frame);
 
         final String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
         new Thread() {
@@ -146,31 +153,18 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     login(login, hash);
                 } catch (Exception e) {
-                    loge("login: " + e.toString());}
+                    loge("login: " + e.toString());
+                }
             }
         }.start();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.gr1));
+            TypedValue typedValue = new TypedValue();
+            Resources.Theme theme = getTheme();
+            theme.resolveAttribute(R.attr.main, typedValue, true);
+            @ColorInt int color = typedValue.data;
+            getWindow().setNavigationBarColor(color);
         }
-
-        new Thread() {
-            @Override
-            public void run() {
-                final FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(getApplicationContext());
-                Bundle bundle = new Bundle();
-                bundle.putString("text", "test_text");
-                bundle.putString("info", "test_info");
-                bundle.putLong(FirebaseAnalytics.Param.VALUE, 1);
-                bundle.putString("currency", "rub");
-                analytics.logEvent("test_conversion", bundle);
-                /*bundle = new Bundle();
-                bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "item_id!");
-                bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "item_name!");
-                bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, "content_type!");
-                analytics.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);*/
-            }
-        };//.start();
 
         receiver = new BroadcastReceiver() {
             @Override
@@ -342,6 +336,8 @@ public class MainActivity extends AppCompatActivity {
         }
         messagesFragment.context = this;
         messagesFragment.start(r);
+        TotalMarks.USER_ID = userId;
+        TotalMarks.Download3(this);
         FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(this);
         Bundle bundle = new Bundle();
         switch (getIntent().getIntExtra("mode", -1)) {
@@ -417,7 +413,6 @@ public class MainActivity extends AppCompatActivity {
         //if(getSupportActionBar() == null)
             setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
     public void set_visible(boolean b) {
@@ -429,14 +424,17 @@ public class MainActivity extends AppCompatActivity {
             chat.setVisibility(View.VISIBLE);
         }
     }
-
-    public void saveFile(String url, String name) {
+    public void saveFile(String url, String name, boolean show) {
+        saveFile(url, name, show, null);
+    }
+    public void saveFile(String url, String name, boolean show, ImageView image) {
         log("saving " + name);
         int permissionCheck = ContextCompat.checkSelfPermission(this, "android.permission.WRITE_EXTERNAL_STORAGE");
         if (permissionCheck < 0) {
             log("requesting permission to save file");
             this.url = url;
             this.name = name;
+            this.show = show;
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE}, 12345);
         } else {
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -459,25 +457,34 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     request.addRequestHeader("Cookie", pref.getString("cookie", "") + "; site_ver=app;" +
                             " route=" + pref.getString("route", "") + "; _pk_id.1.81ed=de563a6425e21a4f.1553009060.16.1554146944.1554139340.");
-                    request.allowScanningByMediaScanner();
-                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-                    request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
-
+                    if(show) {
+                        request.allowScanningByMediaScanner();
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name);
+                    } else {
+                        request.setDestinationInExternalFilesDir(getApplicationContext(), null, name);
+                        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_HIDDEN);
+                    }
                     // get download service and enqueue file
                     DownloadManager manager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-                    manager.enqueue(request);
+                    long id = manager.enqueue(request);
+                    if(image != null) {
+                        ChatFragment.imageViews.put(id, image);
+                        ChatFragment.files.put(id, /*"cache/" + */name);
+                    }
                 });
             }).start();
         }
     }
 
     private String url = null, name;
+    private boolean show;
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if(url != null && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             log("permission granted: " + permissions[0]);
-            saveFile(url, name);
+            saveFile(url, name, show);
         } else
             log("permission denied: " + permissions[0]);
         url = null;
@@ -585,15 +592,14 @@ public class MainActivity extends AppCompatActivity {
         //log("top: " + getStackTop());
         List<Fragment> a = getSupportFragmentManager().getFragments();
         if(getStackTop() instanceof ChatFragment || getStackTop() instanceof DayFragment || getStackTop() instanceof MarkFragment ||
-                getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff) {
+                getStackTop() instanceof SubjectFragment || getStackTop() instanceof KnockFragment || getStackTop() instanceof Countcoff
+                || getStackTop() instanceof TotalMarks) {
             set_visible(true);
             if (getStackTop() instanceof ChatFragment || getStackTop() instanceof KnockFragment) {
                 getSupportActionBar().setTitle("Сообщения");
                 getSupportActionBar().setSubtitle("");
             }
-            getSupportActionBar().setHomeButtonEnabled(false);
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            getSupportActionBar().setDisplayShowHomeEnabled(false);
         }
         if(!(getSupportFragmentManager().getBackStackEntryCount() == 0))
             if(!(getStackTop() instanceof PeriodFragment || getStackTop() instanceof PeriodFragment1
@@ -617,37 +623,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         log("onResume MainActivity");
+        SharedPreferences pref = getSharedPreferences("pref", 0);
+        if(!pref.getString("theme", "dark").equals(theme)) {
+            restartActivity(this, false);
+//            setTheme(R.style.MyLightTheme);
+//            setContentView(R.layout.activity_main);
+        }
         try {
             registerReceiver(receiver, new IntentFilter("ru.gurhouse.sch.action"));
         } catch (Exception e) {
             loge(e);
         }
-        mode0 = getSharedPreferences("pref", 0).getBoolean("period_normal", false);
+        mode0 = pref.getBoolean("period_normal", false);
         if (state == 1 && !(getStackTop() instanceof SubjectFragment || getStackTop() instanceof MarkFragment
             || getStackTop() instanceof Countcoff)) {
-            log("heeeree, Mode0=" + mode0);
-//            if(!(getStackTop() instanceof PageFragment))
-//                getSupportFragmentManager().popBackStack();
-//            if(getStackTop() instanceof PeriodFragment != mode0)
-//                getSupportFragmentManager().popBackStack();
             if (mode0) {
-//                getSupportFragmentManager()
-//                        .beginTransaction()
-//                        .detach(periodFragment1)
-//                        .attach(periodFragment)
-//                        .commit();
-//                periodFragment1.view.setVisibility(View.INVISIBLE);
-                //getSupportFragmentManager().popBackStack("PeriodFragment1", FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 loadFragment(periodFragment1);
                 loadFragment(periodFragment);
             } else {
-//                getSupportFragmentManager()
-//                        .beginTransaction()
-//                        .detach(periodFragment)
-//                        .attach(periodFragment1)
-//                        .commit();
-                //periodFragment1.view.setVisibility(View.VISIBLE);
-                //getSupportFragmentManager().popBackStack("PeriodFragment", FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 loadFragment(periodFragment);
                 loadFragment(periodFragment1);
             }

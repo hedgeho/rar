@@ -4,18 +4,25 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.ColorInt;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.Switch;
 
 import static ru.gurhouse.sch.KnockFragment.connect;
@@ -26,16 +33,36 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText et, et_nickname;
     private ImageView send;
     private boolean kk_enabled = false;
+    private static int scrollTo = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final SharedPreferences pref = getSharedPreferences("pref", 0);
+        switch (pref.getString("theme", "dark")) {
+            case "dark":
+                setTheme(R.style.MyDarkTheme);
+                break;
+            case "light":
+                setTheme(R.style.MyLightTheme);
+        }
         setContentView(R.layout.activity_settings);
+
+        ScrollView scroll = findViewById(R.id.scroll_settings);
+        scroll.post(() -> {
+            scroll.scrollTo(0, scrollTo);
+            scrollTo = 0;
+        });
+
         PeriodFragment.settingsClicked = false;
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.gr1));
+            TypedValue typedValue = new TypedValue();
+            Resources.Theme theme = getTheme();
+            theme.resolveAttribute(R.attr.main, typedValue, true);
+            @ColorInt int color = typedValue.data;
+            getWindow().setNavigationBarColor(color);
         }
 
         et = findViewById(R.id.et_feedback);
@@ -76,7 +103,53 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(new Intent(getApplicationContext(), ThanksActivity.class));
         });
 
-        final SharedPreferences pref = getSharedPreferences("pref", 0);
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setShape(GradientDrawable.RECTANGLE);
+        drawable.setCornerRadius(50);
+        drawable.setColor(Color.parseColor(pref.getString("backgroundColor", "#303030")));
+        drawable.setStroke(3, Color.WHITE);
+
+//        FrameLayout color = findViewById(R.id.color_background);
+//        EditText et = findViewById(R.id.et_backgroundColor);
+//        color.setBackground(drawable);
+//        color.setOnClickListener(v -> {
+//            AlertDialog.Builder alert = new AlertDialog.Builder(this);
+//            alert.setTitle("Основной фон");
+//            View view = getLayoutInflater().inflate(R.layout.color_picker, null, false);
+//            ColorPicker picker = view.findViewById(R.id.picker);
+//            picker.addSVBar(view.findViewById(R.id.svbar));
+//            alert.setView(view);
+//            alert.setPositiveButton("OK", (dialog, which) -> {
+//                pref.edit().putString("backgroundColor", String.format("#%06X", 0xFFFFFF & picker.getColor())).apply();
+//                refreshColor("backgroundColor", color, et, true);
+//            });
+//            alert.show();
+//        });
+
+//        et.setText(pref.getString("backgroundColor", "#303030"));
+//        et.addTextChangedListener(new TextWatcher() {
+//            @Override
+//            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//
+//            }
+//
+//            @Override
+//            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                if(s.length() == 7 && s.charAt(0) == '#') {
+//                    for (int i = 1; i <= 6; i++) {
+//                        if(!Character.isDigit(s.charAt(i)))
+//                            return;
+//                    }
+//                    pref.edit().putString("backgroundColor", s.toString()).apply();
+//                    refreshColor("backgroundColor", color, et, false);
+//                }
+//            }
+//
+//            @Override
+//            public void afterTextChanged(Editable s) {
+//
+//            }
+//        });
 
         Switch auto = findViewById(R.id.switch_auto);
         auto.setChecked(pref.getBoolean("auto", true));
@@ -136,14 +209,58 @@ public class SettingsActivity extends AppCompatActivity {
             }
         });
 
+        RadioGroup rg = findViewById(R.id.rg_theme);
+
+        switch (pref.getString("theme", "dark")) {
+            case "dark":
+                rg.check(R.id.rb_dark);
+                break;
+            case "light":
+                rg.check(R.id.rb_light);
+        }
+        rg.setOnCheckedChangeListener((group, checkedId) -> {
+            if(checkedId == R.id.rb_dark) {
+                if(!pref.getString("theme", "dark").equals("dark")) {
+                    scrollTo = scroll.getScrollY();
+                    restartActivity(this, true);
+                }
+                pref.edit().putString("theme", "dark").apply();
+            } else if(checkedId == R.id.rb_light) {
+                if(!pref.getString("theme", "light").equals("light")) {
+                    scrollTo = scroll.getScrollY();
+                    restartActivity(this, true);
+                }
+                pref.edit().putString("theme", "light").apply();
+            }
+        });
+
         Toolbar toolbar = findViewById(R.id.toolbar2);
         toolbar.setTitle("Настройки");
         setSupportActionBar(toolbar);
-        getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
+//    void refreshColor(String colorName, FrameLayout color, EditText et, boolean setText) {
+//        log("refreshing color " + colorName);
+//        String s = getSharedPreferences("pref", 0).getString(colorName, "");
+//        GradientDrawable drawable = new GradientDrawable();
+//        drawable.setShape(GradientDrawable.RECTANGLE);
+//        drawable.setCornerRadius(50);
+//        drawable.setColor(Color.parseColor(s));
+//        drawable.setStroke(3, Color.WHITE);
+//
+//        color.setBackground(drawable);
+//        if(setText)
+//            et.setText(s);
+//    }
+
+    public static void restartActivity(Activity activity, boolean anim) {
+        activity.finish();
+        activity.startActivity(new Intent(activity, activity.getClass()));
+        if(anim)
+            activity.overridePendingTransition(android.R.anim.fade_in,
+                    android.R.anim.fade_out);
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu.clear();
@@ -154,24 +271,24 @@ public class SettingsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if(item.getItemId() == android.R.id.home)
             finish();
-        else {
-            new Thread() {
-                @Override
-                public void run() {
-                    try {
-                        connect("https://still-cove-90434.herokuapp.com/logout",
-                                "firebase_id=" + TheSingleton.getInstance().getFb_id());
-                    } catch (Exception e) {
-                        loge("logout: " + e.toString());
-                    }
-                }
-            }.start();
-            SharedPreferences pref = getSharedPreferences("pref", 0);
-            pref.edit().putBoolean("first_time", true).apply();
-            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
-        }
+//        else {
+//            new Thread() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        connect("https://still-cove-90434.herokuapp.com/logout",
+//                                "firebase_id=" + TheSingleton.getInstance().getFb_id());
+//                    } catch (Exception e) {
+//                        loge("logout: " + e.toString());
+//                    }
+//                }
+//            }.start();
+//            SharedPreferences pref = getSharedPreferences("pref", 0);
+//            pref.edit().putBoolean("first_time", true).apply();
+//            Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//            startActivity(intent);
+//        }
         return super.onOptionsItemSelected(item);
     }
 

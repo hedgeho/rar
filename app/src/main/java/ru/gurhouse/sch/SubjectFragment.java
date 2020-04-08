@@ -167,7 +167,7 @@ public class SubjectFragment extends Fragment {
         toolbar.setTitle(periodname);
         setHasOptionsMenu(true);
         ((MainActivity) getActivity()).setSupActionBar(toolbar);
-        ((MainActivity) getActivity()).getSupportActionBar().setHomeButtonEnabled(true);
+        ((MainActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         return v;
     }
 

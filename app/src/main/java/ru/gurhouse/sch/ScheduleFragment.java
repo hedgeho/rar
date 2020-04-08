@@ -7,11 +7,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.PagerAdapter;
@@ -32,7 +30,6 @@ import android.view.ViewGroup;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -42,7 +39,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -78,7 +74,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     View v;
     DatePickerDialog datePickerDialog;
     int[] week;
-    int yearname = Calendar.getInstance().get(Calendar.MONTH) < Calendar.JULY ? Calendar.getInstance().get(Calendar.YEAR)-1 : Calendar.getInstance().get(Calendar.YEAR);
+    static int yearname = Calendar.getInstance().get(Calendar.MONTH) < Calendar.JULY ? Calendar.getInstance().get(Calendar.YEAR)-1 : Calendar.getInstance().get(Calendar.YEAR);
     KindaList[] s = new KindaList[11];
     String[] name = {"1 четверть", "2 четверть", "1 полугодие", "3 четверть", "4 четверть",
             "2 полугодие", "Годовая оценка", "Экзамен", "Оценка за ОГЭ", "Оценка в аттестат"};
@@ -760,6 +756,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 lesson.topic = object2.getJSONObject("tp").getString("topicName");
                             if (object2.getJSONObject("teacher").has("factTeacherIN"))
                                 lesson.teachername = object2.getJSONObject("teacher").getString("factTeacherIN");
+                            if (object2.has("meet") && object2.getJSONObject("meet").has("inviteText"))
+                                lesson.meetingInvite = object2.getJSONObject("meet").getString("inviteText");
                             ar = object2.getJSONArray("part");
                             lesson.homeWork = new PeriodFragment.HomeWork();
                             builder = new StringBuilder();
@@ -805,6 +803,55 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     for (int i = 0; i < subjects.length; i++) {
                         subjects[i] = new LinkedList<>();
                     }
+                    Arrays.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid, o2.unitid));
+                    for (int i = 0; i < periods[pernum].subjects.length; i++) {
+                        if (periods[pernum].subjects[i].shortname == null || periods[pernum].subjects[i].shortname.isEmpty()) {
+                            subject = periods[pernum].subjects[i];
+                            switch (subject.name) {
+                                case "Физика":
+                                case "Химия":
+                                case "История":
+                                case "Алгебра":
+                                    subject.shortname = subject.name;
+                                    break;
+                                case "БЕСЕДЫ КЛ РУК":
+                                    subject.shortname = "Кл. Час";
+                                    break;
+                                case "Иностранный язык":
+                                    subject.shortname = "Ин. Яз.";
+                                    break;
+                                case "Алгебра и начала анализа":
+                                    subject.shortname = "Алгебра";
+                                    break;
+                                case "Информатика и ИКТ":
+                                    subject.shortname = "Информ.";
+                                    break;
+                                case "Биология":
+                                    subject.shortname = "Биолог.";
+                                    break;
+                                case "География":
+                                    subject.shortname = "Геогр.";
+                                    break;
+                                case "Геометрия":
+                                    subject.shortname = "Геометр.";
+                                    break;
+                                case "Литература":
+                                    subject.shortname = "Лит-ра";
+                                    break;
+                                case "Обществознание":
+                                    subject.shortname = "Общ.";
+                                    break;
+                                case "Русский язык":
+                                    subject.shortname = "Рус. Яз.";
+                                    break;
+                                case "Физическая культура":
+                                    subject.shortname = "Физ-ра";
+                                    break;
+                                default:
+                                    periods[pernum].subjects[i].shortname = periods[pernum].subjects[i].name.substring(0, 3);
+                            }
+                        }
+                    }
                     for (int i = 0; i < periods[pernum].days.length; i++) {
                         for (int j = 0; j < periods[pernum].cells.length; j++) {
                             cell = periods[pernum].cells[j];
@@ -836,54 +883,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                 if (periods[pernum].subjects[l].unitid == mark.unitid) {
                                                     subjects[l].add(cell);
                                                 }
-                                                if (periods[pernum].subjects[l].shortname == null || periods[pernum].subjects[l].shortname.isEmpty()) {
-                                                    subject = periods[pernum].subjects[l];
-                                                    switch (subject.name) {
-                                                        case "Физика":
-                                                        case "Химия":
-                                                        case "История":
-                                                        case "Алгебра":
-                                                            subject.shortname = subject.name;
-                                                            break;
-                                                        case "БЕСЕДЫ КЛ РУК":
-                                                            subject.shortname = "Кл. Час";
-                                                            break;
-                                                        case "Иностранный язык":
-                                                            subject.shortname = "Ин. Яз.";
-                                                            break;
-                                                        case "Алгебра и начала анализа":
-                                                            subject.shortname = "Алгебра";
-                                                            break;
-                                                        case "Информатика и ИКТ":
-                                                            subject.shortname = "Информ.";
-                                                            break;
-                                                        case "Биология":
-                                                            subject.shortname = "Биолог.";
-                                                            break;
-                                                        case "География":
-                                                            subject.shortname = "Геогр.";
-                                                            break;
-                                                        case "Геометрия":
-                                                            subject.shortname = "Геометр.";
-                                                            break;
-                                                        case "Литература":
-                                                            subject.shortname = "Лит-ра";
-                                                            break;
-                                                        case "Обществознание":
-                                                            subject.shortname = "Общ.";
-                                                            break;
-                                                        case "Русский язык":
-                                                            subject.shortname = "Рус. Яз.";
-                                                            break;
-                                                        case "Физическая культура":
-                                                            subject.shortname = "Физ-ра";
-                                                            break;
-                                                        default:
-                                                            periods[pernum].subjects[l].shortname = periods[pernum].subjects[l].name.substring(0, 3);
-                                                    }
-                                                }
                                             }
-                                            Arrays.sort(periods[pernum].subjects, (o1, o2) -> Integer.compare(o1.unitid, o2.unitid));
                                             periods[pernum].days[i].lessons.get(k).marks.add(mark);
                                         }
                                     }

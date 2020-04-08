@@ -293,7 +293,6 @@ public class PeriodFragment extends Fragment {
         view.findViewById(R.id.scrollView2).setVisibility(View.VISIBLE);
         view.findViewById(R.id.txtnull).setVisibility(View.INVISIBLE);
         ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-        ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
     }
 
     void refresh() {
@@ -326,7 +325,6 @@ public class PeriodFragment extends Fragment {
         log("onResume PerF");
         if(getContext() != null) {
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
         }
         if(!recreating) {
             ((AppCompatActivity) getContext()).getSupportFragmentManager()
@@ -357,13 +355,13 @@ public class PeriodFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
-//        item = menu.add(0, 2, 0, "Итоговые");
+        item = menu.add(0, 2, 0, "Итоговые");
 //        item.setIcon(R.drawable.results);
 //        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 5, 0, "Калькулятор");
         item.setIcon(R.drawable.calculator);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 1, "Настройки");
+        menu.add(0, 3, 1, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 4, 2, "Обновить");
@@ -400,6 +398,7 @@ public class PeriodFragment extends Fragment {
         ArrayList<Mark> marks = new ArrayList<>();
         long id;
         long unitId = 0;
+        String meetingInvite;
         PageFragment.Attends attends;
         Lesson() {
         }
@@ -476,14 +475,14 @@ public class PeriodFragment extends Fragment {
             return super.onOptionsItemSelected(item);
         switch (item.getItemId()) {
             // total marks under construction (disabled)
-            /*case 2:
+            case 2:
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 TotalMarks fragment = new TotalMarks();
                 fragment.start();
                 transaction.replace(R.id.frame, fragment);
                 transaction.addToBackStack(null);
                 transaction.commit();
-                break;*/
+                break;
             case 3:
                 if(!settingsClicked) {
                     settingsClicked = true;
@@ -509,7 +508,7 @@ public class PeriodFragment extends Fragment {
                 break;
             case 5:
                 if(!syncing && period != null /*&& (itemRefresh == null || itemRefresh.isEnabled())*/) {
-                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction = getFragmentManager().beginTransaction();
                     Countcoff fragment2 = new Countcoff();
                     transaction.replace(R.id.frame, fragment2);
                     fragment2.periods = periods;

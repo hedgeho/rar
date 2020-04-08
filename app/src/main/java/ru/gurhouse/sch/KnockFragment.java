@@ -70,7 +70,7 @@ public class KnockFragment extends Fragment {
             pings = new ArrayList<>();
         ((MainActivity) getContext()).setSupActionBar(toolbar);
         // Inflate the layout for this fragment
-        ((MainActivity) getContext()).getSupportActionBar().setHomeButtonEnabled(true);
+        ((MainActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         this.view = view;
 
         view.findViewById(R.id.btn_send).setOnClickListener(v -> {
@@ -396,7 +396,7 @@ public class KnockFragment extends Fragment {
                             tv.setText(name);
                             tv.setTextColor(getResources().getColor(R.color.two));
                             final String link = object.getString("text");
-                            tv.setOnClickListener(v -> ((MainActivity) getContext()).saveFile(link, name));
+                            tv.setOnClickListener(v -> ((MainActivity) getContext()).saveFile(link, name, true));
                             ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);
                         }
                     }

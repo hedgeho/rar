@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyLightTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="main">#BBBBBB</item>
+    </style>
+    <style name="MyDarkTheme" parent="MyLightTheme">
+        <item name="main">#303030</item>
+    </style>
+</resources>

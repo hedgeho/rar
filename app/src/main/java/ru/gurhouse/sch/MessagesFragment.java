@@ -315,10 +315,6 @@ public class MessagesFragment extends Fragment {
             final Handler h = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
-                    if(msg.what == 321) {
-                        getView().findViewById(R.id.tv_error).setVisibility(View.INVISIBLE);
-                        return;
-                    }
                     container.removeAllViews();
 
                     if(msg.what == 123 && getView() != null) {
@@ -345,13 +341,12 @@ public class MessagesFragment extends Fragment {
                         s_count = -1;
                         count = -1;
                         Person person;
-                        boolean infio;
                         for (int i = 0; i < Math.min(result.length, 100); i++) {
                             person = result[i];
                             item = inflater.inflate(R.layout.person_item, container, false);
                             tv = item.findViewById(R.id.tv_fio);
 //                            index = person.fio.toLowerCase().indexOf(query.toLowerCase());
-                            int start, end;
+//                            int start, end;
                             if(person.fio.toLowerCase().contains(query.toLowerCase())) {
 //                                if (index > 30)
 //                                    start = index - 30;
@@ -366,30 +361,26 @@ public class MessagesFragment extends Fragment {
                                 s = person.fio;
                                 spannable = new SpannableString(s);
                                 s = s.toLowerCase();
-                                int ind = s.indexOf(query);
+                                int ind = s.indexOf(query.toLowerCase());
                                 spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), ind, ind + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                 tv.setText(spannable);
                                 tv = item.findViewById(R.id.tv_info);
                                 tv.setText(person.info);
-                            } else {
+                            } else if(person.info.toLowerCase().contains(query.toLowerCase())) {
                                 tv.setText(person.fio);
-                                index = person.info.toLowerCase().indexOf(query.toLowerCase());
-                                if (index > 30)
-                                    start = index - 30;
-                                else
-                                    start = 0;
-                                if (person.info.length() > index + query.length() + 30)
-                                    end = index + query.length() + 30;
-                                else
-                                    end = person.info.length() - 1;
-                                s = (start == 0 ? "" : "...") + person.info.subSequence(start, end + 1).toString() + (end == person.info.length() - 1 ? "" : "...");
+                                s = person.info;
                                 spannable = new SpannableString(s);
                                 s = s.toLowerCase();
-                                int ind = s.indexOf(query);
+                                int ind = s.indexOf(query.toLowerCase());
+                                if(ind == -1) {
+                                    loge(s + ",," + query);
+                                }
                                 spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)),
                                         ind, ind + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                                 tv = item.findViewById(R.id.tv_info);
                                 tv.setText(spannable);
+                            } else {
+                                loge("bruh wtf " + person.fio + ", " + person.info + ", " + query);
                             }
                             //tv.setText(person.fio);
                             final int prsId = person.prsId;
@@ -575,13 +566,16 @@ public class MessagesFragment extends Fragment {
                     new Thread() {
                         @Override
                         public void run() {
+                            if(olist == null)
+                                return;
+                            result = new Person[0];
                             LinkedList<Person> list = new LinkedList<>();
                             for (Person person: olist) {
                                 if(person == null)
                                     continue;
-                                if(!person.fio.contains(query) && !person.info.contains(query))
-                                    continue;
-                                list.add(person);
+                                if(person.fio.toLowerCase().contains(query.toLowerCase()) ||
+                                        person.info.toLowerCase().contains(query.toLowerCase()))
+                                    list.add(person);
                             }
                             result = list.toArray(new Person[0]);
                             if (result.length == 0) {
@@ -612,6 +606,7 @@ public class MessagesFragment extends Fragment {
                     new Thread() {
                         @Override
                         public void run() {
+                            result = new Person[0];
                             LinkedList<Person> list = new LinkedList<>();
                             for (Person person: olist) {
                                 if(person == null)
@@ -625,7 +620,8 @@ public class MessagesFragment extends Fragment {
                                 error = "Нет адресатов, удовлетворяющих условиям поиска";
                                 h.sendEmptyMessage(123);
                             } else {
-                                h.sendEmptyMessage(321);
+                                getContext().runOnUiThread(() ->
+                                        getView().findViewById(R.id.tv_error).setVisibility(View.INVISIBLE));
                                 h.sendEmptyMessage(0);
                             }
                         }
@@ -637,7 +633,7 @@ public class MessagesFragment extends Fragment {
         myActionMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
-                return true;
+                return olist != null;
             }
 
             @Override
@@ -883,6 +879,8 @@ public class MessagesFragment extends Fragment {
                                             final int type = f_types.get(f_count + 25 - (l - j));
                                             final String sender = (u > 2?f_topics:f_senders).get(f_count + 25 - (l - j));
                                             item1.setOnClickListener(v -> {
+                                                if(j >= topics.length)
+                                                    return;
                                                 if (f_count != -1) {
                                                     loadChat(threadId, sender,
                                                             topics[j], type, -1, u > 2);

@@ -2,29 +2,34 @@
 <resources>
     <color name="colorPrimary">#E2E8DD</color>
     <color name="colorPrimaryDark">#95A3A4</color>
-    <color name="colorAccent">#D81B60</color>
+    <color name="colorAccent">#D81B60</color> <!--  не используется  -->
     <color name="onTouch">#344E4E4E</color>
-    <color name="one">#95A3A4</color>
+<!--    <color name="one">#95A3A4</color>-->
     <color name="two">#B7D1DA</color>
-    <color name="three">#E2E8DD</color>
-    <color name="four">#38423B</color>
-    <color name="five">#020202</color>
-    <color name="six">#1B1B1B</color>
-    <color name="seven">#707070</color>
-    <color name="coff1">#3D3D3D</color>
+<!--    <color name="three">#E2E8DD</color>-->
+<!--    <color name="four">#38423B</color>-->
+<!--    <color name="five">#020202</color>-->
+
+    <color name="six">#1B1B1B</color> <!--  фон в чатах -->
+<!--    <color name="seven">#707070</color>-->
+
+<!--    коэффициенты: 0.5, 1, 1.25, 1.35, 1.5, 1.75, 2 соответственно -->
+    <color name="coff1">#3D3D3D</color> <!--  цвет каждого диалога во вкладке с сообщениями  -->
     <color name="coff2">#587279</color>
     <color name="coff3">#4C858F</color>
     <color name="coff4">#2E85A2</color>
-    <color name="coff5">#2B759C</color>
+    <color name="coff5">#2B759C</color> <!--  цвет выделенного сообщения (при поиске по сообщениям) -->
     <color name="coff6">#0A5574</color>
     <color name="coff7">#003D5F</color>
     <color name="coff8">#003644</color>
-    <color name="gr1">#303030</color>
-    <color name="gr2">#313030</color>
-    <color name="text_gray">#AAAAAA</color>
-    <color name="plus">#5C7C50</color>
-    <color name="mn">#996060</color>
 
+<!--    <color name="main">#303030</color>-->
+<!--    <color name="gr2">#313030</color>-->
+    <color name="text_gray">#AAAAAA</color>
+    <color name="plus">#5C7C50</color> <!--  калькулятор  -->
+    <color name="mn">#996060</color> <!--  калькулятор  -->
+
+    <!--  присутствие на уроках  -->
     <color name="sick">#B17B00</color>
     <color name="unknown">#757575</color>
     <color name="late">#86A800</color>

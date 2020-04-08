@@ -24,18 +24,15 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import static ru.gurhouse.sch.LoginActivity.loge;
 
 
 public class DayFragment extends Fragment {
 
-    String homework = "", name = "";
+    String homework = "", name = "", topic = "", teachername = "", meetingInvite;
     ArrayList<PeriodFragment.File> files = new ArrayList<>();
     ArrayList<PeriodFragment.Mark> marks = new ArrayList<>();
-    String topic = "";
-    String teachername = "";
     PeriodFragment.Subject[] subjects;
     Activity context;
     PageFragment.Attends attends;
@@ -51,7 +48,7 @@ public class DayFragment extends Fragment {
         LinearLayout linearLayout = view.findViewById(R.id.container);
         linearLayout.setBaselineAligned(false);
         TextView tv1;
-        if (!homework.equals(" ") && !homework.equals("")) {
+        if (!homework.replaceAll(" ", "").equals("")) {
             tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -62,12 +59,8 @@ public class DayFragment extends Fragment {
             spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
-            try {
-                Linkify.addLinks(tv1, Linkify.WEB_URLS);
-                tv1.setLinksClickable(true);
-            } catch (Exception e) {
-                loge(e);
-            }
+            tv1.setTextIsSelectable(true);
+            tv1.setAutoLinkMask(Linkify.ALL);
             tv1.setPadding(50, 50, 50, 0);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             linearLayout.addView(tv1);
@@ -89,7 +82,7 @@ public class DayFragment extends Fragment {
             tv1.setOnClickListener(v -> {
                 try {
                     String url = "https://app.eschool.center/ec-server/files/" + file.id;
-                    ((MainActivity) getContext()).saveFile(url, file.name);
+                    ((MainActivity) getContext()).saveFile(url, file.name, true);
                 } catch (Exception e) {loge(e);}
             });
             tv1.setPadding(50, 10, 50, 0);
@@ -180,55 +173,65 @@ public class DayFragment extends Fragment {
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
-            int g = 0;
+            boolean flag = true;
 
-            String s1 = "Присутствие:" + "\n";
+            String s1 = "Присутствие:\n";
             Spannable spans1 = new SpannableString(s1);
-            s1 = spans1.toString();
             switch (attends.id) {
                 case 1:
                     s1 += "По причине болезни";
                     spans1 = new SpannableString(s1);
-                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     break;
                 case 6:
                     s1 += "Неизвестно";
                     spans1 = new SpannableString(s1);
-                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     break;
                 case 2:
                     s1 += "Опоздал";
                     spans1 = new SpannableString(s1);
-                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     break;
                 case 3:
                     s1 += "Освобожден";
                     spans1 = new SpannableString(s1);
-                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     break;
                 case 4:
                     s1 += "Прогул";
                     spans1 = new SpannableString(s1);
-                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     break;
                 case 8:
                     s1 += "По уважительной причине";
                     spans1 = new SpannableString(s1);
-                    spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                     break;
                 default:
-                    g = 1;
+                    flag = false;
             }
-            spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            if(g == 0) {
+            if(flag) {
+                spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv1.setText(spans1);
                 tv1.setPadding(50, 50, 50, 50);
                 tv1.setGravity(Gravity.CENTER_VERTICAL);
                 linearLayout.addView(tv1);
             }
         }
-        if (!teachername.equals(" ") && !teachername.equals("")) {
+        if(meetingInvite != null && !meetingInvite.replaceAll(" ", "").equals("")) {
+            tv1 = new TextView(getContext());
+            tv1.setLayoutParams(new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            tv1.setPadding(50, 50, 50, 50);
+            tv1.setGravity(Gravity.CENTER_VERTICAL);
+            tv1.setAutoLinkMask(Linkify.ALL);
+            tv1.setTextIsSelectable(true);
+            String s = "Видеоконференция:\n" + meetingInvite;
+            Spannable spannable = new SpannableString(s);
+            spannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spannable.setSpan(new RelativeSizeSpan(1.7f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            spannable.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
+            tv1.setText(spannable);
+            linearLayout.addView(tv1);
+        }
+        if (!teachername.replaceAll(" ", "").equals("")) {
             tv1 = new TextView(getContext());
             tv1.setLayoutParams(new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -245,8 +248,8 @@ public class DayFragment extends Fragment {
         Toolbar toolbar = getActivity().findViewById(R.id.toolbar);
         toolbar.setTitle(name);
         setHasOptionsMenu(true);
-        ((MainActivity)getActivity()).setSupActionBar(toolbar);
-        Objects.requireNonNull(((MainActivity) getActivity()).getSupportActionBar()).setHomeButtonEnabled(true);
+        ((MainActivity) getContext()).setSupActionBar(toolbar);
+        ((MainActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         return view;
     }
 
@@ -264,6 +267,7 @@ public class DayFragment extends Fragment {
     }
 
     @Override
+    @NonNull
     public Activity getContext() {
         return (context==null?getActivity():context);
     }

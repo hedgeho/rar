@@ -2,8 +2,10 @@
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/settings_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?main"
     tools:context=".SettingsActivity">
 
     <android.support.v7.widget.Toolbar
@@ -14,15 +16,17 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_scrollFlags="enterAlways"/>
+        app:layout_scrollFlags="enterAlways" />
 
     <ScrollView
+        android:id="@+id/scroll_settings"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar2"
         app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="-66dp">
+        tools:layout_editor_absoluteX="-27dp"
+        tools:scrollY="1000px">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -198,7 +202,7 @@
                 android:text="Общий чат"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/btn_fbsend" />
+                app:layout_constraintTop_toBottomOf="@+id/rg_theme" />
 
             <TextView
                 android:id="@+id/textView7"
@@ -231,7 +235,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
                 android:layout_marginLeft="32dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="Никнейм"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -293,7 +297,7 @@
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
                 android:background="#000000"
-                app:layout_constraintBottom_toTopOf="@+id/textView4"
+                app:layout_constraintBottom_toTopOf="@+id/textView18"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
 
@@ -356,6 +360,52 @@
                 android:text="Отображать кружки"
                 app:layout_constraintStart_toStartOf="@+id/textView13"
                 app:layout_constraintTop_toBottomOf="@+id/textView13" />
+
+            <View
+                android:id="@+id/divider4"
+                android:layout_width="0dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="8dp"
+                android:background="#000000"
+                app:layout_constraintBottom_toTopOf="@+id/textView4"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/textView18"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="32dp"
+                android:text="Оформление"
+                android:textSize="24sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btn_fbsend" />
+
+            <RadioGroup
+                android:id="@+id/rg_theme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="32dp"
+                android:layout_marginLeft="32dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView18">
+
+                <RadioButton
+                    android:id="@+id/rb_dark"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Темная тема" />
+
+                <RadioButton
+                    android:id="@+id/rb_light"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Светлая тема" />
+            </RadioGroup>
+
 
         </android.support.constraint.ConstraintLayout>
     </ScrollView>

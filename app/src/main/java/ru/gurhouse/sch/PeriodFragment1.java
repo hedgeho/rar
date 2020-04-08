@@ -10,17 +10,14 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -266,7 +263,6 @@ public class PeriodFragment1 extends Fragment {
         log("onResume PerF1");
         if(getContext() != null) {
             ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-            ((AppCompatActivity) getContext()).getSupportActionBar().setDisplayShowHomeEnabled(false);
         }
         if(!recreating) {
             ((AppCompatActivity) getContext()).getSupportFragmentManager()
@@ -300,13 +296,13 @@ public class PeriodFragment1 extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
         MenuItem item;
-//        item = menu.add(0, 2, 0, "Оценки");
+        item = menu.add(0, 2, 0, "Оценки");
 //        item.setIcon(R.drawable.results);
 //        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 5, 0, "Калькулятор");
         item.setIcon(R.drawable.calculator);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item = menu.add(0, 3, 1, "Настройки");
+        menu.add(0, 3, 1, "Настройки");
         item.setIcon(R.drawable.settings);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 4, 2, "Обновить");
@@ -320,7 +316,7 @@ public class PeriodFragment1 extends Fragment {
         if(((MainActivity) getContext()).getStackTop() instanceof PeriodFragment)
             return super.onOptionsItemSelected(item);
         switch (item.getItemId()) {
-            // under construction - screen showing total marks of the user (disabled)
+//             under construction - screen showing total marks of the user (disabled)
             case 2:
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
                 TotalMarks fragment = new TotalMarks();

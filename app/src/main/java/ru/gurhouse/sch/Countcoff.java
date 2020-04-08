@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -42,7 +41,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -51,6 +49,8 @@ import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.MainActivity.TYPE_SEM;
+import static ru.gurhouse.sch.PeriodFragment.coefs;
+import static ru.gurhouse.sch.PeriodFragment.colors;
 
 public class Countcoff extends Fragment {
 
@@ -158,6 +158,8 @@ public class Countcoff extends Fragment {
             context = getActivity();
 
         log("Countcoff: type " + (periodType == TYPE_SEM?"SEM":"Q"));
+        if(period == null)
+            return super.onCreateView(inflater, container, savedInstanceState);
         periodSEM = new String[period.length-4];
         System.arraycopy(period, 0, periodSEM, 0, period.length-4);
 
@@ -414,22 +416,11 @@ public class Countcoff extends Fragment {
                 });
             });
 
-            if (d[0] <= 0.5)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff1));
-            else if (d[0] <= 1)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff2));
-            else if (d[0] <= 1.25)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff3));
-            else if (d[0] <= 1.35)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff4));
-            else if (d[0] <= 1.5)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff5));
-            else if (d[0] <= 1.75)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff6));
-            else if (d[0] <= 2)
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff7));
-            else
-                tv1.setBackgroundColor(getResources().getColor(R.color.coff8));
+            int color = Arrays.binarySearch(coefs, d[0]);
+            if(color < 0)
+                color = -color-1;
+
+            tv1.setBackgroundColor(colors[color]);
             ConstraintLayout.LayoutParams lp = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.WRAP_CONTENT, ConstraintLayout.LayoutParams.WRAP_CONTENT);
             lp.setMargins(10, 10, 10, 10);
             tv1.setLayoutParams(lp);
@@ -709,6 +700,8 @@ public class Countcoff extends Fragment {
                                     lesson.topic = object2.getJSONObject("tp").getString("topicName");
                                 if (object2.getJSONObject("teacher").has("factTeacherIN"))
                                     lesson.teachername = object2.getJSONObject("teacher").getString("factTeacherIN");
+                                if (object2.has("meet") && object2.getJSONObject("meet").has("inviteText"))
+                                    lesson.meetingInvite = object2.getJSONObject("meet").getString("inviteText");
                                 JSONArray ar = object2.getJSONArray("part");
                                 lesson.homeWork = new PeriodFragment.HomeWork();
                                 lesson.homeWork.stringwork = "";

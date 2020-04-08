@@ -7,13 +7,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.Settings;
+import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationManagerCompat;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -60,14 +62,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        final SharedPreferences settings = getSharedPreferences("pref", 0);
+        switch (settings.getString("theme", "dark")) {
+            case "dark":
+                setTheme(R.style.MyDarkTheme);
+                break;
+            case "light":
+                setTheme(R.style.MyLightTheme);
+        }
         setContentView(R.layout.activity_login);
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         TheSingleton.getInstance().t1 = System.currentTimeMillis();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setNavigationBarColor(getResources().getColor(R.color.gr1));
-        }
 
         new Thread() {
             @Override
@@ -78,7 +85,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         NotificationManagerCompat.from(this).cancelAll();
 
-        final SharedPreferences settings = getSharedPreferences("pref", 0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            TypedValue typedValue = new TypedValue();
+            Resources.Theme theme = getTheme();
+            theme.resolveAttribute(R.attr.main, typedValue, true);
+            @ColorInt int color = typedValue.data;
+            getWindow().setNavigationBarColor(color);
+        }
         // to see that window with setting nickname in chat, add this
         //settings.edit().putString("knock_token", "").apply();
 
@@ -361,12 +374,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 h.sendEmptyMessage(1);
             }
         } catch (UnknownHostException e) {
+            loge(e);
             this.mode = mode;
             h.sendEmptyMessage(2);
         } catch (SSLException e) {
+            loge(e);
             this.mode = mode;
             h.sendEmptyMessage(2);
         } catch (ConnectException e) {
+            loge(e);
             this.mode = mode;
             h.sendEmptyMessage(2);
         }

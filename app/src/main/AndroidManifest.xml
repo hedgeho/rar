@@ -3,22 +3,23 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="ru.gurhouse.sch">
 
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- <uses-permission android:name="android.permission.GET_TASKS" /> -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- <uses-permission android:name="android.permission.GET_TASKS" /> -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/Theme.Design.NoActionBar"
+        android:theme="@style/MyDarkTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <!--
+        android:theme="@style/Theme.Design.NoActionBar"
         android:supportsRtl="true"
-        android:testOnly="false"-->
+        android:testOnly="false"
+        -->
         <activity
             android:name=".ThanksActivity"
             android:configChanges="orientation|screenSize"
@@ -34,8 +35,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"
             android:configChanges="orientation|screenSize"
+            android:label="@string/title_activity_main"
             android:parentActivityName=".LoginActivity" />
         <activity
             android:name=".LoginActivity"
@@ -60,6 +61,16 @@
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
     </application>
 
 </manifest>
