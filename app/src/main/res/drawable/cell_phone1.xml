@@ -3,5 +3,5 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape= "rectangle"  >
     <!---->
-    <solid android:color="#CCCCCC" />
+    <solid android:color="?daycell_selected" />
 </shape>

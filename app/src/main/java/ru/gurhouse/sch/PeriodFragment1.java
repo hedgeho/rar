@@ -5,12 +5,14 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -31,6 +33,7 @@ import java.util.Locale;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.ScheduleFragment.syncing;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class PeriodFragment1 extends Fragment {
     ArrayList<TextView> txts;
@@ -155,7 +158,7 @@ public class PeriodFragment1 extends Fragment {
         for (int i = -1; i < periods[pernum].subjects.length; i++) {
             TextView txt1 = new TextView(getContext().getApplicationContext());
             TextView txt2 = new TextView(getContext().getApplicationContext());
-            txt1.setTextColor(Color.WHITE);
+            txt1.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
             lp.setMargins(0, 0, 40, 10);
             txt1.setLayoutParams(lp);
@@ -163,7 +166,7 @@ public class PeriodFragment1 extends Fragment {
             txt1.setTextSize(20);
             txt2.setTextSize(20);
             txt2.setLayoutParams(lp);
-            txt2.setTextColor(getResources().getColor(R.color.two));
+            txt2.setTextColor(getColorFromAttribute(R.attr.avg, getContext().getTheme()));
             if (i + 1 > 0) {
                 txt1.setText(periods[pernum].subjects[i].shortname);
                 if (periods[pernum].subjects[i].avg > 0) {
@@ -219,7 +222,7 @@ public class PeriodFragment1 extends Fragment {
     void nullshow() {
         TextView txtnull = view.findViewById(R.id.txtnull);
         txtnull.setTextSize(20);
-        txtnull.setTextColor(Color.LTGRAY);
+        txtnull.setTextColor(getColorFromAttribute(R.attr.second_font, getContext().getTheme()));
         txtnull.setText("Нет оценок за выбранный период");
         txtnull.setPadding(90, 0, 90, 0);
         view.findViewById(R.id.progress).setVisibility(View.INVISIBLE);
@@ -300,13 +303,22 @@ public class PeriodFragment1 extends Fragment {
 //        item.setIcon(R.drawable.results);
 //        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 5, 0, "Калькулятор");
-        item.setIcon(R.drawable.calculator);
+        Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.calculator);
+        Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme()));
+        item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         menu.add(0, 3, 1, "Настройки");
-        item.setIcon(R.drawable.settings);
+        unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.settings);
+        wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme()));
+        item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 4, 2, "Обновить");
-        item.setIcon(R.drawable.refresh);
+        unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.refresh);
+        wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme()));
+        item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }

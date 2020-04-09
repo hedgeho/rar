@@ -7,14 +7,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
-import android.content.res.Resources;
 import android.graphics.PorterDuff;
 import android.net.ConnectivityManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.ColorInt;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationManagerCompat;
@@ -23,7 +21,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -47,6 +44,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLException;
+
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -86,11 +85,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         NotificationManagerCompat.from(this).cancelAll();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            TypedValue typedValue = new TypedValue();
-            Resources.Theme theme = getTheme();
-            theme.resolveAttribute(R.attr.main, typedValue, true);
-            @ColorInt int color = typedValue.data;
-            getWindow().setNavigationBarColor(color);
+            getWindow().setNavigationBarColor(getColorFromAttribute(R.attr.main, getTheme()));
         }
         // to see that window with setting nickname in chat, add this
         //settings.edit().putString("knock_token", "").apply();
@@ -129,7 +124,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(!s.toString().replaceAll(" ", "").equals(""))
-                    et_login.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+                    et_login.getBackground().mutate().setColorFilter(getColorFromAttribute(R.attr.text_gray, getTheme()), PorterDuff.Mode.SRC_ATOP);
             }
 
             @Override
@@ -146,7 +141,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(!s.toString().replaceAll(" ", "").equals(""))
-                    et_password.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+                    et_password.getBackground().mutate().setColorFilter(getColorFromAttribute(R.attr.text_gray, getTheme()), PorterDuff.Mode.SRC_ATOP);
             }
 
             @Override
@@ -240,12 +235,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if(logi.replaceAll(" ", "").equals("")) {
             et_login.getBackground().mutate().setColorFilter(getResources().getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
         } else {
-            et_login.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+            et_login.getBackground().mutate().setColorFilter(getColorFromAttribute(R.attr.text_gray, getTheme()), PorterDuff.Mode.SRC_ATOP);
         }
         if(password.replaceAll(" ", "").equals("")) {
             et_password.getBackground().mutate().setColorFilter(getResources().getColor(android.R.color.holo_red_light), PorterDuff.Mode.SRC_ATOP);
         } else {
-            et_password.getBackground().mutate().setColorFilter(getResources().getColor(R.color.text_gray), PorterDuff.Mode.SRC_ATOP);
+            et_password.getBackground().mutate().setColorFilter(getColorFromAttribute(R.attr.text_gray, getTheme()), PorterDuff.Mode.SRC_ATOP);
         }
         if(logi.replaceAll(" ", "").equals("") || password.replaceAll(" ", "").equals("")) {
             return;

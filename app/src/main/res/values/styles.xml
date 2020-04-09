@@ -12,4 +12,20 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="AppTheme.EditTextTheme" parent="Widget.AppCompat.EditText">
+        <item name="android:textColor">?main_font</item>
+        <item name="android:textColorHint">?second_font</item>
+    </style>
+
+    <style name="MyLightTheme.ToolbarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:textColorPrimary">?third_font</item>
+        <item name="android:textColorSecondary">?third_font</item>
+    </style>
+
+    <style name="MyDarkTheme.ToolbarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:textColorPrimary">@color/colorPrimary</item>
+        <item name="android:textColorSecondary">@color/colorPrimary</item>
+
+    </style>
 </resources>

@@ -5,8 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
@@ -58,11 +56,7 @@ public class SettingsActivity extends AppCompatActivity {
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            TypedValue typedValue = new TypedValue();
-            Resources.Theme theme = getTheme();
-            theme.resolveAttribute(R.attr.main, typedValue, true);
-            @ColorInt int color = typedValue.data;
-            getWindow().setNavigationBarColor(color);
+            getWindow().setNavigationBarColor(getColorFromAttribute(R.attr.main, getTheme()));
         }
 
         et = findViewById(R.id.et_feedback);
@@ -103,11 +97,11 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(new Intent(getApplicationContext(), ThanksActivity.class));
         });
 
-        GradientDrawable drawable = new GradientDrawable();
-        drawable.setShape(GradientDrawable.RECTANGLE);
-        drawable.setCornerRadius(50);
-        drawable.setColor(Color.parseColor(pref.getString("backgroundColor", "#303030")));
-        drawable.setStroke(3, Color.WHITE);
+//        GradientDrawable drawable = new GradientDrawable();
+//        drawable.setShape(GradientDrawable.RECTANGLE);
+//        drawable.setCornerRadius(50);
+//        drawable.setColor(getColorFromAttribute(R.attr.main, getTheme()));
+//        drawable.setStroke(3, Color.WHITE);
 
 //        FrameLayout color = findViewById(R.id.color_background);
 //        EditText et = findViewById(R.id.et_backgroundColor);
@@ -253,6 +247,13 @@ public class SettingsActivity extends AppCompatActivity {
 //        if(setText)
 //            et.setText(s);
 //    }
+
+    public static int getColorFromAttribute(int attr, Resources.Theme theme) {
+        TypedValue typedValue = new TypedValue();
+        theme.resolveAttribute(attr, typedValue, true);
+        @ColorInt int color = typedValue.data;
+        return color;
+    }
 
     public static void restartActivity(Activity activity, boolean anim) {
         activity.finish();

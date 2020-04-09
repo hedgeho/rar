@@ -1,7 +1,6 @@
 package ru.gurhouse.sch;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -26,6 +25,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 
 public class DayFragment extends Fragment {
@@ -55,9 +55,9 @@ public class DayFragment extends Fragment {
             String s1 = "Домашнее задание:" + "\n" + homework;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setTextIsSelectable(true);
             tv1.setAutoLinkMask(Linkify.ALL);
@@ -69,7 +69,7 @@ public class DayFragment extends Fragment {
             tv1 = new TextView(getContext());
             Spannable sp = new SpannableString("Файлы:");
             sp.setSpan(new RelativeSizeSpan(1.7f), 0, 5, Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            sp.setSpan(new ForegroundColorSpan(Color.WHITE), 0, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            sp.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(sp);
             tv1.setPadding(50, 50, 50, 10);
             linearLayout.addView(tv1);
@@ -78,7 +78,7 @@ public class DayFragment extends Fragment {
             final PeriodFragment.File file = files.get(i);
             tv1 = new TextView(getContext());
             tv1.setText(file.name);
-            tv1.setTextColor(getResources().getColor(R.color.two));
+            tv1.setTextColor(getColorFromAttribute(R.attr.file, getContext().getTheme()));
             tv1.setOnClickListener(v -> {
                 try {
                     String url = "https://app.eschool.center/ec-server/files/" + file.id;
@@ -107,7 +107,7 @@ public class DayFragment extends Fragment {
                 }
                 Spannable spans2 = new SpannableString(s2);
                 spans2.setSpan(new RelativeSizeSpan(1.7f), 0, s2.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans2.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s2.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans2.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s2.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv2.setText(spans2);
                 tv2.setPadding(50, 50, 50, 10);
                 linearLayout.addView(tv2);
@@ -117,9 +117,9 @@ public class DayFragment extends Fragment {
                         String s1 = marks.get(i).value + "   " + marks.get(i).coefficient;
                         Spannable spans1 = new SpannableString(s1);
                         spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                        spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("   "), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                        spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("   "), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), s1.indexOf("   "), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         tv1.setText(spans1);
                         tv1.setGravity(Gravity.CENTER);
                         tv1.setPadding(80, 10, 80, 10);
@@ -160,9 +160,9 @@ public class DayFragment extends Fragment {
             String s1 = "Тема:" + "\n" + topic;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 50);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -208,7 +208,7 @@ public class DayFragment extends Fragment {
             if(flag) {
                 spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                 spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv1.setText(spans1);
                 tv1.setPadding(50, 50, 50, 50);
                 tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -225,7 +225,7 @@ public class DayFragment extends Fragment {
             tv1.setTextIsSelectable(true);
             String s = "Видеоконференция:\n" + meetingInvite;
             Spannable spannable = new SpannableString(s);
-            spannable.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spannable.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spannable.setSpan(new RelativeSizeSpan(1.7f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             spannable.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
             tv1.setText(spannable);
@@ -238,7 +238,7 @@ public class DayFragment extends Fragment {
             String s1 = teachername;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.2f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setGravity(Gravity.CENTER);
             tv1.setPadding(50, 50, 50, 50);

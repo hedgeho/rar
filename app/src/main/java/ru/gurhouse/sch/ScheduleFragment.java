@@ -5,15 +5,17 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -49,6 +51,7 @@ import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.MainActivity.TYPE_SEM;
 import static ru.gurhouse.sch.PeriodFragment.coefs;
 import static ru.gurhouse.sch.PeriodFragment.colors;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDateSetListener {
 
@@ -258,14 +261,14 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             onPageChangeListener.onPageSelected(pager.getCurrentItem());
 
 //            for (int i = 0; i < 7; i++) {
-//                tv[i].setTextColor(Color.WHITE);
+//                tv[i].setTextColor(getColorFromAttribute(R.attr.white, getContext().getTheme()));
 //
 //                String s = days1[i] + "\n" + pageFragments.get(week[i] - 1).c.get(Calendar.DAY_OF_MONTH);
 //                Spannable spans = new SpannableString(s);
 //                spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-//                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.white, getContext().getTheme())), 0, s.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 //                spans.setSpan(new RelativeSizeSpan(1.2f), s.indexOf("\n"), s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-//                spans.setSpan(new ForegroundColorSpan(Color.WHITE), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+//                spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.white, getContext().getTheme())), s.indexOf("\n"), s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 //                tv[i].setText(spans);
 //
 //            }
@@ -329,13 +332,13 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             ForegroundColorSpan color;
 
             if(i == selected){
-                tv[i].setBackground(getResources().getDrawable(R.drawable.cell_phone1));
-                tv[i].setTextColor(Color.parseColor("#38423B"));
-                color = new ForegroundColorSpan(Color.parseColor("#38423B"));
+                tv[i].setBackground(getResources().getDrawable(R.drawable.cell_phone1, getContext().getTheme()));
+                tv[i].setTextColor(getColorFromAttribute(R.attr.day_cell_text_selected, getContext().getTheme()));
+                color = new ForegroundColorSpan(getColorFromAttribute(R.attr.day_cell_text_selected, getContext().getTheme()));
             } else {
                 tv[i].setBackground(null);
-                tv[i].setTextColor(Color.WHITE);
-                color = new ForegroundColorSpan(Color.WHITE);
+                tv[i].setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
+                color = new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
             }
 
             String s = days1[i] + "\n" + pageFragments.get(week[i] - 1).c.get(Calendar.DAY_OF_MONTH);
@@ -855,6 +858,8 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                     for (int i = 0; i < periods[pernum].days.length; i++) {
                         for (int j = 0; j < periods[pernum].cells.length; j++) {
                             cell = periods[pernum].cells[j];
+                            if(cell.date == null)
+                                continue;
                             s1 = cell.date;
                             PageFragment.Attends at = cell.attends;
                             format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);
@@ -921,11 +926,11 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                             lin.setOrientation(LinearLayout.VERTICAL);
                             lin.setGravity(Gravity.CENTER);
                             if(i == 0) {
-                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone6));
+                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone6, getContext().getTheme()));
                             } else if (i + 1 != periods[pernum].days.length) {
-                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone4));
+                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone4, getContext().getTheme()));
                             } else {
-                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone5));
+                                lin.setBackground(getResources().getDrawable(R.drawable.cell_phone5, getContext().getTheme()));
                             }
                             lin.setPadding(30, 0, 30, 0);
 
@@ -948,7 +953,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                 loge(e);
                             }
                             txt.setText(s);
-                            txt.setTextColor(Color.LTGRAY);
+                            txt.setTextColor(getColorFromAttribute(R.attr.second_font, getContext().getTheme()));
                             lin2.addView(txt);
                             lin.addView(lin2);
                             for (int j = 0; j < periods[pernum].subjects.length; j++) {
@@ -969,7 +974,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                                 color_index = Arrays.binarySearch(coefs, d);
                                                 if(color_index < 0)
                                                     color_index = -color_index-1;
-                                                txt1.setBackgroundColor(getResources().getColor(colors[color_index]));
+                                                txt1.setBackgroundColor(colors[color_index]);
                                                 txt1.setTextSize(20);
                                                 b += System.currentTimeMillis() - t1;
                                                 t1 = System.currentTimeMillis();
@@ -1020,7 +1025,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                     lp3.setMargins(0, 0, 0, 10);
                                     txt1.setLayoutParams(lp3);
                                     txt1.setText("—");
-                                    txt1.setTextColor(Color.LTGRAY);
+                                    txt1.setTextColor(getColorFromAttribute(R.attr.second_font, getContext().getTheme()));
                                     lin1.addView(txt1);
                                     lin.addView(lin1);
                                 }
@@ -1097,14 +1102,25 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         menu.clear();
+        int color = getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme());
+
         MenuItem item = menu.add(0, 2, 0, "Календарь");
-        item.setIcon(R.drawable.calendar);
+        Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.calendar);
+        Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, color);
+        item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 3, 0, "Настройки");
-        item.setIcon(R.drawable.settings);
+        unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.settings);
+        wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, color);
+        item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
         item = menu.add(0, 4, 2, "Обновить");
-        item.setIcon(R.drawable.refresh);
+        unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.refresh);
+        wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, color);
+        item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -1216,7 +1232,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
         public Kletka(Context context) {
             super(context);
             this.setGravity(Gravity.CENTER);
-            this.setTextColor(Color.WHITE);
+            this.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
             this.setPadding(15, 0, 15, 0);
         }
     }

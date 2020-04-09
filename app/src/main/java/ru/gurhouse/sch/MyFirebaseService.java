@@ -18,7 +18,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static ru.gurhouse.sch.LoginActivity.log;
@@ -193,7 +192,7 @@ public class MyFirebaseService extends FirebaseMessagingService {
 
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(this, "1");
                     builder.setContentTitle(sender_fio)
-                            .setContentText(text)
+                            .setContentText(text) // todo html
                             .setSmallIcon(R.drawable.alternative)
                             .setContentIntent(resultPendingIntent)
                             .setWhen(time)

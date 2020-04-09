@@ -4,5 +4,5 @@
     android:useLevel="false">
     <!--<corners-->
         <!--android:radius="50dp"/>-->
-    <solid android:color="#426B96"/>
+    <solid android:color="?attr/newmsg_badge"/>
 </shape>

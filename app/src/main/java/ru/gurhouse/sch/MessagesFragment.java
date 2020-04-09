@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -13,7 +14,9 @@ import android.support.design.internal.BottomNavigationMenuView;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -51,6 +54,7 @@ import java.util.Set;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.LoginActivity.log;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class MessagesFragment extends Fragment {
 
@@ -447,7 +451,8 @@ public class MessagesFragment extends Fragment {
                         s = (start == 0?"":"...") + mess.subSequence(start, end+1).toString() + (end == mess.toString().length()-1?"":"...");
                         spannable = new SpannableString(s);
                         if(s.toLowerCase().contains(query.toLowerCase()))
-                            spannable.setSpan(new BackgroundColorSpan(getResources().getColor(R.color.colorPrimaryDark)), s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            spannable.setSpan(new BackgroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())),
+                                    s.toLowerCase().indexOf(query.toLowerCase()), s.toLowerCase().indexOf(query.toLowerCase()) + query.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                         tv.setText(spannable);
 
                         tv = item.findViewById(R.id.tv_users);
@@ -757,14 +762,24 @@ public class MessagesFragment extends Fragment {
             else
                 muted.setVisibility(View.INVISIBLE);
 
+            Drawable wrappedDrawable, unwrappedDrawable;
             if (f_users.get(i) == 0 || f_users.get(i) == 2) {
-                img.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
+                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.dialog);
+                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                img.setImageDrawable(wrappedDrawable);
                 tv.setText("");
             } else if (f_users.get(i) == 1) {
-                img.setImageDrawable(getResources().getDrawable(R.drawable.monolog));
+                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.monolog);
+                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                img.setImageDrawable(wrappedDrawable);
                 tv.setText("");
             } else {
-                img.setImageDrawable(getResources().getDrawable(R.drawable.group));
+                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.group);
+                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                img.setImageDrawable(wrappedDrawable);
                 tv.setText(f_users.get(i) + "");
             }
             final int j = i;
@@ -862,14 +877,24 @@ public class MessagesFragment extends Fragment {
                                                 muted.setVisibility(View.INVISIBLE);
 
                                             final int u = users[i];
+                                            Drawable wrappedDrawable, unwrappedDrawable;
                                             if (users[i] == 0 || users[i] == 2) {
-                                                img1.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
+                                                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.dialog);
+                                                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                                                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                                                img1.setImageDrawable(wrappedDrawable);
                                                 tv1.setText("");
                                             } else if (users[i] == 1) {
-                                                img1.setImageDrawable(getResources().getDrawable(R.drawable.monolog));
+                                                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.monolog);
+                                                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                                                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                                                img1.setImageDrawable(wrappedDrawable);
                                                 tv1.setText("");
                                             } else {
-                                                img1.setImageDrawable(getResources().getDrawable(R.drawable.group));
+                                                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.group);
+                                                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                                                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                                                img1.setImageDrawable(wrappedDrawable);
                                                 tv1.setText(users[i] + "");
                                             }
                                             if(f_count + 25 - (l - i) >= f_threadIds.size())

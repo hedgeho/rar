@@ -31,7 +31,7 @@
                 android:layout_marginRight="16dp"
                 android:gravity="center_horizontal"
                 android:text="TextView"
-                android:textColor="#FFFFFF"
+                android:textColor="?attr/main_font"
                 android:textSize="30sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

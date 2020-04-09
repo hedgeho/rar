@@ -5,7 +5,7 @@
     android:id="@+id/gr"
     android:layout_width="match_parent"
     android:layout_height="2000px"
-    android:background="@drawable/gradient_list"
+    android:background="?main"
     tools:context=".DayFragment">
 
     <android.support.v4.widget.NestedScrollView

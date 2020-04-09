@@ -9,12 +9,12 @@
     tools:context=".SettingsActivity">
 
     <android.support.v7.widget.Toolbar
+        android:theme="?toolbar_style"
         android:id="@+id/toolbar2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
+        android:background="?toolbar_background"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_scrollFlags="enterAlways" />
 
@@ -26,7 +26,7 @@
         app:layout_constraintTop_toBottomOf="@+id/toolbar2"
         app:layout_constraintVertical_bias="0.0"
         tools:layout_editor_absoluteX="-27dp"
-        tools:scrollY="1000px">
+        tools:scrollY="000px">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -174,6 +174,7 @@
                 android:layout_marginStart="32dp"
                 android:layout_marginLeft="32dp"
                 android:text="Автоматический вход"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintBottom_toBottomOf="@+id/switch_auto"
                 app:layout_constraintStart_toStartOf="parent"
@@ -185,9 +186,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginLeft="16dp"
                 android:layout_marginTop="32dp"
                 android:text="Написать разработчикам"
+                android:textColor="?second_font"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView12" />
@@ -197,9 +198,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginLeft="16dp"
                 android:layout_marginTop="32dp"
                 android:text="Общий чат"
+                android:textColor="?second_font"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/rg_theme" />
@@ -209,9 +210,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginLeft="32dp"
                 android:layout_marginTop="24dp"
                 android:text="Альтернативный вид периода"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView" />
@@ -221,11 +222,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginLeft="24dp"
                 android:layout_marginTop="8dp"
                 android:maxEms="15"
                 android:maxLines="3"
                 android:text="Все оценки строкой, дата не отображается"
+                android:textColor="?second_font"
                 app:layout_constraintStart_toStartOf="@+id/textView7"
                 app:layout_constraintTop_toBottomOf="@+id/textView7" />
 
@@ -234,9 +235,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginLeft="32dp"
                 android:layout_marginTop="8dp"
                 android:text="Никнейм"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView4" />
@@ -246,10 +247,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginLeft="32dp"
                 android:layout_marginTop="16dp"
                 android:paddingBottom="8dp"
                 android:text="Показывать чат"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/et_nickname" />
@@ -259,9 +260,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginLeft="32dp"
                 android:layout_marginTop="28dp"
                 android:text="Выход из аккаунта"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView17" />
@@ -283,11 +284,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginLeft="24dp"
                 android:layout_marginTop="8dp"
                 android:maxEms="15"
                 android:maxLines="3"
                 android:text="Показывать следующий день в дневнике после 16:00"
+                android:textColor="?second_font"
                 app:layout_constraintStart_toStartOf="@+id/just"
                 app:layout_constraintTop_toBottomOf="@+id/just" />
 
@@ -296,7 +297,7 @@
                 android:layout_width="0dp"
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
-                android:background="#000000"
+                android:background="?thread_background"
                 app:layout_constraintBottom_toTopOf="@+id/textView18"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -306,7 +307,7 @@
                 android:layout_width="0dp"
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
-                android:background="#000000"
+                android:background="?thread_background"
                 app:layout_constraintBottom_toTopOf="@+id/textView2"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -316,9 +317,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginLeft="32dp"
                 android:layout_marginTop="28dp"
                 android:text="Закрепленный средний балл"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView8" />
@@ -328,11 +329,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginLeft="24dp"
                 android:layout_marginTop="8dp"
                 android:maxEms="15"
                 android:maxLines="3"
                 android:text="Средний балл не двигается при скролле в первой вкладке"
+                android:textColor="?second_font"
                 app:layout_constraintStart_toStartOf="@+id/textView15"
                 app:layout_constraintTop_toBottomOf="@+id/textView15" />
 
@@ -341,9 +342,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="32dp"
-                android:layout_marginLeft="32dp"
                 android:layout_marginTop="28dp"
                 android:text="Показывать ОДОД"
+                android:textColor="?second_font"
                 android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textView14" />
@@ -353,11 +354,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="24dp"
-                android:layout_marginLeft="24dp"
                 android:layout_marginTop="8dp"
                 android:maxEms="15"
                 android:maxLines="3"
                 android:text="Отображать кружки"
+                android:textColor="?second_font"
                 app:layout_constraintStart_toStartOf="@+id/textView13"
                 app:layout_constraintTop_toBottomOf="@+id/textView13" />
 
@@ -366,7 +367,7 @@
                 android:layout_width="0dp"
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
-                android:background="#000000"
+                android:background="?thread_background"
                 app:layout_constraintBottom_toTopOf="@+id/textView4"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -376,9 +377,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginLeft="16dp"
                 android:layout_marginTop="32dp"
                 android:text="Оформление"
+                android:textColor="?second_font"
                 android:textSize="24sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btn_fbsend" />
@@ -397,13 +398,15 @@
                     android:id="@+id/rb_dark"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Темная тема" />
+                    android:text="Темная тема"
+                    android:textColor="?second_font" />
 
                 <RadioButton
                     android:id="@+id/rb_light"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Светлая тема" />
+                    android:text="Светлая тема"
+                    android:textColor="?second_font" />
             </RadioGroup>
 
 

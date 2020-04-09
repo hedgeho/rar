@@ -15,6 +15,7 @@
         android:layout_gravity="bottom"
         android:paddingRight="10dp"
         android:text="11:40"
+        android:textColor="?attr/main_font"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/tv_text"
         app:layout_constraintRight_toLeftOf="@+id/tv_text" />
@@ -41,7 +42,7 @@
             android:inputType="textMultiLine"
             android:maxWidth="300dp"
             android:text="hello, hello!"
-            android:textColor="#ffffff"
+            android:textColor="?attr/main_font"
             android:textSize="16sp">
 
         </ru.gurhouse.sch.ChatBubble>
@@ -50,7 +51,7 @@
             android:id="@+id/attach"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"></LinearLayout>
+            android:orientation="vertical" />
 
     </LinearLayout>
 

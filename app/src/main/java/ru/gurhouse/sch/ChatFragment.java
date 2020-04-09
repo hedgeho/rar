@@ -17,7 +17,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.http.AndroidHttpClient;
@@ -31,8 +30,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.FileProvider;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.LayoutInflater;
@@ -83,6 +84,7 @@ import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.LoginActivity.login;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class ChatFragment extends Fragment {
 
@@ -226,7 +228,10 @@ public class ChatFragment extends Fragment {
         if(getContext() != null) {
             menu.clear();
             MenuItem ref = menu.add(0, 3, 0, "Обновить");
-            ref.setIcon(getResources().getDrawable(R.drawable.refresh));
+            Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.refresh);
+            Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+            DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme()));
+            ref.setIcon(wrappedDrawable);
             ref.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
             menu.add(0, 1, 0,
                     getContext().getSharedPreferences("pref", 0).getString("muted", "[]")
@@ -433,7 +438,7 @@ public class ChatFragment extends Fragment {
                     size /= 1024;
                 }
                 tv_attach.setText(String.format(Locale.getDefault(), attach.get(i2).name + " (%.2f " + s + ")", size));
-                tv_attach.setTextColor(getResources().getColor(R.color.two));
+                tv_attach.setTextColor(getColorFromAttribute(R.attr.file, getContext().getTheme()));
                 tv_attach.setMaxWidth(tv.getMaxWidth());
                 tv_attach.setOnClickListener(v -> {
                     String url = "https://app.eschool.center/ec-server/files/" + attach.get(i2).fileId;
@@ -497,9 +502,9 @@ public class ChatFragment extends Fragment {
                         LinearLayout l = scroll.findViewById(R.id.main_container);
                         if (l.findViewWithTag("result") != null && scrolled)
                             if (l.findViewWithTag("result").getTag(R.id.TAG_POSITION).equals("left"))
-                                l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_left));
+                                l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_left, getContext().getTheme()));
                             else
-                                l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border));
+                                l.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border, getContext().getTheme()));
                     }
                     if (scroll.getScrollY() == 0 && !uploading && last_msg != 0) {
                         log("top!!");
@@ -620,6 +625,7 @@ public class ChatFragment extends Fragment {
                                             item = inflater.inflate(R.layout.date_divider, container, false);
                                             tv = item.findViewById(R.id.tv_date);
                                             tv.setText(getDate(cal));
+                                            tv.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
                                             container.addView(item);
                                         }
                                     }
@@ -716,12 +722,12 @@ public class ChatFragment extends Fragment {
                                 item = inflater.inflate(R.layout.date_divider, container, false);
                                 tv = item.findViewById(R.id.tv_date);
                                 tv.setText(getDate(cal));
+                                tv.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
                                 container.addView(item);
                             }
                         }
                         newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender,msg.files, true);
                     }
-                    view.findViewById(R.id.scroll_container).setBackgroundColor(getResources().getColor(R.color.six));
 
                     if(scroll == null)
                         scroll = view.findViewById(R.id.scroll);
@@ -733,7 +739,7 @@ public class ChatFragment extends Fragment {
                             scroll.fullScroll(ScrollView.FOCUS_DOWN);
                         else {
                             scroll.scrollTo(0, container.findViewWithTag("result").getTop());
-                            container.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_highlited));
+                            container.findViewWithTag("result").setBackground(getResources().getDrawable(R.drawable.chat_border_highlited, getContext().getTheme()));
                             //scrolled = true;
                         }
                     });
@@ -894,14 +900,17 @@ public class ChatFragment extends Fragment {
             }
             attach.add(f);
             attachedScroll.setVisibility(View.VISIBLE);
-            View view;
-            Drawable delete = getResources().getDrawable(R.drawable.delete);
+            View view = new View(getContext());
+            Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.delete);
+            Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+            DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+            Drawable delete = wrappedDrawable;
             if (getMimeType(f.getPath()) != null && getMimeType(f.getPath()).contains("image")) {
-
 
                 Bitmap bitmap = Bitmap.createBitmap(250,250, Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bitmap);
-                canvas.drawColor(Color.parseColor("#797979"));
+
+                canvas.drawColor(getColorFromAttribute(R.attr.image_bubble, getContext().getTheme()));
                 canvas.drawBitmap(
                         Bitmap.createScaledBitmap(
                                 BitmapFactory.decodeStream(new FileInputStream(f)), 250, 250, false
@@ -909,8 +918,6 @@ public class ChatFragment extends Fragment {
 
                 RoundedBitmapDrawable roundedBitmap = RoundedBitmapDrawableFactory.create(getResources(),bitmap);
                 roundedBitmap.setCornerRadius(30);
-
-
 
                 ImageView view2 = new ImageView(context);
                 view2.setImageResource(R.drawable.delete);
@@ -925,7 +932,7 @@ public class ChatFragment extends Fragment {
 
                 view = view2;
 
-            } else {
+            }/* else {
                 TextView view2 = new TextView(context);
                 view2.setText(f.getName());
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(250, 250);
@@ -936,10 +943,10 @@ public class ChatFragment extends Fragment {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     view2.setForeground(delete);
                     view2.setBackgroundResource(R.drawable.image_bubble);
-                }else{
+                } else {
                     Bitmap bitmap = Bitmap.createBitmap(250,250, Bitmap.Config.ARGB_8888);
                     Canvas canvas = new Canvas(bitmap);
-                    canvas.drawColor(Color.parseColor("#797979"));
+                    canvas.drawColor(getColorFromAttribute(R.attr.image_bubble, getContext().getTheme()));
                     canvas.drawBitmap(
                             Bitmap.createScaledBitmap(
                                 BitmapFactory.decodeResource(
@@ -954,7 +961,7 @@ public class ChatFragment extends Fragment {
                     view2.setBackground(roundedBitmap);
                 }
                 view = view2;
-            }
+            }*/
             view.setOnClickListener((v) -> {
                 detach(f, v);
             });

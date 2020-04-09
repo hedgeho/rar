@@ -1,9 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="MyLightTheme" parent="Theme.AppCompat.NoActionBar">
-        <item name="main">#BBBBBB</item>
-    </style>
-    <style name="MyDarkTheme" parent="MyLightTheme">
+    <style name="MyDarkTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="main">#303030</item>
+        <item name="toolbar_background">#1B1B1B</item>
+        <item name="toolbar_style">@style/MyDarkTheme.ToolbarOverlay</item> <!-- toolbar text color #E2E8DD -->
+        <item name="bottomnav_selected">#E2E8DD</item>
+        <item name="bottomnav_not_selected">#95A3A4</item>
+        <item name="day_cell_text_selected">#38423B</item>
+
+        <item name="main_font">#FFFFFF</item>
+        <item name="second_font">#CCCCCC</item>
+        <item name="third_font">#b3ffffff</item>
+        <item name="null_font">#FFFFFF</item>
+
+        <item name="avg">#B7D1DA</item>
+        <item name="file">#B7D1DA</item>
+        <item name="plus">#5C7C50</item>
+        <item name="mn">#996060</item>
+        <item name="icons">#E2E8DD</item>
+        <item name="toolbar_icons">#E2E8DD</item>
+        <item name="marks">#FFFFFF</item>
+        <item name="send_btn">#02A7FC</item>
+
+        <item name="coff1">#3D3D3D</item>
+        <item name="coff2">#587279</item>
+        <item name="coff3">#4C858F</item>
+        <item name="coff4">#2E85A2</item>
+        <item name="coff5">#2B759C</item>
+        <item name="coff6">#0A5574</item>
+        <item name="coff7">#003D5F</item>
+        <item name="coff8">#003644</item>
+
+        <item name="tv_no_lessons">#888888</item>
+
+        <item name="table_stroke">#979797</item>
+        <item name="daycell_selected">#CCCCCC</item>
+        <item name="message_background">#426B96</item>
+        <item name="message_left_background">#4CFFFFFF</item>
+        <item name="thread_background">#3D3D3D</item>
+        <item name="image_bubble">#797979</item>
+        <item name="new_background">#ffffff</item>
+        <item name="newmsg_badge">#426B96</item>
+        <item name="settings_background">#000000</item>
+
+        <item name="bottom_panel">#797979</item>
+
+        <item name="editTextStyle">@style/AppTheme.EditTextTheme</item>
+    </style>
+    <style name="MyLightTheme" parent="MyDarkTheme">
+        <item name="main">#ffffff</item>
+        <item name="toolbar_background">#e71e62</item>
+        <item name="toolbar_style">@style/MyLightTheme.ToolbarOverlay</item> <!-- toolbar text color #ffffff -->
+        <item name="bottomnav_selected">#e71e62</item>
+        <item name="bottomnav_not_selected">#000000</item>
+        <item name="daycell_selected">#fce3e9</item>
+        <item name="day_cell_text_selected">#e71e62</item>
+
+        <item name="colorAccent">?null_font</item>
+        <item name="colorControlNormal">?second_font</item>
+
+        <item name="main_font">#000000</item>
+        <item name="second_font">#979797</item>
+        <item name="third_font">#ffffff</item>
+        <item name="null_font">#e71e62</item>
+
+        <item name="avg">#e71e62</item>
+        <item name="file">#e71e62</item>
+        <item name="plus">#5C7C50</item>
+        <item name="mn">#996060</item>
+        <item name="toolbar_icons">#ffffff</item>
+        <item name="icons">#e71e62</item>
+        <item name="marks">#e71e62</item>
+        <item name="send_btn">#e71e62</item>
+
+        <item name="coff1">#3D3D3D</item>
+        <item name="coff2">#587279</item>
+        <item name="coff3">#4C858F</item>
+        <item name="coff4">#2E85A2</item>
+        <item name="coff5">#2B759C</item>
+        <item name="coff6">#0A5574</item>
+        <item name="coff7">#003D5F</item>
+        <item name="coff8">#003644</item>
+
+        <item name="tv_no_lessons">#000000</item>
+
+        <item name="table_stroke">#979797</item>
+
+        <item name="message_background">#fae3e9</item>
+        <item name="message_left_background">#e7ebee</item>
+        <item name="thread_background">#e7ebee</item>
+        <item name="image_bubble">#797979</item>
+        <item name="new_background">#e71e62</item>
+        <item name="newmsg_badge">#e71e62</item>
+        <item name="settings_background">?thread_background</item>
+
+        <item name="bottom_panel">#e7ebee</item>
     </style>
 </resources>

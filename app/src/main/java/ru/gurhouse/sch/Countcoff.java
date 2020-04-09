@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.Fragment;
@@ -51,6 +50,7 @@ import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.MainActivity.TYPE_SEM;
 import static ru.gurhouse.sch.PeriodFragment.coefs;
 import static ru.gurhouse.sch.PeriodFragment.colors;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class Countcoff extends Fragment {
 
@@ -183,7 +183,7 @@ public class Countcoff extends Fragment {
         String s = String.valueOf(avg);
         Spannable spans = new SpannableString(s);
         spans.setSpan(new RelativeSizeSpan(2f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-        spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         txt1.setText(s);
         img = v.findViewById(R.id.imageView);
         img.setOnClickListener(v1 -> {
@@ -243,7 +243,7 @@ public class Countcoff extends Fragment {
             btn3.setOnClickListener(v112 -> {
                 Spannable spans1 = new SpannableString(newMark[0]);
                 spans1.setSpan(new RelativeSizeSpan(1.7f), 0, newMark[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 PeriodFragment.Cell cell = new PeriodFragment.Cell();
                 cell.markvalue = newMark[0];
                 cell.mktWt = f[0];
@@ -333,7 +333,7 @@ public class Countcoff extends Fragment {
             tv1.setPadding(15, 0, 15, 0);
             Spannable spans1 = new SpannableString(s1[0]);
             spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             final int finalI = i;
             final int finalI1 = i;
@@ -406,7 +406,7 @@ public class Countcoff extends Fragment {
                 btn3.setOnClickListener(v13 -> {
                     Spannable spans11 = new SpannableString(newMark[0]);
                     spans11.setSpan(new RelativeSizeSpan(1.7f), 0, newMark[0].length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                    spans11.setSpan(new ForegroundColorSpan(Color.WHITE), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    spans11.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, newMark[0].length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     tv1.setText(spans11);
                     d[0] = f[0];
                     cells.get(finalI1).markvalue = newMark[0];
@@ -464,10 +464,10 @@ public class Countcoff extends Fragment {
         linearLayout.addView(txt1);
         if (newAvg > avg) {
             txt.setText("+" + txt.getText());
-            txt.setTextColor(getResources().getColor(R.color.plus));
+            txt.setTextColor(getColorFromAttribute(R.attr.plus, getContext().getTheme()));
             linearLayout.addView(txt);
         } else if (newAvg < avg) {
-            txt.setTextColor(getResources().getColor(R.color.mn));
+            txt.setTextColor(getColorFromAttribute(R.attr.mn, getContext().getTheme()));
             linearLayout.addView(txt);
         }
         if (newAvg != avg)

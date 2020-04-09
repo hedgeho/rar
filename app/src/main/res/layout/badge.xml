@@ -9,7 +9,7 @@
     android:gravity="center"
     android:padding="5dp"
     android:text="1"
-    android:textColor="#FFFFFF"
+    android:textColor="?attr/main_font"
     android:textSize="11sp"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:visibility="gone"/>

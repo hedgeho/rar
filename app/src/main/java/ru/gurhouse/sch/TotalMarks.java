@@ -22,6 +22,7 @@ import java.util.Collections;
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class TotalMarks extends Fragment {
 
@@ -54,6 +55,7 @@ public class TotalMarks extends Fragment {
     void draw() {
         if(subjectsList == null || periodsList == null)
             getActivity().onBackPressed();
+        log("total marks:" + subjectsList.size() + " x " + periodsList.size());
         TableRow row = new TableRow(getContext());
         TextView tv = new TextView(getContext());
         row.addView(tv);
@@ -61,6 +63,7 @@ public class TotalMarks extends Fragment {
             tv = new VerticalTextView(getContext());
             tv.setText(periodsList.get(i).name);
             tv.setPadding(8, 8, 8, 8);
+            tv.setTextColor(getColorFromAttribute(R.attr.main_font, getActivity().getTheme()));
             row.addView(tv);
         }
         row.setPadding(0, 8, 0, 8);
@@ -69,6 +72,7 @@ public class TotalMarks extends Fragment {
             row = new TableRow(getContext());
             tv = new TextView(getContext());
             tv.setText(subjectsList.get(i).name);
+            tv.setTextColor(getColorFromAttribute(R.attr.main_font, getActivity().getTheme()));
             row.addView(tv);
             for (int j = 0; j < periodsList.size(); j++) {
                 tv = new TextView(getContext());
@@ -76,6 +80,7 @@ public class TotalMarks extends Fragment {
                     tv.setText("-");
                 else
                     tv.setText(subjectsList.get(i).marks[j] + "");
+                tv.setTextColor(getColorFromAttribute(R.attr.main_font, getActivity().getTheme()));
                 tv.setPadding(32, 8, 32, 8);
                 row.addView(tv);
             }

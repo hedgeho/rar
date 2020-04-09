@@ -44,6 +44,7 @@ import javax.net.ssl.SSLException;
 
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class KnockFragment extends Fragment {
 
@@ -394,7 +395,7 @@ public class KnockFragment extends Fragment {
                             String[] spl = object.getString("text").split("/");
                             final String name = spl[spl.length - 1];
                             tv.setText(name);
-                            tv.setTextColor(getResources().getColor(R.color.two));
+                            tv.setTextColor(getColorFromAttribute(R.attr.file, getContext().getTheme()));
                             final String link = object.getString("text");
                             tv.setOnClickListener(v -> ((MainActivity) getContext()).saveFile(link, name, true));
                             ((ViewGroup) item.findViewById(R.id.attach)).addView(tv);

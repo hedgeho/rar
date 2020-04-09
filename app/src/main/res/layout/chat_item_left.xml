@@ -23,6 +23,7 @@
             android:layout_marginLeft="8dp"
             android:layout_marginTop="4dp"
             android:textSize="12sp"
+            android:textColor="?attr/main_font"
             android:visibility="visible"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -41,7 +42,6 @@
 
             <ru.gurhouse.sch.ChatBubble
                 android:id="@+id/tv_text"
-
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:autoLink="all"
@@ -49,7 +49,7 @@
                 android:inputType="textMultiLine"
                 android:maxWidth="300dp"
                 android:text="hello, hello!"
-                android:textColor="#ffffff"
+                android:textColor="?attr/main_font"
                 android:textSize="16sp">
 
             </ru.gurhouse.sch.ChatBubble>
@@ -58,7 +58,7 @@
                 android:id="@+id/attach"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"></LinearLayout>
+                android:orientation="vertical" />
 
         </LinearLayout>
     </LinearLayout>
@@ -70,6 +70,7 @@
         android:layout_gravity="bottom"
         android:text="11:40"
         android:textSize="12sp"
+        android:textColor="?attr/main_font"
         app:layout_constraintBottom_toBottomOf="@+id/tv_text"
         app:layout_constraintRight_toLeftOf="@+id/tv_text" />
 

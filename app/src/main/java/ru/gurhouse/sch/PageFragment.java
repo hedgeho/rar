@@ -2,12 +2,16 @@ package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.content.res.AppCompatResources;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -24,12 +28,11 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
-import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class PageFragment extends Fragment {
 
@@ -85,7 +88,7 @@ public class PageFragment extends Fragment {
             tv3.setGravity(Gravity.CENTER);
 
             tv1.setId(i);
-            tv1.setTextColor(Color.WHITE);
+            tv1.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
             tv21.setId(i);
             tv22.setId(i);
             tv3.setId(i);
@@ -116,21 +119,21 @@ public class PageFragment extends Fragment {
             }
 
             if (i == day.lessons.size() - 1) {
-                tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
-                tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
-                linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
+                tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone2, getContext().getTheme()));
+                tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2, getContext().getTheme()));
+                linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone2, getContext().getTheme()));
             } else {
-                tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-                linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone));
-                tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2));
-                tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone3));
+                tv1.setBackground(getResources().getDrawable(R.drawable.cell_phone, getContext().getTheme()));
+                linearLayout2.setBackground(getResources().getDrawable(R.drawable.cell_phone, getContext().getTheme()));
+                tv21.setBackground(getResources().getDrawable(R.drawable.cell_phone2, getContext().getTheme()));
+                tv3.setBackground(getResources().getDrawable(R.drawable.cell_phone3, getContext().getTheme()));
             }
             tv1.setText(String.valueOf(lesson.numInDay));
             try {
                 String s = lesson.name;
                 Spannable spans = new SpannableString(s);
                 spans.setSpan(new RelativeSizeSpan(1.5f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv21.setText(spans);
             } catch (Exception e) {
                 loge(e);
@@ -139,39 +142,39 @@ public class PageFragment extends Fragment {
                 switch (lesson.attends.id) {
                     case 1:
                         if (i == day.lessons.size() - 1)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellsick1));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellsick1, getContext().getTheme()));
                         else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellsick0));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellsick0, getContext().getTheme()));
                         break;
                     case 2:
                         if (i == day.lessons.size() - 1)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.celllate1));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.celllate1, getContext().getTheme()));
                         else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.celllate0));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.celllate0, getContext().getTheme()));
                         break;
                     case 3:
                         if (i == day.lessons.size() - 1)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellrel1));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellrel1, getContext().getTheme()));
                         else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellrel0));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellrel0, getContext().getTheme()));
                         break;
                     case 4:
                         if (i == day.lessons.size() - 1)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellab1));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellab1, getContext().getTheme()));
                         else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellab0));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellab0, getContext().getTheme()));
                         break;
                     case 6:
                         if (i == day.lessons.size() - 1)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun1));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun1, getContext().getTheme()));
                         else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun0));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellun0, getContext().getTheme()));
                         break;
                     case 8:
                         if (i == day.lessons.size() - 1)
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellall1));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellall1, getContext().getTheme()));
                         else
-                            tv1.setBackground(getResources().getDrawable(R.drawable.cellall0));
+                            tv1.setBackground(getResources().getDrawable(R.drawable.cellall0, getContext().getTheme()));
                         break;
                 }
             }
@@ -180,7 +183,7 @@ public class PageFragment extends Fragment {
                 Spannable spans = new SpannableString(s);
                 if(s.contains("\n"))
                     spans.setSpan(new RelativeSizeSpan(1f), 0, s.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv22.setText(spans);
             } catch (Exception e) {
                 loge(e);
@@ -220,9 +223,9 @@ public class PageFragment extends Fragment {
                 }
                 Spannable spans1 = new SpannableString(s1.toString());
                 spans1.setSpan(new RelativeSizeSpan(1.4f), 0, s1.indexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.marks, getContext().getTheme())), 0, s1.indexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 spans1.setSpan(new RelativeSizeSpan(1.1f), s1.indexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), s1.indexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 tv3.setText(spans1);
             } catch (Exception ignored) {
             }
@@ -235,14 +238,21 @@ public class PageFragment extends Fragment {
             linearLayout2.setOrientation(LinearLayout.HORIZONTAL);
             if(lesson.homeWork.files != null && !lesson.homeWork.files.isEmpty()){
                 ImageView image = new ImageView(getContext());
-                image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.attach), tv22.getLineHeight(), tv22.getLineHeight(), true));
+                Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.attach);
+                Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+                image.setImageBitmap(Bitmap.createScaledBitmap(drawableToBitmap(wrappedDrawable), tv22.getLineHeight(), tv22.getLineHeight(), true));
                 image.setPadding(30,0,0,10);
                 linearLayout2.addView(image);
             }
 
             if(lesson.meetingInvite != null && !lesson.meetingInvite.replaceAll(" ", "").equals("")) {
                 ImageView image = new ImageView(getContext());
-                image.setImageBitmap(Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.video), tv22.getLineHeight(), tv22.getLineHeight(), true));
+                Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.video);
+                Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+
+                image.setImageBitmap(Bitmap.createScaledBitmap(drawableToBitmap(wrappedDrawable), tv22.getLineHeight(), tv22.getLineHeight(), true));
                 image.setPadding(30,0,0,10);
                 linearLayout2.addView(image);
             }
@@ -263,11 +273,11 @@ public class PageFragment extends Fragment {
         String s1 = "ОДОД";
         Spannable spans1 = new SpannableString(s1);
         spans1.setSpan(new RelativeSizeSpan(1.4f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-        spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         txt.setText(spans1);
         txt.setGravity(Gravity.CENTER);
         txt.setPadding(150, 30, 150, 30);
-        txt.setBackground(getResources().getDrawable(R.drawable.cell_phone7));
+        txt.setBackground(getResources().getDrawable(R.drawable.cell_phone7, getContext().getTheme()));
         linearLayout.addView(txt);
         for (int i = 0; i < day.odods.size(); i++) {
             TextView txt1 = new TextView(getContext());
@@ -293,12 +303,12 @@ public class PageFragment extends Fragment {
             String s = cal0.get(Calendar.HOUR_OF_DAY) + ":" + smo + " - " + cal.get(Calendar.HOUR_OF_DAY) + ":" + sm;
             Spannable spans = new SpannableString(s);
             spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             txt2.setText(spans);
             s = day.odods.get(i).name;
             spans = new SpannableString(s);
             spans.setSpan(new RelativeSizeSpan(1.3f), 0, s.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             txt1.setText(spans);
             txt1.setMaxLines(1);
             int pd = 60;
@@ -358,7 +368,7 @@ public class PageFragment extends Fragment {
             tv1.setLayoutParams(new TableRow.LayoutParams(
                     TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.MATCH_PARENT));
             tbrow1.addView(tv1);
-            tv1.setTextColor(Color.GRAY);
+            tv1.setTextColor(getColorFromAttribute(R.attr.tv_no_lessons, getContext().getTheme()));
             tv1.setGravity(Gravity.CENTER);
             tv1.setTextSize(30);
             tableLayout.addView(tbrow1);
@@ -367,6 +377,35 @@ public class PageFragment extends Fragment {
                 && getContext().getSharedPreferences("pref", 0).getBoolean("odod", true)){
             CreateODOD();
         }
+    }
+
+    static int getDrawableFromAttribute(int attr, Resources.Theme theme) {
+        TypedArray a = theme.obtainStyledAttributes(R.style.AppTheme, new int[] {attr});
+        int attributeResourceId = a.getResourceId(0, 0);
+        a.recycle();
+        return attributeResourceId;
+    }
+
+    public static Bitmap drawableToBitmap(Drawable drawable) {
+        Bitmap bitmap;
+
+//        if (drawable instanceof BitmapDrawable) {
+//            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+//            if(bitmapDrawable.getBitmap() != null) {
+//                return bitmapDrawable.getBitmap();
+//            }
+//        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
     }
 
     public Context getContext() {

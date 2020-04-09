@@ -3,5 +3,5 @@
     android:shape="rectangle">
     <corners
         android:radius="15dp"/>
-    <solid android:color="@color/coff5"/>
+    <solid android:color="?chat_highlighted"/>
 </shape>

@@ -175,10 +175,9 @@
             android:id="@+id/sender"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:background="?bottom_panel"
             android:gravity="center_horizontal"
             android:orientation="horizontal"
-            app:layout_constraintHeight_percent="0.1"
             tools:layout_editor_absoluteY="8dp">
 
             <ImageView
@@ -189,7 +188,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginBottom="8dp"
-                android:src="@drawable/attach"
+                android:src="@drawable/l_attach"
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="@+id/et"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -197,7 +196,7 @@
             <EditText
                 android:id="@+id/et"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginEnd="8dp"
@@ -210,22 +209,22 @@
                 android:hint="Сообщение"
                 android:inputType="textMultiLine|textCapSentences"
                 android:nextFocusLeft="@id/et"
-
                 android:nextFocusUp="@id/et"
+                android:textColor="?main_font"
+
+                android:textColorHint="?second_font"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/btn_send"
                 app:layout_constraintStart_toEndOf="@+id/btn_file" />
 
-            <!--;[;-->
-
             <ImageView
                 android:id="@+id/btn_send"
                 android:layout_width="30dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_marginRight="8dp"
                 android:layout_marginBottom="8dp"
-                android:src="@drawable/send"
+                android:src="@drawable/l_send"
                 app:layout_constraintBottom_toBottomOf="@+id/et"
                 app:layout_constraintEnd_toEndOf="parent" />
 

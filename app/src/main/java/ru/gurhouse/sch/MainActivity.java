@@ -9,12 +9,10 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.annotation.ColorInt;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.internal.BottomNavigationItemView;
@@ -26,7 +24,6 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -49,6 +46,7 @@ import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.isQuit;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 import static ru.gurhouse.sch.SettingsActivity.restartActivity;
 
 public class MainActivity extends AppCompatActivity {
@@ -133,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
             case "dark":
                 setTheme(R.style.MyDarkTheme);
                 break;
-            case "light":
+            default:
                 setTheme(R.style.MyLightTheme);
         }
         theme = pref.getString("theme", "dark");
@@ -146,12 +144,17 @@ public class MainActivity extends AppCompatActivity {
         scheduleFragment = new ScheduleFragment();
         messagesFragment = new MessagesFragment();
 
-        final String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
+        String login = getIntent().getStringExtra("login"), hash = getIntent().getStringExtra("hash");
+        if(login == null) {
+            login = pref.getString("login", "");
+            hash = pref.getString("hash", "");
+        }
+        final String L = login, H = hash;
         new Thread() {
             @Override
             public void run() {
                 try {
-                    login(login, hash);
+                    login(L, H);
                 } catch (Exception e) {
                     loge("login: " + e.toString());
                 }
@@ -159,11 +162,7 @@ public class MainActivity extends AppCompatActivity {
         }.start();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            TypedValue typedValue = new TypedValue();
-            Resources.Theme theme = getTheme();
-            theme.resolveAttribute(R.attr.main, typedValue, true);
-            @ColorInt int color = typedValue.data;
-            getWindow().setNavigationBarColor(color);
+            getWindow().setNavigationBarColor(getColorFromAttribute(R.attr.main, getTheme()));
         }
 
         receiver = new BroadcastReceiver() {
@@ -265,6 +264,7 @@ public class MainActivity extends AppCompatActivity {
             });
         }).start();
     }
+
     static int newCount = 0;
     private final Runnable r = () -> {
         if(getStackTop() instanceof MessagesFragment)
@@ -272,6 +272,7 @@ public class MainActivity extends AppCompatActivity {
         else
             runOnUiThread(() -> {
                 TextView tv = itemView.findViewById(R.id.tv_badge);
+                tv.setTextColor(getColorFromAttribute(R.attr.third_font, getTheme()));
                 if(newCount == 0)
                     tv.setVisibility(View.INVISIBLE);
                 else

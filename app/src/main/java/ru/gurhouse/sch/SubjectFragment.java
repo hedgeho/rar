@@ -1,6 +1,5 @@
 package ru.gurhouse.sch;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -22,6 +21,7 @@ import android.widget.TextView;
 import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.ScheduleFragment.syncing;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class SubjectFragment extends Fragment {
 
@@ -66,7 +66,7 @@ public class SubjectFragment extends Fragment {
             String s1 = subname;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(2f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER);
@@ -94,9 +94,9 @@ public class SubjectFragment extends Fragment {
             String s1 = "Средний\nбалл:" + "\n" + avg;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.lastIndexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spans1.setSpan(new RelativeSizeSpan(1.5f), s1.lastIndexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), s1.lastIndexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), s1.lastIndexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
@@ -133,9 +133,9 @@ public class SubjectFragment extends Fragment {
             String s1 = "Оценка за\nпериод:" + "\n" + totalmark;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.lastIndexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spans1.setSpan(new RelativeSizeSpan(1.5f), s1.lastIndexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), s1.lastIndexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), s1.lastIndexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);
@@ -152,9 +152,9 @@ public class SubjectFragment extends Fragment {
             String s1 = "Рейтинг\nв классе:" + "\n" + rating;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.lastIndexOf("\n"), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s1.lastIndexOf("\n"), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             spans1.setSpan(new RelativeSizeSpan(1.5f), s1.lastIndexOf("\n"), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), s1.lastIndexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), s1.lastIndexOf("\n"), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(0, 50, 0, 50);
             tv1.setGravity(Gravity.CENTER);

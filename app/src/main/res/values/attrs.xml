@@ -1,5 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="main" format="reference|color"/>
+    <attr name="toolbar_background" format="reference|color"/>
+    <attr name="text_gray" format="reference|color"/>
+    <attr name="toolbar_style" format="reference|color" />
+    <attr name="bottomnav_selected" format="reference|color" />
+    <attr name="bottomnav_not_selected" format="reference|color" />
+    <attr name="day_cell_text_selected" format="reference|color" />
 
+    <attr name="main_font" format="reference|color" />
+    <attr name="second_font" format="reference|color" />
+    <attr name="third_font" format="reference|color" />
+    <attr name="null_font" format="reference|color" />
+
+    <attr name="avg" format="reference|color" />
+    <attr name="file" format="reference|color" />
+    <attr name="plus" format="reference|color" />
+    <attr name="mn" format="reference|color" />
+    <attr name="icons" format="reference|color" />
+    <attr name="toolbar_icons" format="reference|color" />
+    <attr name="marks" format="reference|color" />
+    <attr name="send_btn" format="reference|color" />
+
+    <attr name="coff1" format="reference|color"/>
+    <attr name="coff2" format="reference|color"/>
+    <attr name="coff3" format="reference|color"/>
+    <attr name="coff4" format="reference|color"/>
+    <attr name="coff5" format="reference|color"/>
+    <attr name="coff6" format="reference|color"/>
+    <attr name="coff7" format="reference|color"/>
+    <attr name="coff8" format="reference|color"/>
+
+    <attr name="tv_no_lessons" format="reference|color" />
+
+    <attr name="table_stroke" format="reference|color" />
+    <attr name="daycell_selected" format="reference|color" />
+    <attr name="chat_highlighted" format="reference|color" />
+    <attr name="message_background" format="reference|color" />
+    <attr name="message_left_background" format="reference|color" />
+    <attr name="thread_background" format="reference|color" />
+    <attr name="image_bubble" format="reference|color" />
+    <attr name="new_background" format="reference|color" />
+    <attr name="newmsg_badge" format="reference|color" />
+    <attr name="chat_background" format="reference|color" />
+    <attr name="settings_background" format="reference|color" />
+
+    <attr name="bottom_panel" format="reference|color" />
 </resources>

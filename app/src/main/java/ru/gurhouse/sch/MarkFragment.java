@@ -1,6 +1,5 @@
 package ru.gurhouse.sch;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
@@ -26,6 +25,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
 public class MarkFragment extends Fragment {
 
@@ -73,7 +73,7 @@ public class MarkFragment extends Fragment {
             String s1 = topic + ":";
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -86,7 +86,7 @@ public class MarkFragment extends Fragment {
             String s1 = value;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(2.5f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.marks, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 10, 50, 10);
             tv1.setGravity(Gravity.CENTER);
@@ -99,7 +99,7 @@ public class MarkFragment extends Fragment {
             String s1 = String.valueOf(coff);
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 10, 50, 10);
             tv1.setGravity(Gravity.CENTER);
@@ -121,7 +121,7 @@ public class MarkFragment extends Fragment {
             s1 = "Оценка поставлена на \n" + s1;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -143,7 +143,7 @@ public class MarkFragment extends Fragment {
             s1 = "Оценка выставлена в \n" + s1;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1.25f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.WHITE), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
@@ -156,7 +156,7 @@ public class MarkFragment extends Fragment {
             String s1 = teachname;
             Spannable spans1 = new SpannableString(s1);
             spans1.setSpan(new RelativeSizeSpan(1f), 0, s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-            spans1.setSpan(new ForegroundColorSpan(Color.LTGRAY), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), 0, s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             tv1.setText(spans1);
             tv1.setPadding(50, 50, 50, 10);
             tv1.setGravity(Gravity.CENTER);

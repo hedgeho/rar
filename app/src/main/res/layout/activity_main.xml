@@ -37,7 +37,7 @@
             android:id="@+id/bottomnav"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?android:attr/windowBackground"
+            android:background="?main"
             app:itemIconTint="@color/bottomnav_colors"
             app:itemTextColor="@color/bottomnav_colors"
             app:labelVisibilityMode="unlabeled"
@@ -46,14 +46,14 @@
             app:layout_constraintStart_toStartOf="parent"
             app:menu="@menu/navigation" />
     </android.support.constraint.ConstraintLayout>
-
+<!--"?attr/actionBarTheme app:titleTextColor-->
     <android.support.v7.widget.Toolbar
+        android:theme="?toolbar_style"
         android:id="@+id/toolbar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimary"
+        android:background="?toolbar_background"
         android:minHeight="?attr/actionBarSize"
-        android:theme="?attr/actionBarTheme"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
