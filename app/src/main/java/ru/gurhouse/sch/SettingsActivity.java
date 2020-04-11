@@ -23,8 +23,11 @@ import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.Switch;
 
+import java.util.HashMap;
+
 import static ru.gurhouse.sch.KnockFragment.connect;
 import static ru.gurhouse.sch.LoginActivity.loge;
+import static ru.gurhouse.sch.PageFragment.bitmaps;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -216,12 +219,16 @@ public class SettingsActivity extends AppCompatActivity {
             if(checkedId == R.id.rb_dark) {
                 if(!pref.getString("theme", "dark").equals("dark")) {
                     scrollTo = scroll.getScrollY();
+                    bitmaps = new HashMap<>();
+                    pref.edit().putString("theme", "dark").apply();
                     restartActivity(this, true);
                 }
                 pref.edit().putString("theme", "dark").apply();
             } else if(checkedId == R.id.rb_light) {
                 if(!pref.getString("theme", "light").equals("light")) {
                     scrollTo = scroll.getScrollY();
+                    bitmaps = new HashMap<>();
+                    pref.edit().putString("theme", "light").apply();
                     restartActivity(this, true);
                 }
                 pref.edit().putString("theme", "light").apply();

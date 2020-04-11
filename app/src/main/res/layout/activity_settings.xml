@@ -89,12 +89,11 @@
                 android:layout_width="52dp"
                 android:layout_height="52dp"
                 android:layout_marginEnd="8dp"
-                android:layout_marginRight="8dp"
                 android:padding="10dp"
                 app:layout_constraintBottom_toBottomOf="@+id/textView12"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/textView12"
-                app:srcCompat="@drawable/logout" />
+                app:srcCompat="@drawable/l_logout" />
 
             <ImageView
                 android:id="@+id/btn_ok"
@@ -297,7 +296,7 @@
                 android:layout_width="0dp"
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
-                android:background="?thread_background"
+                android:background="?settings_background"
                 app:layout_constraintBottom_toTopOf="@+id/textView18"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -307,7 +306,7 @@
                 android:layout_width="0dp"
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
-                android:background="?thread_background"
+                android:background="?settings_background"
                 app:layout_constraintBottom_toTopOf="@+id/textView2"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
@@ -367,7 +366,7 @@
                 android:layout_width="0dp"
                 android:layout_height="5dp"
                 android:layout_marginBottom="8dp"
-                android:background="?thread_background"
+                android:background="?settings_background"
                 app:layout_constraintBottom_toTopOf="@+id/textView4"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />

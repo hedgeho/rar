@@ -246,7 +246,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             return;
         }
         if(getSharedPreferences("pref", 0).getString("firstperiod", "").equals("") && !flag_shown) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            AlertDialog.Builder builder;
+            if(getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+                builder = new AlertDialog.Builder(this);
+            else
+                builder = new AlertDialog.Builder(this, R.style.MyLightTheme_AlertDialogTheme);
             builder.setPositiveButton("OK", (dialog, id) -> onClick(v));
             builder.setMessage("Продолжая использовать данное приложение," +
                     " вы соглашаетесь, что ваши данные, имеющиеся у платформы eschool.center, теоретически будут доступны " +

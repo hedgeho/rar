@@ -189,7 +189,11 @@ public class Countcoff extends Fragment {
         img.setOnClickListener(v1 -> {
             final String[] newMark = new String[1];
             final Double[] f = new Double[1];
-            alr1 = new AlertDialog.Builder(getContext());
+
+            if(getContext().getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+                alr1 = new AlertDialog.Builder(getContext());
+            else
+                alr1 = new AlertDialog.Builder(getContext(), R.style.MyLightTheme_AlertDialogTheme);
             alr1.setTitle("Создайте оценку");
             View item;
             LayoutInflater inflater1 = getLayoutInflater();
@@ -281,7 +285,11 @@ public class Countcoff extends Fragment {
         }
 
 
-        alr = new AlertDialog.Builder(getContext());
+
+        if(getContext().getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+            alr = new AlertDialog.Builder(getContext());
+        else
+            alr = new AlertDialog.Builder(getContext(), R.style.MyLightTheme_AlertDialogTheme);
         alr.create();
         alr.setSingleChoiceItems(strings, j, myClickListener);
         alr.setTitle("Выберите предмет");
@@ -290,7 +298,11 @@ public class Countcoff extends Fragment {
         txt2.setOnClickListener(v12 -> alr.show());
 
         toolbar = getActivity().findViewById(R.id.toolbar);
-        alr2 = new AlertDialog.Builder(getContext());
+
+        if(getContext().getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+            alr2 = new AlertDialog.Builder(getContext());
+        else
+            alr2 = new AlertDialog.Builder(getContext(), R.style.MyLightTheme_AlertDialogTheme);
         alr2.create();
         periodname = period[pernum];
         //toolbar.setTitle(periodname);
@@ -340,7 +352,11 @@ public class Countcoff extends Fragment {
             tv1.setOnClickListener(v -> {
                 final String[] newMark = new String[1];
                 final Double[] f = new Double[1];
-                alr1 = new AlertDialog.Builder(getContext());
+
+                if(getContext().getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+                    alr1 = new AlertDialog.Builder(getContext());
+                else
+                    alr1 = new AlertDialog.Builder(getContext(), R.style.MyLightTheme_AlertDialogTheme);
                 alr1.setTitle("Измените оценку");
                 View item;
                 LayoutInflater inflater = getLayoutInflater();

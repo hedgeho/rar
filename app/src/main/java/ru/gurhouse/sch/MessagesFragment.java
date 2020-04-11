@@ -60,11 +60,9 @@ public class MessagesFragment extends Fragment {
 
     private static final Set<String> GROUP_NAMES = ImmutableSet.of("Директор", "Завуч", "Педагог дополнительного образования", "Педагог-психолог", "Преподаватель");
     private int PERSON_ID;
-    private String[] senders, topics;
-    private int[] threadIds, newCounts, types;
-    private int[] users = null;
-    private ArrayList<String> f_senders, f_topics, s_senders = null, s_messages, s_time, s_topics;
-    private ArrayList<Integer> f_users = null, f_threadIds, f_newCounts, s_threadIds, s_msgIds, f_types;
+    private ArrayList<MsgThread> threads_list;
+    private ArrayList<String> s_senders = null, s_messages, s_time, s_topics;
+    private ArrayList<Integer> s_threadIds, s_msgIds, f_types;
     private ArrayList<Boolean> s_group;
     private String s_query = "";
     private int count = 25, s_count = 0;
@@ -129,14 +127,12 @@ public class MessagesFragment extends Fragment {
     public void start(Runnable r) {
         PERSON_ID = TheSingleton.getInstance().getPERSON_ID();
 
-        new Thread() {
-            @Override
-            public void run() {
+        new Thread(() -> {
                 try {
                     download(null);
                     int count = 0;
-                    for (int i = 0; i < f_newCounts.size(); i++) {
-                        count += f_newCounts.get(i);
+                    for (int i = 0; i < threads_list.size(); i++) {
+                        count += threads_list.get(i).newCount;
                     }
                     MainActivity.newCount = count;
                     getContext().runOnUiThread(r);
@@ -283,8 +279,7 @@ public class MessagesFragment extends Fragment {
                 } catch (Exception e) {
                     loge(e);
                 }
-            }
-        }.start();
+        }).start();
     }
 
     @Override
@@ -397,7 +392,13 @@ public class MessagesFragment extends Fragment {
                                         if (threads.has(prsId + "")) {
                                             getContext().runOnUiThread(() -> {
                                                 try {
-                                                    loadChat(threads.getInt(prsId + ""), fio, "", 2, -1, false);
+                                                    MsgThread thread = new MsgThread();
+                                                    thread.threadId = threads.getInt(prsId + "");
+                                                    thread.sender = fio;
+                                                    thread.topic = "";
+                                                    thread.type = 2;
+                                                    thread.user = 0;
+                                                    loadChat(thread, -1);
                                                 } catch (JSONException e) {
                                                     loge(e);
                                                 }
@@ -407,7 +408,13 @@ public class MessagesFragment extends Fragment {
                                             final int threadId = Integer.parseInt(connect("https://app.eschool.center/ec-server/chat/saveThread",
                                                     "{\"threadId\":null,\"senderId\":null,\"imageId\":null,\"subject\":null,\"isAllowReplay\":2,\"isGroup\":false,\"interlocutor\":" + prsId + "}",
                                                     true, getContext()));
-                                            getActivity().runOnUiThread(() -> loadChat(threadId, fio, "", 2, -1, false));
+                                            final MsgThread thread = new MsgThread();
+                                            thread.threadId = threads.getInt(prsId + "");
+                                            thread.sender = fio;
+                                            thread.topic = "";
+                                            thread.type = 2;
+                                            thread.user = 0;
+                                            getActivity().runOnUiThread(() -> loadChat(thread, -1));
                                         }
                                     } catch (LoginActivity.NoInternetException e) {
                                         getContext().runOnUiThread(() ->
@@ -432,7 +439,7 @@ public class MessagesFragment extends Fragment {
 
                         ImageView muted = item.findViewById(R.id.muted);
                         if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                                .contains("" + f_threadIds.get(i)))
+                                .contains("" + s_threadIds.get(i)))
                             muted.setVisibility(View.VISIBLE);
                         else
                             muted.setVisibility(View.INVISIBLE);
@@ -462,8 +469,15 @@ public class MessagesFragment extends Fragment {
                         img = item.findViewById(R.id.img);
                         img.setVisibility(View.GONE);
                         final int j = i;
-                        item.setOnClickListener(v ->
-                                loadChat(s_threadIds.get(j), s_senders.get(j), s_topics.get(j), s_msgIds.get(j), -1, s_group.get(j)));
+                        MsgThread thread = new MsgThread();
+                        thread.threadId = s_threadIds.get(i);
+                        thread.sender = s_senders.get(i);
+                        thread.topic = s_topics.get(i);
+//                        thread.type = s_ty.get(i);;
+                        thread.user = 0;
+                        loadChat(thread, -1);
+//                        item.setOnClickListener(v ->
+//                                loadChat(s_threadIds.get(j), s_senders.get(j), s_topics.get(j), s_msgIds.get(j), -1, s_group.get(j)));
                         container.addView(item, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                         container.addView(inflater.inflate(R.layout.divider, container, false));
                     }
@@ -533,10 +547,18 @@ public class MessagesFragment extends Fragment {
                                             if (obj.getString("senderFio").split(" ").length <= 2) {
                                                 loge("fio strange:");
                                                 loge(obj.toString());
-                                                C = "a";
+                                                C = "";
                                             } else
                                                 C = obj.getString("senderFio").split(" ")[2];
-                                            s_senders.add(A + " " + B.charAt(0) + ". " + C.charAt(0) + ".");
+                                            if(!A.equals("Служба") || !B.equals("поддержки")) {
+                                                if (C.length() > 0)
+                                                    s_senders.add(A + " " + B.charAt(0) + ". " + C.charAt(0) + ".");
+                                                else
+                                                    s_senders.add(A + " " + B.charAt(0) + ".");
+                                            } else {
+                                                s_senders.add("Служба подержки");
+                                            }
+
                                             s_messages.add(c.getString("msg"));
                                             s_threadIds.add(c.getInt("threadId"));
                                             if(c.has("isAllowReplay"))
@@ -700,19 +722,89 @@ public class MessagesFragment extends Fragment {
         log("onViewCreated");
         if(fromNotification) {
             log("fromNotif");
-            loadChat(notifThreadId, notifSenderFio, "", (notifCount > 2? 2:0), -1, notifCount > 2);
+            MsgThread thread = new MsgThread();
+            thread.threadId = notifThreadId;
+            thread.sender = notifSenderFio;
+            thread.topic = "";
+            thread.type = (notifCount > 2? 2:0);
+            thread.user = notifCount;
+            loadChat(thread, -1);
         }
         if(READY && !shown)
             show();
-        if(view == null || f_senders == null) {
+        if(view == null || threads_list == null) {
             loge("null in MessagesFragment");
         }
 
     }
 
+    View makeThreadItem(MsgThread thread, ViewGroup parent) {
+        View item = getLayoutInflater().inflate(R.layout.thread_item, parent, false);
+        TextView tv = item.findViewById(R.id.tv_sender);
+        tv.setText(thread.sender);
+        tv = item.findViewById(R.id.tv_topic);
+        tv.setText(Html.fromHtml(thread.topic.replace("\n","<br>")));
+        tv = item.findViewById(R.id.tv_users);
+        ImageView img = item.findViewById(R.id.img);
+
+        ImageView muted = item.findViewById(R.id.muted);
+        if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                .contains("" + thread.threadId))
+            muted.setVisibility(View.VISIBLE);
+        else
+            muted.setVisibility(View.INVISIBLE);
+
+        Drawable wrappedDrawable, unwrappedDrawable;
+        if (thread.user == 0 || thread.user == 2) {
+            unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.dialog);
+            wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+            DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+            img.setImageDrawable(wrappedDrawable);
+            tv.setText("");
+        } else if (thread.user == 1) {
+            unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.monolog);
+            wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+            DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+            img.setImageDrawable(wrappedDrawable);
+            tv.setText("");
+        } else {
+            unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.group);
+            wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+            DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+            img.setImageDrawable(wrappedDrawable);
+            tv.setText(thread.user + "");
+        }
+        item.setTag(thread.threadId);
+        tv = item.findViewById(R.id.tv_new);
+        if (thread.newCount > 0) {
+            tv.setVisibility(View.VISIBLE);
+            tv.setText(thread.newCount + "");
+            loge("new msg: " + thread.sender);
+        }
+        final int users = thread.user;
+        item.setOnClickListener(v -> {
+            if(v instanceof ViewGroup) {
+                TextView textv = v.findViewById(R.id.tv_new);
+                textv.setText("");
+                textv.setVisibility(View.INVISIBLE);
+            }
+            loadChat(thread, -1);
+        });
+        registerForContextMenu(item);
+        item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
+            contextMenu.add(0, 0, 0,
+                    context.getSharedPreferences("pref", 0).getString("muted", "[]")
+                            .contains("" + thread.threadId)?"Включить уведомления":"Отключить уведомления")
+                    .setIntent(new Intent().putExtra("threadId", thread.threadId));
+            if(users > 2)
+                contextMenu.add(0, 1, 0, "Покинуть диалог");
+        });
+        return item;
+    }
+
     void show() {
         log("show MF");
-        if(view == null || f_senders == null) {
+        if(view == null || threads_list == null) {
             return;
         }
         final LinearLayout container1 = view.findViewById(R.id.container);
@@ -740,77 +832,13 @@ public class MessagesFragment extends Fragment {
         tv.setVisibility(View.INVISIBLE);
 
         final ScrollView scroll = view.findViewById(R.id.scroll);
-        View item;
-        ImageView img;
-        LayoutInflater inflater = getLayoutInflater();
 
-        View[] fitems = new View[f_senders.size()];
+        View[] fitems = new View[threads_list.size()];
         int c = 0;
-        for (int i = 0; i < f_senders.size(); i++) {
-            item = inflater.inflate(R.layout.thread_item, container1, false);
-            tv = item.findViewById(R.id.tv_sender);
-            tv.setText(f_senders.get(i));
-            tv = item.findViewById(R.id.tv_topic);
-            tv.setText(Html.fromHtml(f_topics.get(i).replace("\n","<br>")));
-            tv = item.findViewById(R.id.tv_users);
-            img = item.findViewById(R.id.img);
-
-            ImageView muted = item.findViewById(R.id.muted);
-            if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                    .contains("" + f_threadIds.get(i)))
-                muted.setVisibility(View.VISIBLE);
-            else
-                muted.setVisibility(View.INVISIBLE);
-
-            Drawable wrappedDrawable, unwrappedDrawable;
-            if (f_users.get(i) == 0 || f_users.get(i) == 2) {
-                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.dialog);
-                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                img.setImageDrawable(wrappedDrawable);
-                tv.setText("");
-            } else if (f_users.get(i) == 1) {
-                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.monolog);
-                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                img.setImageDrawable(wrappedDrawable);
-                tv.setText("");
-            } else {
-                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.group);
-                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                img.setImageDrawable(wrappedDrawable);
-                tv.setText(f_users.get(i) + "");
-            }
-            final int j = i;
-            item.setTag(f_threadIds.get(j));
-            tv = item.findViewById(R.id.tv_new);
-            if (f_newCounts.get(i) > 0) {
-                tv.setVisibility(View.VISIBLE);
-                tv.setText(f_newCounts.get(i) + "");
-                loge("new msg: " + f_senders.get(i));
-            }
-            c += f_newCounts.get(i);
-            final int users = f_users.get(i);
-            item.setOnClickListener(v -> {
-                if(v instanceof ViewGroup) {
-                    TextView textv = v.findViewById(R.id.tv_new);
-                    textv.setText("");
-                    textv.setVisibility(View.INVISIBLE);
-                }
-                loadChat(f_threadIds.get(j), f_senders.get(j),
-                        f_topics.get(j), f_types.get(j), -1, users > 2);
-            });
-            registerForContextMenu(item);
-            item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
-                contextMenu.add(0, 0, 0,
-                        context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                                .contains("" + f_threadIds.get(j))?"Включить уведомления":"Отключить уведомления")
-                        .setIntent(new Intent().putExtra("threadId", f_threadIds.get(j)));
-                if(users > 2)
-                    contextMenu.add(0, 1, 0, "Покинуть диалог");
-            });
-            fitems[i] = item;
+        for (int i = 0; i < threads_list.size(); i++) {
+            final MsgThread thread = threads_list.get(i);
+            c += thread.newCount;
+            fitems[i] = makeThreadItem(thread, container1);
         }
         final int C = c;
         for (View fitem : fitems) {
@@ -842,7 +870,7 @@ public class MessagesFragment extends Fragment {
                     scrollListener = () -> {
                         if (scroll.getChildAt(0).getBottom() - 200
                                 <= (scroll.getHeight() + scroll.getScrollY()) && !uploading) {
-                            log("bottom");
+                            log("bobottom");
                             if (count == -1) {
                                 log("all threads are shown");
                                 return;
@@ -852,73 +880,21 @@ public class MessagesFragment extends Fragment {
                                 @Override
                                 public void handleMessage(Message msg) {
                                     if (msg.what == 0) {
+                                        if(!shown)
+                                            return;
                                         LinearLayout container = view.findViewById(R.id.container);
 
                                         View item1;
-                                        TextView tv1;
-                                        ImageView img1;
                                         LayoutInflater inflater1 = getLayoutInflater();
-                                        final int l = senders.length;
-                                        final int f_count = count;
-                                        for (int i = 0; i < l; i++) {
-                                            item1 = inflater1.inflate(R.layout.thread_item, container, false);
-                                            tv1 = item1.findViewById(R.id.tv_sender);
-                                            tv1.setText(senders[i]);
-                                            tv1 = item1.findViewById(R.id.tv_topic);
-                                            tv1.setText(topics[i]);
-                                            tv1 = item1.findViewById(R.id.tv_users);
-                                            img1 = item1.findViewById(R.id.img);
-
-                                            ImageView muted = item1.findViewById(R.id.muted);
-                                            if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                                                    .contains("" + f_threadIds.get(i)))
-                                                muted.setVisibility(View.VISIBLE);
-                                            else
-                                                muted.setVisibility(View.INVISIBLE);
-
-                                            final int u = users[i];
-                                            Drawable wrappedDrawable, unwrappedDrawable;
-                                            if (users[i] == 0 || users[i] == 2) {
-                                                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.dialog);
-                                                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                                                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                                                img1.setImageDrawable(wrappedDrawable);
-                                                tv1.setText("");
-                                            } else if (users[i] == 1) {
-                                                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.monolog);
-                                                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                                                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                                                img1.setImageDrawable(wrappedDrawable);
-                                                tv1.setText("");
-                                            } else {
-                                                unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.group);
-                                                wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                                                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                                                img1.setImageDrawable(wrappedDrawable);
-                                                tv1.setText(users[i] + "");
-                                            }
-                                            if(f_count + 25 - (l - i) >= f_threadIds.size())
-                                                continue;
-                                            final int j = i,
-                                                    threadId = f_threadIds.get(f_count + 25 - (l - j));
-                                            final int type = f_types.get(f_count + 25 - (l - j));
-                                            final String sender = (u > 2?f_topics:f_senders).get(f_count + 25 - (l - j));
-                                            item1.setOnClickListener(v -> {
-                                                if(j >= topics.length)
-                                                    return;
-                                                if (f_count != -1) {
-                                                    loadChat(threadId, sender,
-                                                            topics[j], type, -1, u > 2);
-                                                } else {
-                                                    loadChat(threadId, sender,
-                                                            topics[j],type, -1, u > 2);
-                                                }
-                                            });
+                                        MsgThread thread;
+                                        for (int i = msg.arg1; i < threads_list.size(); i++) {
+                                            thread = threads_list.get(i);
+                                            item1 = makeThreadItem(thread, container);
                                             container.addView(item1, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                                             container.addView(inflater1.inflate(R.layout.divider, container, false));
                                         }
                                         if (count != -1)
-                                            count += senders.length;
+                                            count = threads_list.size();
                                         uploading = false;
                                     } else if (msg.what == 1) {
                                         LayoutInflater inflater1 = getLayoutInflater();
@@ -937,7 +913,7 @@ public class MessagesFragment extends Fragment {
 
                                             ImageView muted = item1.findViewById(R.id.muted);
                                             if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                                                    .contains("" + f_threadIds.get(i)))
+                                                    .contains("" + s_threadIds.get(i)))
                                                 muted.setVisibility(View.VISIBLE);
                                             else
                                                 muted.setVisibility(View.INVISIBLE);
@@ -961,8 +937,14 @@ public class MessagesFragment extends Fragment {
                                             tv1.setText("");
 //                        img = item.findViewById(R.id.img);
                                             final int j = i;
+                                            final MsgThread thread = new MsgThread();
+                                            thread.threadId = s_threadIds.get(j);
+                                            thread.topic = s_topics.get(j);
+                                            thread.sender = s_senders.get(j);
+                                            thread.type = 0;
+                                            thread.user = s_group.get(j)?3:0;
                                             item1.setOnClickListener(v ->
-                                                    loadChat(s_threadIds.get(j), s_senders.get(j), s_topics.get(j),s_threadIds.get(j), s_msgIds.get(j), s_group.get(j)));
+                                                    loadChat(thread, s_msgIds.get(j)));
                                             container.addView(item1, ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                                             container.addView(inflater1.inflate(R.layout.divider, container, false));
                                         }
@@ -973,61 +955,58 @@ public class MessagesFragment extends Fragment {
                                     }
                                 }
                             };
-                            new Thread() {
-                                @Override
-                                public void run() {
+                            new Thread(() -> {
                                     try {
                                         if (s_senders == null) {
-                                            if (count == -1)
+                                            if (count == -1 || threads_list.size() == 0)
                                                 return;
                                             JSONArray array = new JSONArray(connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row="
                                                     + (count + 1) + "&rowsCount=25", null, getContext()));
-                                            senders = new String[array.length()];
-                                            topics = new String[array.length()];
-                                            users = new int[array.length()];
-                                            threadIds = new int[array.length()];
-                                            newCounts = new int[array.length()];
-                                            types = new int[array.length()];
                                             JSONObject obj;
                                             String a, b, c1;
-                                            log(array.length() + "");
-                                            if (array.length() < 25)
-                                                count = -1;
+                                            log("uploaded " + array.length() + " threads");
+//                                            if (array.length() < 25)
+//                                                count = -1;
+                                            int first_index = threads_list.size();
+                                            MsgThread thread;
                                             for (int i = 0; i < array.length(); i++) {
+                                                thread = new MsgThread();
                                                 obj = array.getJSONObject(i);
                                                 a = obj.getString("senderFio").split(" ")[0];
                                                 b = obj.getString("senderFio").split(" ")[1];
                                                 if (obj.getString("senderFio").split(" ").length <= 2) {
                                                     loge("fio strange:");
                                                     loge(obj.toString());
-                                                    c1 = "a";
+                                                    c1 = "";
                                                 } else
                                                     c1 = obj.getString("senderFio").split(" ")[2];
-                                                senders[i] = a + " " + b.charAt(0) + ". " + c1.charAt(0) + ".";
+                                                if(!a.equals("Служба") || !b.equals("поддержки")) {
+                                                    if (c1.length() > 0)
+                                                        thread.sender = a + " " + b.charAt(0) + ". " + c1.charAt(0) + ".";
+                                                    else
+                                                        thread.sender = a + " " + b.charAt(0) + ".";
+                                                } else {
+                                                    thread.sender = "Служба подержки";
+                                                }
                                                 if (obj.getString("subject").replaceAll(" ", "").equals(""))
                                                     if (obj.has("msgPreview"))
-                                                        topics[i] = obj.getString("msgPreview");
+                                                        thread.topic = obj.getString("msgPreview");
                                                     else
-                                                        topics[i] = "";
+                                                        thread.topic = "";
                                                 else
-                                                    topics[i] = obj.getString("subject");
-                                                users[i] = obj.getInt("addrCnt");
+                                                    thread.topic = obj.getString("subject");
+                                                thread.user = obj.getInt("addrCnt");
                                                 if (obj.getInt("senderId") == PERSON_ID) {
-                                                    users[i] = 1;
+                                                    thread.user = 1;
                                                 }
-                                                threadIds[i] = obj.getInt("threadId");
-                                                newCounts[i] = obj.getInt("newReplayCount");
+                                                thread.threadId = obj.getInt("threadId");
+                                                thread.newCount = obj.getInt("newReplayCount");
+                                                thread.type = obj.getInt("isAllowReplay");
+                                                threads_list.add(thread);
                                             }
-                                            for (int i = 0; i < users.length; i++) {
-                                                f_users.add(users[i]);
-                                                f_threadIds.add(threadIds[i]);
-                                                f_senders.add(senders[i]);
-                                                f_topics.add(topics[i]);
-                                                f_newCounts.add(newCounts[i]);
-                                                f_types.add(types[i]);
-                                            }
-                                            log("first thread: " + senders[0]);
-                                            h.sendEmptyMessage(0);
+                                            if(array.length() > 0)
+                                                log("first thread: " + threads_list.get(first_index).sender);
+                                            h.sendMessage(h.obtainMessage(0, first_index, 0));
                                         } else if (s_count != -1 && search_mode != 1) {
                                             String result = connect("https://app.eschool.center/ec-server/chat/searchThreads?rowStart=" + s_count + "&rowsCount=25&text=" + s_query, null, getContext());
                                             log("search result: " + result);
@@ -1063,8 +1042,7 @@ public class MessagesFragment extends Fragment {
                                     } catch (Exception e) {
                                         loge(e);
                                     }
-                                }
-                            }.start();
+                            }).start();
                         }
                     };
                     getContext().runOnUiThread(() -> scroll.getViewTreeObserver()
@@ -1173,16 +1151,14 @@ public class MessagesFragment extends Fragment {
         JSONArray array = new JSONArray(
                 connect("https://app.eschool.center/ec-server/chat/threads?newOnly=false&row=1&rowsCount=25",
                         null, getContext()));
-        senders = new String[array.length()];
-        topics = new String[array.length()];
-        users = new int[array.length()];
-        threadIds = new int[array.length()];
-        newCounts = new int[array.length()];
-        types = new int[array.length()];
+
+        threads_list = new ArrayList<>();
         JSONObject obj;
         String a, b, c;
+        MsgThread thread;
         log(array.length() + "");
         for (int i = 0; i < array.length(); i++) {
+            thread = new MsgThread();
             obj = array.getJSONObject(i);
             String[] senderFio = obj.getString("senderFio").split(" ");
             a = "";
@@ -1194,37 +1170,47 @@ public class MessagesFragment extends Fragment {
                 b = senderFio[1];
             if(senderFio.length > 2)
                 c = senderFio[2];
-            senders[i] = a + " " + (b.equals("")?"":b.charAt(0) + ". ") + (c.equals("")?"":c.charAt(0) + ".");
+            thread.sender = a + " " + (b.equals("")?"":b.charAt(0) + ". ") + (c.equals("")?"":c.charAt(0) + ".");
+//            senders[i] = a + " " + (b.equals("")?"":b.charAt(0) + ". ") + (c.equals("")?"":c.charAt(0) + ".");
             if(obj.getString("subject").equals(" "))
                 if(obj.has("msgPreview"))
-                    topics[i] = obj.getString("msgPreview");
+                    thread.topic = obj.getString("msgPreview");
+//                    topics[i] = obj.getString("msgPreview");
                 else
-                    topics[i] = "";
+                    thread.topic = "";
+//                    topics[i] = "";
             else
-                topics[i] = obj.getString("subject");
-            users[i] = obj.getInt("addrCnt");
-            types[i] = obj.getInt("isAllowReplay");
+                thread.topic = obj.getString("subject");
+//                topics[i] = obj.getString("subject");
+//            users[i] = obj.getInt("addrCnt");
+            thread.user = obj.getInt("addrCnt");
+            thread.type = obj.getInt("isAllowReplay");
+//            types[i] = obj.getInt("isAllowReplay");
             if(obj.getInt("senderId") == PERSON_ID) {
-                users[i] = 1;
+//                users[i] = 1;
+                thread.user = 1;
             }
-            threadIds[i] = obj.getInt("threadId");
-            newCounts[i] = obj.getInt("newReplayCount");
+            thread.threadId = obj.getInt("threadId");
+            thread.newCount = obj.getInt("newReplayCount");
+//            threadIds[i] = obj.getInt("threadId");
+//            newCounts[i] = obj.getInt("newReplayCount");
+            threads_list.add(thread);
         }
-        f_users = new ArrayList<>();
-        f_threadIds = new ArrayList<>();
-        f_senders = new ArrayList<>();
-        f_topics = new ArrayList<>();
-        f_newCounts = new ArrayList<>();
-        f_types = new ArrayList<>();
-        for (int i = 0; i < users.length; i++) {
-            f_users.add(users[i]);
-            f_threadIds.add(threadIds[i]);
-            f_senders.add(senders[i]);
-            f_topics.add(topics[i]);
-            f_newCounts.add(newCounts[i]);
-            f_types.add(types[i]);
-        }
-        log("first thread: " + senders[0]);
+//        f_users = new ArrayList<>();
+//        f_threadIds = new ArrayList<>();
+//        f_senders = new ArrayList<>();
+//        f_topics = new ArrayList<>();
+//        f_newCounts = new ArrayList<>();
+//        f_types = new ArrayList<>();
+//        for (int i = 0; i < users.length; i++) {
+//            f_users.add(users[i]);
+//            f_threadIds.add(threadIds[i]);
+//            f_senders.add(senders[i]);
+//            f_topics.add(topics[i]);
+//            f_newCounts.add(newCounts[i]);
+//            f_types.add(types[i]);
+//        }
+        log("first thread: " + /*senders[0]*/threads_list.get(0).sender);
         if(handler != null)
             handler.sendEmptyMessage(0);
         if(!shown)
@@ -1243,7 +1229,7 @@ public class MessagesFragment extends Fragment {
             View[] items;
             @Override
             public void handleMessage(Message msg) {
-                items = new View[f_senders.size()];
+                items = new View[threads_list.size()];
                 final LinearLayout container1 = view.findViewById(R.id.container);
                 if(container1 == null)
                     return;
@@ -1274,9 +1260,9 @@ public class MessagesFragment extends Fragment {
                         TextView tv = view.findViewById(R.id.tv_error);
                         tv.setText("");
                         tv.setVisibility(View.INVISIBLE);
-                        for (int i = 0; i < f_senders.size(); i++) {
-                            if(i < items.length)
-                                container1.addView(items[i], ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        for (int i = 0; i < items.length; i++) {
+//                            if(i < items.length)
+                            container1.addView(items[i], ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                             container1.addView(getLayoutInflater().inflate(R.layout.divider, container1, false));
                         }
                         final ScrollView scroll = view.findViewById(R.id.scroll);
@@ -1299,56 +1285,10 @@ public class MessagesFragment extends Fragment {
                 };
                 new Thread(() -> {
                         View item;
-                        TextView tv;
-                        ImageView img;
                         int c = 0;
                         for (int i = 0; i < items.length; i++) {
-                            item = getLayoutInflater().inflate(R.layout.thread_item, container1, false);
-                            tv = item.findViewById(R.id.tv_sender);
-                            tv.setText(f_senders.get(i));
-                            tv = item.findViewById(R.id.tv_topic);
-                            tv.setText(Html.fromHtml(f_topics.get(i).replace("\n","<br>")));
-                            tv = item.findViewById(R.id.tv_users);
-                            img = item.findViewById(R.id.img);
-
-                            ImageView muted = item.findViewById(R.id.muted);
-                            if(context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                                    .contains("" + f_threadIds.get(i)))
-                                muted.setVisibility(View.VISIBLE);
-                            else
-                                muted.setVisibility(View.INVISIBLE);
-
-                            if(f_users.get(i) == 0 || f_users.get(i) == 2) {
-                                img.setImageDrawable(getResources().getDrawable(R.drawable.dialog));
-                                tv.setText("");
-                            } else if(f_users.get(i) == 1) {
-                                img.setImageDrawable(getResources().getDrawable(R.drawable.monolog));
-                                tv.setText("");
-                            } else {
-                                img.setImageDrawable(getResources().getDrawable(R.drawable.group));
-                                tv.setText(f_users.get(i) + "");
-                            }
-                            if(f_newCounts.get(i) > 0) {
-                                tv = item.findViewById(R.id.tv_new);
-                                tv.setVisibility(View.VISIBLE);
-                                tv.setText("" + f_newCounts.get(i));
-                            }
-                            c+=f_newCounts.get(i);
-                            final int j = i;
-                            item.setTag(f_threadIds.get(j));
-                            final int users = f_users.get(i);
-                            //item.setTag(R.id.TAG_THREAD, f_threadIds.get(j));
-                            item.setOnClickListener(v -> loadChat(f_threadIds.get(j), f_senders.get(j),
-                                    f_topics.get(j),f_types.get(j), -1, users > 2));
-                            registerForContextMenu(item);
-                            item.setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
-                                contextMenu.add(0, 0, 0,
-                                        context.getSharedPreferences("pref", 0).getString("muted", "[]")
-                                                .contains("" + f_threadIds.get(j))?"Включить уведомления":"Отключить уведомления")
-                                        .setIntent(new Intent().putExtra("threadId", f_threadIds.get(j)));
-                                if(users > 2)
-                                    contextMenu.add(0, 1, 0, "Покинуть диалог");
-                            });
+                            MsgThread thread = threads_list.get(i);
+                            item = makeThreadItem(thread, container1);
                             items[i] = item;
                         }
                         h.sendEmptyMessage(c);
@@ -1371,17 +1311,18 @@ public class MessagesFragment extends Fragment {
     }
     void refresh (){refresh(true);}
 
-    private void loadChat(int threadId, String threadName, String topic, int type, int searchId, boolean group) {
+    private void loadChat(/*int threadId, String threadName, String topic, int type,*/
+            MsgThread thread, int searchId/*, boolean group*/) {
         fromNotification = false;
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         ChatFragment fragment = new ChatFragment();
-        log("chat thread " + threadId);
-        fragment.threadId = threadId;//f_threadIds.get(j);
-        fragment.threadName = threadName;//f_senders.get(j);
+        log("chat thread " + thread.threadId);
+        fragment.threadId = thread.threadId;//f_threadIds.get(j);
+        fragment.threadName = thread.sender;//f_senders.get(j);
         fragment.context = context;
-        fragment.group = group;
-        fragment.topic = topic;
-        fragment.type = type;
+        fragment.group = thread.user > 2;
+        fragment.topic = thread.topic;
+        fragment.type = thread.type;
         if(searchId != -1)
             fragment.searchMsgId = searchId;
         ((MainActivity) getContext()).set_visible(false);
@@ -1405,7 +1346,12 @@ public class MessagesFragment extends Fragment {
             return view;
     }
 
-    class Person {
+    static class MsgThread {
+        String sender, topic;
+        int user, threadId, newCount, type;
+    }
+
+    static class Person {
         String fio;
         String info;
         int prsId;

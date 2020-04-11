@@ -115,7 +115,10 @@ public class PeriodFragment1 extends Fragment {
         toolbar = getContext().findViewById(R.id.toolbar);
         scrollView = view.findViewById(R.id.scrollView3);
         periodname = period[pernum];
-        alr = new AlertDialog.Builder(getContext());
+        if(getContext().getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+            alr = new AlertDialog.Builder(getContext());
+        else
+            alr = new AlertDialog.Builder(getContext(), R.style.MyLightTheme_AlertDialogTheme);
         alr.create();
         alr.setSingleChoiceItems(period, pernum, myClickListener);
         alr.setTitle("Выберите период");
@@ -308,7 +311,7 @@ public class PeriodFragment1 extends Fragment {
         DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme()));
         item.setIcon(wrappedDrawable);
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        menu.add(0, 3, 1, "Настройки");
+        item = menu.add(0, 3, 1, "Настройки");
         unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.settings);
         wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
         DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.toolbar_icons, getContext().getTheme()));

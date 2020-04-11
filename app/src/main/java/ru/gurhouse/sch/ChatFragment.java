@@ -3,7 +3,6 @@ package ru.gurhouse.sch;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.Notification;
 import android.content.BroadcastReceiver;
@@ -33,6 +32,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.content.res.AppCompatResources;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -338,7 +338,7 @@ public class ChatFragment extends Fragment {
         tv = item.findViewById(R.id.tv_text);
         if(text.isEmpty() && (attach == null || attach.isEmpty())) {
             tv.setText(" ");
-        } else if(attach != null && !attach.isEmpty() && text.isEmpty()){
+        } else if(attach != null && !attach.isEmpty() && text.isEmpty()) {
             tv.setVisibility(GONE);
         } else {
             tv.setText(Html.fromHtml(text.replace("\n","<br>")));
@@ -626,6 +626,7 @@ public class ChatFragment extends Fragment {
                                             tv = item.findViewById(R.id.tv_date);
                                             tv.setText(getDate(cal));
                                             tv.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
+                                            tv.setPadding(4, 4, 4, 4);
                                             container.addView(item);
                                         }
                                     }
@@ -723,6 +724,7 @@ public class ChatFragment extends Fragment {
                                 tv = item.findViewById(R.id.tv_date);
                                 tv.setText(getDate(cal));
                                 tv.setTextColor(getColorFromAttribute(R.attr.main_font, getContext().getTheme()));
+                                tv.setPadding(4, 4, 4, 4);
                                 container.addView(item);
                             }
                         }
@@ -754,7 +756,11 @@ public class ChatFragment extends Fragment {
                         et.requestFocus();
                         et.requestFocusFromTouch();
                         if(type == 1){
-                            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                            AlertDialog.Builder builder;
+                            if(getContext().getSharedPreferences("pref", 0).getString("theme", "dark").equals("dark"))
+                                builder = new AlertDialog.Builder(getContext());
+                            else
+                                builder = new AlertDialog.Builder(getContext(), R.style.MyLightTheme_AlertDialogTheme);
                             builder.setMessage("Сообщение увидит только создатель диалога").setTitle("Вы уверены, что хотите отправить сообщение?").setPositiveButton("Отправить", (dialog, which)->ChatFragment.this.sendMessage(threadId, text, System.currentTimeMillis()))
                                     .setNegativeButton("Отмена", null).show();
                         } else

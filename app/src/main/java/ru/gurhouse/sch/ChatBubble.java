@@ -23,13 +23,13 @@ public class ChatBubble extends AppCompatTextView {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        Layout layout = getLayout();
-        if (layout != null) {
-            int width = (int) Math.ceil(getMaxLineWidth(layout))
-                    + getCompoundPaddingLeft() + getCompoundPaddingRight();
-            int height = getMeasuredHeight();
-            setMeasuredDimension(width, height);
-        } else
+//        Layout layout = getLayout();
+//        if (layout != null) {
+//            int width = (int) Math.ceil(getMaxLineWidth(layout))
+//                    + getCompoundPaddingLeft() + getCompoundPaddingRight();
+//            int height = getMeasuredHeight();
+//            setMeasuredDimension(width, height);
+//        } else
             setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight());
     }
 

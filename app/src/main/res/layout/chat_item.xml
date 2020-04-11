@@ -24,13 +24,10 @@
         android:id="@+id/layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:autoLink="web"
         android:background="@drawable/chat_border"
-        android:foregroundGravity="right"
         android:gravity="end"
         android:orientation="vertical"
-        android:padding="5dp"
-        tools:layout_editor_absoluteY="8dp">
+        android:padding="5dp">
 
         <ru.gurhouse.sch.ChatBubble
             android:id="@+id/tv_text"
@@ -38,10 +35,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:autoLink="all"
-            android:gravity="right"
-            android:inputType="textMultiLine"
-            android:maxWidth="300dp"
-            android:text="hello, hello!"
+            android:gravity="end"
+            android:padding="4dp"
+            android:text="Здравствуйте! Я могу прислать вам сочинение в формате Word?"
             android:textColor="?attr/main_font"
             android:textSize="16sp">
 
@@ -54,5 +50,4 @@
             android:orientation="vertical" />
 
     </LinearLayout>
-
 </LinearLayout>

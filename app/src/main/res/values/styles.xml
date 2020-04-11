@@ -17,6 +17,24 @@
         <item name="android:textColor">?main_font</item>
         <item name="android:textColorHint">?second_font</item>
     </style>
+    
+    <style name="AppTheme.TextViewTheme" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">?second_font</item>
+    </style>
+
+    <style name="AppTheme.SwitchTheme" parent="Widget.AppCompat.CompoundButton.Switch">
+    </style>
+
+    <style name="Theme.AppCompat.Dialog.Alert">
+        <item name="colorAccent">?null_font</item>
+        <item name="colorControlNormal">?second_font</item>
+        <item name="android:windowTitleStyle">@style/AppTheme.TextViewTheme</item>
+    </style>
+
+    <style name="MyLightTheme.AlertDialogTheme" parent="Theme.AppCompat.Dialog.Alert">
+<!--        <item name="android:background">#ff0000</item>-->
+        <item name="android:textColorAlertDialogListItem">?main_font</item>
+    </style>
 
     <style name="MyLightTheme.ToolbarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
         <item name="android:textColorPrimary">?third_font</item>
@@ -26,6 +44,5 @@
     <style name="MyDarkTheme.ToolbarOverlay" parent="ThemeOverlay.AppCompat.ActionBar">
         <item name="android:textColorPrimary">@color/colorPrimary</item>
         <item name="android:textColorSecondary">@color/colorPrimary</item>
-
     </style>
 </resources>

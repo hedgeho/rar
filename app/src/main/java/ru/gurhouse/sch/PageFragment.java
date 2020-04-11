@@ -2,8 +2,6 @@ package ru.gurhouse.sch;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
@@ -30,7 +28,9 @@ import android.widget.TextView;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 
+import static ru.gurhouse.sch.LoginActivity.log;
 import static ru.gurhouse.sch.LoginActivity.loge;
 import static ru.gurhouse.sch.SettingsActivity.getColorFromAttribute;
 
@@ -44,6 +44,7 @@ public class PageFragment extends Fragment {
     ScheduleFragment.Period[] periods;
     int dayofweek;
     Context context;
+    public static HashMap<Integer, Bitmap> bitmaps;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
@@ -52,6 +53,8 @@ public class PageFragment extends Fragment {
         linearLayout = v.findViewById(R.id.lin);
         if(getContext() != null)
             context = super.getContext();
+        if(bitmaps == null)
+            bitmaps = new HashMap<>();
         draw();
 
         return v;
@@ -234,25 +237,19 @@ public class PageFragment extends Fragment {
             LinearLayout linearLayout = new LinearLayout(getContext());
             linearLayout.setOrientation(LinearLayout.VERTICAL);
             linearLayout.addView(tv21);
+            int size = tv22.getLineHeight();
 
             linearLayout2.setOrientation(LinearLayout.HORIZONTAL);
             if(lesson.homeWork.files != null && !lesson.homeWork.files.isEmpty()){
                 ImageView image = new ImageView(getContext());
-                Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.attach);
-                Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-                image.setImageBitmap(Bitmap.createScaledBitmap(drawableToBitmap(wrappedDrawable), tv22.getLineHeight(), tv22.getLineHeight(), true));
+                image.setImageBitmap(getBitmap(R.drawable.attach, size));
                 image.setPadding(30,0,0,10);
                 linearLayout2.addView(image);
             }
 
             if(lesson.meetingInvite != null && !lesson.meetingInvite.replaceAll(" ", "").equals("")) {
                 ImageView image = new ImageView(getContext());
-                Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), R.drawable.video);
-                Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
-                DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
-
-                image.setImageBitmap(Bitmap.createScaledBitmap(drawableToBitmap(wrappedDrawable), tv22.getLineHeight(), tv22.getLineHeight(), true));
+                image.setImageBitmap(getBitmap(R.drawable.video, size));
                 image.setPadding(30,0,0,10);
                 linearLayout2.addView(image);
             }
@@ -264,6 +261,23 @@ public class PageFragment extends Fragment {
             tbrow.addView(tv3);
             tableLayout.addView(tbrow);
         }
+    }
+
+    Bitmap getBitmap(int drawable, int size) {
+        if(bitmaps.containsKey(drawable))
+            return bitmaps.get(drawable);
+        log("drawable not found");
+
+        Bitmap bitmap = paintAndScale(drawable, size);
+        bitmaps.put(drawable, bitmap);
+        return bitmap;
+    }
+
+    Bitmap paintAndScale(int drawable, int size) {
+        Drawable unwrappedDrawable = AppCompatResources.getDrawable(getContext(), drawable);
+        Drawable wrappedDrawable = DrawableCompat.wrap(unwrappedDrawable);
+        DrawableCompat.setTint(wrappedDrawable, getColorFromAttribute(R.attr.icons, getContext().getTheme()));
+        return Bitmap.createScaledBitmap(drawableToBitmap(wrappedDrawable), size, size, true);
     }
 
     public void CreateODOD(){
@@ -379,22 +393,15 @@ public class PageFragment extends Fragment {
         }
     }
 
-    static int getDrawableFromAttribute(int attr, Resources.Theme theme) {
-        TypedArray a = theme.obtainStyledAttributes(R.style.AppTheme, new int[] {attr});
-        int attributeResourceId = a.getResourceId(0, 0);
-        a.recycle();
-        return attributeResourceId;
-    }
+//    static int getDrawableFromAttribute(int attr, Resources.Theme theme) {
+//        TypedArray a = theme.obtainStyledAttributes(R.style.AppTheme, new int[] {attr});
+//        int attributeResourceId = a.getResourceId(0, 0);
+//        a.recycle();
+//        return attributeResourceId;
+//    }
 
     public static Bitmap drawableToBitmap(Drawable drawable) {
         Bitmap bitmap;
-
-//        if (drawable instanceof BitmapDrawable) {
-//            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-//            if(bitmapDrawable.getBitmap() != null) {
-//                return bitmapDrawable.getBitmap();
-//            }
-//        }
 
         if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
             bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel

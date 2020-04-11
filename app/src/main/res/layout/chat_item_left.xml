@@ -48,6 +48,7 @@
                 android:gravity="left"
                 android:inputType="textMultiLine"
                 android:maxWidth="300dp"
+                android:padding="4dp"
                 android:text="hello, hello!"
                 android:textColor="?attr/main_font"
                 android:textSize="16sp">
@@ -68,9 +69,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:paddingStart="10dp"
         android:text="11:40"
-        android:textSize="12sp"
         android:textColor="?attr/main_font"
+        android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@+id/tv_text"
         app:layout_constraintRight_toLeftOf="@+id/tv_text" />
 

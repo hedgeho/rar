@@ -46,6 +46,9 @@
         <item name="bottom_panel">#797979</item>
 
         <item name="editTextStyle">@style/AppTheme.EditTextTheme</item>
+        <item name="android:textViewStyle">@style/AppTheme.TextViewTheme</item>
+        <item name="android:dialogTheme">@style/MyLightTheme.AlertDialogTheme</item>
+<!--        <item name="android:windowBackground">?thread_background</item>-->
     </style>
     <style name="MyLightTheme" parent="MyDarkTheme">
         <item name="main">#ffffff</item>

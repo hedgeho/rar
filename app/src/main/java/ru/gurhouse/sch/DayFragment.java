@@ -103,7 +103,7 @@ public class DayFragment extends Fragment {
                 if (g > 1) {
                     s2 = "Оценки:";
                 } else {
-                    s2 = "Оценкa:";
+                    s2 = "Оценка:";
                 }
                 Spannable spans2 = new SpannableString(s2);
                 spans2.setSpan(new RelativeSizeSpan(1.7f), 0, s2.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
@@ -117,7 +117,7 @@ public class DayFragment extends Fragment {
                         String s1 = marks.get(i).value + "   " + marks.get(i).coefficient;
                         Spannable spans1 = new SpannableString(s1);
                         spans1.setSpan(new RelativeSizeSpan(1.7f), 0, s1.indexOf("   "), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
-                        spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.main_font, getContext().getTheme())), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.marks, getContext().getTheme())), 0, s1.indexOf("   "), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         spans1.setSpan(new RelativeSizeSpan(1.2f), s1.indexOf("   "), s1.length(), Spanned.SPAN_EXCLUSIVE_INCLUSIVE);
                         spans1.setSpan(new ForegroundColorSpan(getColorFromAttribute(R.attr.second_font, getContext().getTheme())), s1.indexOf("   "), s1.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                         tv1.setText(spans1);
@@ -222,6 +222,7 @@ public class DayFragment extends Fragment {
             tv1.setPadding(50, 50, 50, 50);
             tv1.setGravity(Gravity.CENTER_VERTICAL);
             tv1.setAutoLinkMask(Linkify.ALL);
+            tv1.setTextColor(getColorFromAttribute(R.attr.second_font, getContext().getTheme()));
             tv1.setTextIsSelectable(true);
             String s = "Видеоконференция:\n" + meetingInvite;
             Spannable spannable = new SpannableString(s);

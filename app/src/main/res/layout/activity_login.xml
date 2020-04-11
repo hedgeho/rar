@@ -55,6 +55,7 @@
             android:layout_marginBottom="24dp"
             android:text="Rаботать, Александр, Rаботать"
             android:textSize="18sp"
+            android:textColor="?main_font"
             app:layout_constraintBottom_toTopOf="@+id/pb"
             app:layout_constraintEnd_toEndOf="@+id/pb"
             app:layout_constraintStart_toStartOf="@+id/pb" />

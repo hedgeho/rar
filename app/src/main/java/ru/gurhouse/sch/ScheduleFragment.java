@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -44,6 +45,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Map;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
@@ -69,7 +71,10 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     int day;
     Date datenow;
     int pernum;
+
     String[] days1 = {"пн", "вт", "ср", "чт", "пт", "сб", "вс"};
+    static int yearname = Calendar.getInstance().get(Calendar.MONTH) < Calendar.JULY ? Calendar.getInstance().get(Calendar.YEAR)-1 : Calendar.getInstance().get(Calendar.YEAR);
+
     ViewPager pager;
     PagerAdapter pagerAdapter;
     int lastposition;
@@ -77,7 +82,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
     View v;
     DatePickerDialog datePickerDialog;
     int[] week;
-    static int yearname = Calendar.getInstance().get(Calendar.MONTH) < Calendar.JULY ? Calendar.getInstance().get(Calendar.YEAR)-1 : Calendar.getInstance().get(Calendar.YEAR);
     KindaList[] s = new KindaList[11];
     String[] name = {"1 четверть", "2 четверть", "1 полугодие", "3 четверть", "4 четверть",
             "2 полугодие", "Годовая оценка", "Экзамен", "Оценка за ОГЭ", "Оценка в аттестат"};
@@ -135,6 +139,7 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
             v = inflater.inflate(R.layout.fragment_schedule, container, false);
             return v;
         }
+
         log("shown? " + shown);
         if(!shown && periods[pernum].days != null)
             show();
@@ -152,8 +157,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
 
     void show(int pernum) {
         log("show SF");
-//        v = context.getLayoutInflater().inflate(R.layout.fragment_schedule,
-//                context.findViewById(R.id.frame), false);
 
         boolean autoChangingDate =
                 getContext().getSharedPreferences("pref", 0).getBoolean("nextday", true);
@@ -785,6 +788,15 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                                             }
                                         }
                                     }
+                                }
+                            }
+                            if(object2.has("files") && object2.getJSONObject("files").has("attach")) {
+                                ar = object2.getJSONObject("files").getJSONArray("attach");
+                                for (int j = 0; j < ar.length(); j++) {
+                                    file = new PeriodFragment.File();
+                                    file.name = ar.getJSONObject(j).getString("fileName");
+                                    file.id = ar.getJSONObject(j).getInt("fileId");
+                                    lesson.homeWork.files.add(file);
                                 }
                             }
                             lesson.homeWork.stringwork = builder.toString();
