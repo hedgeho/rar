@@ -62,6 +62,12 @@ public class SettingsActivity extends AppCompatActivity {
             getWindow().setNavigationBarColor(getColorFromAttribute(R.attr.main, getTheme()));
         }
 
+        if(pref.getBoolean("easter_egg", false)) {
+            findViewById(R.id.divider3).setVisibility(View.VISIBLE);
+            findViewById(R.id.tv_themes).setVisibility(View.VISIBLE);
+            findViewById(R.id.rg_theme).setVisibility(View.VISIBLE);
+        }
+
         et = findViewById(R.id.et_feedback);
         send = findViewById(R.id.btn_fbsend);
 
@@ -105,7 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
 //        drawable.setCornerRadius(50);
 //        drawable.setColor(getColorFromAttribute(R.attr.main, getTheme()));
 //        drawable.setStroke(3, Color.WHITE);
-
+//
 //        FrameLayout color = findViewById(R.id.color_background);
 //        EditText et = findViewById(R.id.et_backgroundColor);
 //        color.setBackground(drawable);
@@ -174,7 +180,7 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         Switch chat = findViewById(R.id.switch_chat);
-        chat.setChecked(pref.getBoolean("show_chat", true));
+        chat.setChecked(pref.getBoolean("show_chat", false));
         chat.setOnCheckedChangeListener((buttonView, isChecked) -> pref.edit().putBoolean("show_chat", isChecked).apply());
 
         et_nickname = findViewById(R.id.et_nickname);

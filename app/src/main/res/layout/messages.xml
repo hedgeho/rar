@@ -91,7 +91,7 @@
                         android:paddingLeft="10dp"
                         android:paddingRight="10dp"
                         android:text="R"
-                        android:textColor="?third_font"
+                        android:textColor="?second_font"
                         android:textSize="24sp"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />

@@ -710,7 +710,7 @@ public class MessagesFragment extends Fragment {
     @Override
     public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
         if(READY)
-            if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true))
+            if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", false))
                 view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
             else
                 view.findViewById(R.id.knock_l).setVisibility(View.GONE);
@@ -815,7 +815,7 @@ public class MessagesFragment extends Fragment {
         count = 25;
         s_count = 0;
         container1.removeAllViews();
-        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", false)) {
             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
             view.findViewById(R.id.knock_l).setOnClickListener(v -> {
                 FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -1239,7 +1239,7 @@ public class MessagesFragment extends Fragment {
                     if(searchView.isActionViewExpanded()) {
                         searchView.collapseActionView();
 
-                        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", true)) {
+                        if(getContext().getSharedPreferences("pref", 0).getBoolean("show_chat", false)) {
                             view.findViewById(R.id.knock_l).setVisibility(View.VISIBLE);
                             view.findViewById(R.id.knock_l).setOnClickListener(v ->  {
                                 FragmentTransaction transaction = getFragmentManager().beginTransaction();

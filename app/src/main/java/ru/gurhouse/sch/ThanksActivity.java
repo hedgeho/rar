@@ -4,6 +4,10 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import static ru.gurhouse.sch.LoginActivity.log;
 
 public class ThanksActivity extends AppCompatActivity {
 
@@ -22,21 +26,18 @@ public class ThanksActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_thanks);
 
-        /* пасхалка
-
         ImageView smile = findViewById(R.id.img_smile);
         smile.setOnClickListener(v -> {
-            SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
-            if(!pref.getBoolean("easteregg1", false)) {
+            if(!pref.getBoolean("easter_egg", false)) {
                 count++;
                 log("clicked " + count + " times");
                 if (count == 5) {
                     Toast.makeText(getApplicationContext(), "Поздравляю! Вы открыли пасхалку!", Toast.LENGTH_LONG).show();
-                    pref.edit().putBoolean("easteregg1", true).apply();
+                    pref.edit().putBoolean("easter_egg", true).apply();
                 }
             } else
                 log("пасхалка уже открыта");
-        });*/
+        });
         Button esc = findViewById(R.id.btn_ok);
         esc.setOnClickListener(v -> finish());
     }

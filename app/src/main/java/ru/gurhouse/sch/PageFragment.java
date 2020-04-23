@@ -239,6 +239,7 @@ public class PageFragment extends Fragment {
             linearLayout.addView(tv21);
             int size = tv22.getLineHeight();
 
+
             linearLayout2.setOrientation(LinearLayout.HORIZONTAL);
             if(lesson.homeWork.files != null && !lesson.homeWork.files.isEmpty()){
                 ImageView image = new ImageView(getContext());

@@ -5,7 +5,6 @@ import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -45,7 +44,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Locale;
-import java.util.Map;
 
 import static ru.gurhouse.sch.LoginActivity.connect;
 import static ru.gurhouse.sch.LoginActivity.log;
@@ -510,8 +508,6 @@ public class ScheduleFragment extends Fragment implements DatePickerDialog.OnDat
                 object1 = new JSONObject(
                         connect("https://app.eschool.center/ec-server/student/getDiaryPeriod?userId=" + USER_ID + "&eiId=" + id,
                                 null, getContext()));
-            } catch (LoginActivity.NoInternetException e) {
-                loge(e);
             } catch (Exception e) {
                 loge(e);
             }

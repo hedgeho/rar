@@ -518,14 +518,23 @@ public class ChatFragment extends Fragment {
 //                                Calendar cal = getInstance(), cal1 = getInstance();
 //                                int i = 0;
 
-                                for (Msg msg : messages) {
+                                boolean flag = false;
+                                l: for (Msg msg : messages) {
                                     if(msg.files != null && msg.files.size() > 0) {
-                                        log("pb shown");
-                                        view.findViewById(R.id.pb_chat).setVisibility(View.VISIBLE);
+                                        for (int i = 0; i < msg.files.size(); i++) {
+                                            if(msg.files.get(i).type.contains("image")) {
+                                                flag = true;
 //                                        view.findViewById(R.id.main_container).setVisibility(View.INVISIBLE);
-                                        break;
+                                                break l;
+                                            }
+                                        }
                                     }
                                 }
+                                if (flag) {
+                                    log("pb shown");
+                                    view.findViewById(R.id.pb_chat).setVisibility(View.VISIBLE);
+                                } else
+                                    view.findViewById(R.id.pb_chat).setVisibility(View.INVISIBLE);
 
                                 for (Msg msg : messages) {
                                     newMessage(msg.text,msg.time,msg.user_id,msg.user_id,msg.sender, msg.files,false);
@@ -607,13 +616,24 @@ public class ChatFragment extends Fragment {
                                 View item;
                                 TextView tv;
                                 Calendar cal = getInstance(), cal1 = getInstance();
-                                for (Msg msg : messages) {
+
+                                boolean flag = false;
+                                l: for (Msg msg : messages) {
                                     if(msg.files != null && msg.files.size() > 0) {
-                                        log("pb shown");
-                                        view.findViewById(R.id.pb_chat).setVisibility(View.VISIBLE);
+                                        for (int i = 0; i < msg.files.size(); i++) {
+                                            if(msg.files.get(i).type.contains("image")) {
+                                                flag = true;
 //                                        view.findViewById(R.id.main_container).setVisibility(View.INVISIBLE);
-                                        break;
+                                                break l;
+                                            }
+                                        }
                                     }
+                                }
+                                if (flag) {
+                                    log("pb shown");
+                                    view.findViewById(R.id.pb_chat).setVisibility(View.VISIBLE);
+                                } else {
+                                    view.findViewById(R.id.pb_chat).setVisibility(View.INVISIBLE);
                                 }
                                 Msg msg;
                                 for (int i = messages.length - 1; i >= 0; i--) {
@@ -701,14 +721,25 @@ public class ChatFragment extends Fragment {
                     Calendar cal = Calendar.getInstance(), cal1 = Calendar.getInstance();
                     log(messages.length + "");
 
-                    for (Msg msg : messages) {
+                    boolean flag = false;
+                    l: for (Msg msg : messages) {
                         if(msg.files != null && msg.files.size() > 0) {
-                            log("pb_shown");
-                            view.findViewById(R.id.pb_chat).setVisibility(View.VISIBLE);
-//                            view.findViewById(R.id.main_container).setVisibility(View.INVISIBLE);
-                            break;
+                            for (int i = 0; i < msg.files.size(); i++) {
+                                if(msg.files.get(i).type.contains("image")) {
+                                    flag = true;
+//                                        view.findViewById(R.id.main_container).setVisibility(View.INVISIBLE);
+                                    break l;
+                                }
+                            }
                         }
                     }
+                    if (flag) {
+                        log("pb shown");
+                        view.findViewById(R.id.pb_chat).setVisibility(View.VISIBLE);
+                    } else {
+                        view.findViewById(R.id.pb_chat).setVisibility(View.INVISIBLE);
+                    }
+
                     Msg msg;
                     for (int i = messages.length-1; i >= 0; i--) {
                         if(i >= messages.length)
