@@ -451,6 +451,7 @@ public class ChatFragment extends Fragment {
 
                 tv_attach.setPadding(15,15,15,15);
                 ((LinearLayout) item.findViewById(R.id.attach)).addView(tv_attach);
+                // todo
             }
             //tv_attach.setText(String.format(Locale.getDefault(), a.getString("fileName") + " (%.2f " + s + ")", size));
             //tv_attach.setTextColor(getResources().getColor(R.color.two));
