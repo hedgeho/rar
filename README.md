@@ -4,6 +4,8 @@ RAR project source code.
 
 Tech stack: Java, Android, Firebase | Python, Flask, PostgreSQL, Ubuntu, Digital Ocean VPS, Nginx
 
+E-mail for questions: developers.rar@gmail.com
+
 ----
 
 RAR - альтернативный клиент для электронного дневника eschool.center, сделанный с нуля учениками 239 лицея.
